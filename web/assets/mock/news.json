@@ -1,0 +1,194 @@
+[
+  {
+    "title": "サンプルニュース 1",
+    "url": "https://example.com/news/1",
+    "published_at": "2025-09-09T04:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 2",
+    "url": "https://example.com/news/2",
+    "published_at": "2025-09-08T22:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 3",
+    "url": "https://example.com/news/3",
+    "published_at": "2025-09-08T16:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 4",
+    "url": "https://example.com/news/4",
+    "published_at": "2025-09-08T10:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 5",
+    "url": "https://example.com/news/5",
+    "published_at": "2025-09-08T04:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 6",
+    "url": "https://example.com/news/6",
+    "published_at": "2025-09-07T22:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 7",
+    "url": "https://example.com/news/7",
+    "published_at": "2025-09-07T16:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 8",
+    "url": "https://example.com/news/8",
+    "published_at": "2025-09-07T10:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 9",
+    "url": "https://example.com/news/9",
+    "published_at": "2025-09-07T04:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 10",
+    "url": "https://example.com/news/10",
+    "published_at": "2025-09-06T22:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 11",
+    "url": "https://example.com/news/11",
+    "published_at": "2025-09-06T16:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 12",
+    "url": "https://example.com/news/12",
+    "published_at": "2025-09-06T10:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 13",
+    "url": "https://example.com/news/13",
+    "published_at": "2025-09-06T04:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 14",
+    "url": "https://example.com/news/14",
+    "published_at": "2025-09-05T22:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 15",
+    "url": "https://example.com/news/15",
+    "published_at": "2025-09-05T16:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 16",
+    "url": "https://example.com/news/16",
+    "published_at": "2025-09-05T10:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 17",
+    "url": "https://example.com/news/17",
+    "published_at": "2025-09-05T04:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 18",
+    "url": "https://example.com/news/18",
+    "published_at": "2025-09-04T22:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 19",
+    "url": "https://example.com/news/19",
+    "published_at": "2025-09-04T16:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 20",
+    "url": "https://example.com/news/20",
+    "published_at": "2025-09-04T10:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 21",
+    "url": "https://example.com/news/21",
+    "published_at": "2025-09-04T04:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 22",
+    "url": "https://example.com/news/22",
+    "published_at": "2025-09-03T22:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 23",
+    "url": "https://example.com/news/23",
+    "published_at": "2025-09-03T16:03:32.184496Z",
+    "source_name": "blog",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  },
+  {
+    "title": "サンプルニュース 24",
+    "url": "https://example.com/news/24",
+    "published_at": "2025-09-03T10:03:32.184496Z",
+    "source_name": "YouTube",
+    "source_url": "https://example.com",
+    "thumbnail_url": "https://placehold.co/640x360"
+  }
+]

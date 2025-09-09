@@ -1,31 +1,26 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Baby Animals / Cloudflare Pages + Workers</title>
-</head>
-<body>
-  <main style="max-width:760px;margin:40px auto;font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;">
-    <h1>🐣 Baby Animals (Starter)</h1>
-    <p>Cloudflare Pages + Workers + Supabase のスターターです。後日、Next.jsなどに置き換えてください。</p>
-
-    <section>
-      <h2>API（Supabase経由の例）</h2>
-      <p><code>news_items</code> の最新10件を読み込むデモ（READはSupabaseのAnonKeyでOKですが、本スターターではデモのみに留めています）。</p>
-      <pre><code>fetch('https://YOUR_SUPABASE_PROJECT.supabase.co/rest/v1/news_items?select=*&order=published_at.desc&limit=10', {
-  headers: { apikey: 'YOUR_ANON_KEY' }
-});</code></pre>
-    </section>
-
-    <section>
-      <h2>次のステップ</h2>
-      <ol>
-        <li>Next.jsを導入し、/news /babies /calendar などのページを構築</li>
-        <li>広告（AdSense）を導入</li>
-        <li>SEO（sitemap, OGP）を整備</li>
-      </ol>
-    </section>
-  </main>
-</body>
-</html>
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Baby Animals</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<script defer src="/assets/js/app.js"></script>
+</head><body>
+<div class="container hero">
+  <h1>🐣 Baby Animals</h1>
+  <p>日本の動物園にいる「赤ちゃん動物」の最新情報をまとめて見られるサイト。</p>
+  <div class="banner">（広告枠 728x90 / レスポンシブ想定）</div>
+  <div class="grid">
+    <a class="card" href="/news/">
+      <div class="thumb"></div>
+      <div class="pad"><h3>ニュースまとめ</h3><div class="meta">ブログ・公式・YouTube など</div></div>
+    </a>
+    <a class="card" href="/babies/">
+      <div class="thumb"></div>
+      <div class="pad"><h3>赤ちゃん一覧</h3><div class="meta">誕生日・動物種・動物園</div></div>
+    </a>
+    <a class="card" href="/calendar/">
+      <div class="thumb"></div>
+      <div class="pad"><h3>カレンダー</h3><div class="meta">誕生日やイベント</div></div>
+    </a>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,27 @@
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ニュース一覧 | Baby Animals</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<script defer src="/assets/js/app.js"></script>
+<script defer src="/assets/js/news.js"></script>
+</head><body>
+<div class="container hero">
+  <h1>ニュース一覧</h1>
+  <div class="controls">
+    <input id="q" type="search" placeholder="キーワード検索">
+    <select id="source">
+      <option value="">すべてのソース</option>
+      <option value="YouTube">YouTube</option>
+      <option value="blog">ブログ/ニュース</option>
+    </select>
+    <select id="sort">
+      <option value="desc">新着順</option>
+      <option value="asc">古い順</option>
+    </select>
+    <button id="more">もっと読む</button>
+  </div>
+  <div class="banner">（インフィード広告枠）</div>
+  <div id="list" class="grid"></div>
+  <div id="empty" class="empty" style="display:none;">データがありません</div>
+</div>
+</body></html>
