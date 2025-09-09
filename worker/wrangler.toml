@@ -1,0 +1,15 @@
+name = "babyanimals-worker"
+main = "src/index.ts"
+compatibility_date = "2024-10-01"
+
+[triggers]
+# 毎時30分ごと（例） - CloudflareダッシュボードからGUI設定でもOK
+crons = ["*/30 * * * *"]
+
+[vars]
+# 変数はダッシュボードでSecretsとして設定するのが安全です。ここでは型の目安のみ。
+# SUPABASE_URL = ""
+# SUPABASE_SERVICE_ROLE = ""
+# YOUTUBE_API_KEY = ""
+# YOUTUBE_CHANNEL_IDS = ""
+# RSS_SOURCES = "[]"
