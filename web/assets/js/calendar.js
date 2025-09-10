@@ -2,7 +2,7 @@
 
 const state = { d:new Date(), events:[] };
 
-function log(...a){ try{ console.log('[calendar]', ...a);}catch{} }
+function log(){ /* デバッグOFF */ }
 
 function monthKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function firstLastOfMonth(d){

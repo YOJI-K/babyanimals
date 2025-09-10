@@ -3,7 +3,7 @@
 let BABIES = [];
 let ZOOS = [];
 
-function log(...args){ try { console.log('[babies]', ...args); } catch{} }
+function log(){ /* デバッグOFF */ }
 
 function tmplCard(x){
   const img = x.thumbnail_url || 'https://placehold.co/640x360';
