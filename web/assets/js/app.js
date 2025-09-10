@@ -30,3 +30,11 @@ const Site = {
   domain(u){ try{ return new URL(u).host.replace(/^www\./,''); }catch{ return ''; } }
 };
 document.addEventListener('DOMContentLoaded', Site.mountShell);
+
+// === Supabase public config (anon) ===
+// 後で値を置き換えてください
+window.SUPABASE = {
+  URL: "https://hvhpfrksyytthupboaeo.supabase.co",
+  ANON: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY" // anon public key
+};
+

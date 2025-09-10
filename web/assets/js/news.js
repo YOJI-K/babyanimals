@@ -3,7 +3,24 @@ const PAGE_SIZE = 12;
 let all = [];
 
 async function loadMock(){
+  // Fallback: 失敗時モック
   const res = await fetch('/assets/mock/news.json');
+  return res.json();
+}
+
+async function loadSupabase(){
+  const { URL, ANON } = window.SUPABASE || {};
+  if(!URL || !ANON) throw new Error("Supabase config missing");
+
+  const q = new URL(`${URL}/rest/v1/news_items`);
+  q.searchParams.set("select", "title,url,published_at,source_name,thumbnail_url,source_url");
+  q.searchParams.set("order", "published_at.desc");
+  q.searchParams.set("limit", "200");
+
+  const res = await fetch(q.toString(), {
+    headers: { apikey: ANON, Authorization: `Bearer ${ANON}` }
+  });
+  if(!res.ok) throw new Error(`Supabase fetch failed: ${res.status}`);
   return res.json();
 }
 
@@ -39,7 +56,12 @@ function render(){
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  all = await loadMock();
+  try {
+    all = await loadSupabase();   // ← まずSupabaseを試す
+  } catch (e) {
+    console.warn(e);
+    all = await loadMock();       // ← 失敗時はモック
+  }
   render();
 
   document.getElementById('q').addEventListener('input', ()=>{ page=1; render(); });
@@ -47,3 +69,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('sort').addEventListener('change', ()=>{ page=1; render(); });
   document.getElementById('more').addEventListener('click', ()=>{ page++; render(); });
 });
+
