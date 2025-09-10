@@ -1,31 +1,34 @@
-// calendar.js
+// calendar.js (debug v3)
+
 const state = { d:new Date(), events:[] };
 
-function monthKey(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
+function log(...a){ try{ console.log('[calendar]', ...a);}catch{} }
+
+function monthKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function firstLastOfMonth(d){
   const first = new Date(d.getFullYear(), d.getMonth(), 1);
   const last  = new Date(d.getFullYear(), d.getMonth()+1, 0);
-  const s = first.toISOString().slice(0,10);
-  const e = last.toISOString().slice(0,10);
-  return {start:s, end:e};
+  return {start:first.toISOString().slice(0,10), end:last.toISOString().slice(0,10)};
+}
+
+async function fetchJSON(u){
+  const { URL: SUPA_URL, ANON } = window.SUPABASE || {};
+  if(!SUPA_URL || !ANON) throw new Error('Supabase config missing in app.js');
+  const url = new window.URL(`${SUPA_URL}${u}`);
+  const res = await fetch(url, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` } });
+  log('GET', url.toString(), '->', res.status);
+  if(!res.ok){
+    const t = await res.text().catch(()=> '');
+    throw new Error(`Fetch failed ${res.status}: ${t}`);
+  }
+  return res.json();
 }
 
 async function loadEventsForMonth(d){
-  const { URL, ANON } = window.SUPABASE || {};
   const { start, end } = firstLastOfMonth(d);
-
-  const q = new URL(`${URL}/rest/v1/events_public`);
-  q.searchParams.set('select','id,date,title,baby_id,baby_name,zoo_id,zoo_name');
-  q.searchParams.set('date','gte.'+start);
-  q.searchParams.set('date','lte.'+end);
-  q.searchParams.set('order','date.asc');
-  q.searchParams.set('limit','500');
-
-  const res = await fetch(q, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` } });
-  if(!res.ok) throw new Error('load events failed');
-  state.events = await res.json();
+  const q = `/rest/v1/events_public?select=id,date,title,baby_name,zoo_name&date=gte.${start}&date=lte.${end}&order=date.asc&limit=500`;
+  state.events = await fetchJSON(q);
+  log('events:', state.events.length);
 }
 
 function draw(){
@@ -71,17 +74,28 @@ function draw(){
   root.appendChild(grid);
 }
 
+function showError(e){
+  console.error(e);
+  const box = document.createElement('div');
+  box.className = 'empty';
+  box.textContent = '読み込みエラー：' + (e?.message || e);
+  document.querySelector('.hero')?.prepend(box);
+}
+
 document.addEventListener('DOMContentLoaded', async ()=>{
-  await loadEventsForMonth(state.d);
-  draw();
-  document.getElementById('prev').addEventListener('click', async ()=>{
-    state.d.setMonth(state.d.getMonth()-1);
+  log('calendar.js loaded');
+  try{
     await loadEventsForMonth(state.d);
     draw();
-  });
-  document.getElementById('next').addEventListener('click', async ()=>{
-    state.d.setMonth(state.d.getMonth()+1);
-    await loadEventsForMonth(state.d);
-    draw();
-  });
+    document.getElementById('prev').addEventListener('click', async ()=>{
+      state.d.setMonth(state.d.getMonth()-1);
+      await loadEventsForMonth(state.d); draw();
+    });
+    document.getElementById('next').addEventListener('click', async ()=>{
+      state.d.setMonth(state.d.getMonth()+1);
+      await loadEventsForMonth(state.d); draw();
+    });
+  }catch(e){
+    showError(e);
+  }
 });

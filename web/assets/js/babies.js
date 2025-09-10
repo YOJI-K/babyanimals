@@ -1,7 +1,9 @@
-// babies.js（完全版）
+// babies.js (debug v3)
 
 let BABIES = [];
 let ZOOS = [];
+
+function log(...args){ try { console.log('[babies]', ...args); } catch{} }
 
 function tmplCard(x){
   const img = x.thumbnail_url || 'https://placehold.co/640x360';
@@ -33,52 +35,63 @@ function render(){
   }
   if(zooId) data = data.filter(x => String(x.zoo_id||'') === String(zooId));
 
-  // 誕生日の新しい順（未設定は最後）
   data.sort((a,b)=>{
     const ad = a.birthday ? new Date(a.birthday).getTime() : -Infinity;
     const bd = b.birthday ? new Date(b.birthday).getTime() : -Infinity;
     return bd - ad;
   });
 
-  document.getElementById('list').innerHTML = data.map(tmplCard).join('');
+  const html = data.map(tmplCard).join('');
+  document.getElementById('list').innerHTML = html;
+  log('rendered cards:', data.length);
+}
+
+async function fetchJSON(u){
+  const { URL: SUPA_URL, ANON } = window.SUPABASE || {};
+  if(!SUPA_URL || !ANON) throw new Error('Supabase config missing in app.js');
+
+  const url = new window.URL(`${SUPA_URL}${u}`);
+  const res = await fetch(url, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` } });
+  log('GET', url.toString(), '->', res.status);
+  if(!res.ok){
+    const t = await res.text().catch(()=> '');
+    throw new Error(`Fetch failed ${res.status}: ${t}`);
+  }
+  return res.json();
 }
 
 async function loadZoos(){
-  const { URL: SUPA_URL, ANON } = window.SUPABASE || {};
-  const q = new window.URL(`${SUPA_URL}/rest/v1/zoos`);
-  q.searchParams.set('select','id,name');
-  q.searchParams.set('order','name.asc');
-
-  const res = await fetch(q, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` } });
-  if(!res.ok) throw new Error('load zoos failed');
-
-  ZOOS = await res.json();
+  const data = await fetchJSON('/rest/v1/zoos?select=id,name&order=name.asc');
+  ZOOS = data;
   const sel = document.getElementById('zoo');
   sel.innerHTML = `<option value="">すべての動物園</option>`
     + ZOOS.map(z=>`<option value="${z.id}">${z.name}</option>`).join('');
+  log('zoos:', ZOOS.length);
 }
 
 async function loadBabies(){
-  const { URL: SUPA_URL, ANON } = window.SUPABASE || {};
-  const q = new window.URL(`${SUPA_URL}/rest/v1/babies_public`);
-  q.searchParams.set('select','id,name,species,birthday,thumbnail_url,zoo_id,zoo_name');
-  q.searchParams.set('order','birthday.desc,nullslast');
-  q.searchParams.set('limit','500');
+  const data = await fetchJSON('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name&order=birthday.desc.nullslast&limit=500');
+  BABIES = data;
+  log('babies:', BABIES.length);
+}
 
-  const res = await fetch(q, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` } });
-  if(!res.ok) throw new Error('load babies failed');
-
-  BABIES = await res.json();
+function showError(e){
+  console.error(e);
+  const box = document.createElement('div');
+  box.className = 'empty';
+  box.textContent = '読み込みエラー：' + (e?.message || e);
+  document.querySelector('.hero')?.prepend(box);
 }
 
 document.addEventListener('DOMContentLoaded', async ()=>{
+  log('babies.js loaded');
   try{
     await loadZoos();
     await loadBabies();
+    render();
+    document.getElementById('q').addEventListener('input', render);
+    document.getElementById('zoo').addEventListener('change', render);
   }catch(e){
-    console.error(e);
+    showError(e);
   }
-  render();
-  document.getElementById('q').addEventListener('input', render);
-  document.getElementById('zoo').addEventListener('change', render);
 });
