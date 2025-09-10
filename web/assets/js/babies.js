@@ -1,4 +1,5 @@
-// babies.js
+// babies.js（完全版）
+
 let BABIES = [];
 let ZOOS = [];
 
@@ -32,7 +33,7 @@ function render(){
   }
   if(zooId) data = data.filter(x => String(x.zoo_id||'') === String(zooId));
 
-  // 誕生日の新しい順 → 未設定は最後
+  // 誕生日の新しい順（未設定は最後）
   data.sort((a,b)=>{
     const ad = a.birthday ? new Date(a.birthday).getTime() : -Infinity;
     const bd = b.birthday ? new Date(b.birthday).getTime() : -Infinity;
@@ -43,25 +44,30 @@ function render(){
 }
 
 async function loadZoos(){
-  const { URL, ANON } = window.SUPABASE || {};
-  const q = new URL(`${URL}/rest/v1/zoos`);
+  const { URL: SUPA_URL, ANON } = window.SUPABASE || {};
+  const q = new window.URL(`${SUPA_URL}/rest/v1/zoos`);
   q.searchParams.set('select','id,name');
   q.searchParams.set('order','name.asc');
+
   const res = await fetch(q, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` } });
   if(!res.ok) throw new Error('load zoos failed');
+
   ZOOS = await res.json();
   const sel = document.getElementById('zoo');
-  sel.innerHTML = `<option value="">すべての動物園</option>` + ZOOS.map(z=>`<option value="${z.id}">${z.name}</option>`).join('');
+  sel.innerHTML = `<option value="">すべての動物園</option>`
+    + ZOOS.map(z=>`<option value="${z.id}">${z.name}</option>`).join('');
 }
 
 async function loadBabies(){
-  const { URL, ANON } = window.SUPABASE || {};
-  const q = new URL(`${URL}/rest/v1/babies_public`);
+  const { URL: SUPA_URL, ANON } = window.SUPABASE || {};
+  const q = new window.URL(`${SUPA_URL}/rest/v1/babies_public`);
   q.searchParams.set('select','id,name,species,birthday,thumbnail_url,zoo_id,zoo_name');
   q.searchParams.set('order','birthday.desc,nullslast');
   q.searchParams.set('limit','500');
+
   const res = await fetch(q, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` } });
   if(!res.ok) throw new Error('load babies failed');
+
   BABIES = await res.json();
 }
 
