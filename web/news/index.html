@@ -7,7 +7,7 @@
 </head><body>
 <div class="container hero">
   <h1>ニュース一覧</h1>
-  <div class="controls">
+  <div class="controls sticky">
     <input id="q" type="search" placeholder="キーワード検索">
     <select id="source">
       <option value="">すべてのソース</option>
@@ -21,6 +21,23 @@
     <button id="more">もっと読む</button>
   </div>
   <div class="banner">（インフィード広告枠）</div>
+  <div id="skeleton-news" class="grid" aria-hidden="true">
+  <div class="card">
+    <div class="thumb skeleton"></div>
+    <div class="pad">
+      <div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div>
+      <div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="thumb skeleton"></div>
+    <div class="pad">
+      <div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div>
+      <div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div>
+    </div>
+  </div>
+  <!-- …必要な枚数（例:8枚分）繰り返す -->
+</div>
   <div id="list" class="grid"></div>
   <div id="empty" class="empty" style="display:none;">データがありません</div>
 </div>

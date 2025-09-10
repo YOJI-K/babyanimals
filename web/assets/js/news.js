@@ -25,6 +25,14 @@ async function loadSupabase(){
 }
 
 function render(){
+  const sk = document.getElementById('skeleton-news');
+  const el = document.getElementById('list');
+
+  // ---- 1. 描画開始：スケルトンON、リストを空にする ----
+  if (sk) sk.style.display = 'grid';  // skeletonを表示
+  if (el) el.innerHTML = '';          // 前の内容を消す
+
+  // ---- 2. データ加工 ----
   const q = (document.getElementById('q').value||'').toLowerCase();
   const source = document.getElementById('source').value;
   const sort = document.getElementById('sort').value;
@@ -34,24 +42,31 @@ function render(){
   if (source === 'YouTube') data = data.filter(x => x.source_name === 'YouTube');
   if (source === 'blog') data = data.filter(x => x.source_name !== 'YouTube');
 
-  data.sort((a,b)=> sort==='desc' ? (new Date(b.published_at)-new Date(a.published_at)) : (new Date(a.published_at)-new Date(b.published_at)));
+  data.sort((a,b)=> sort==='desc'
+    ? (new Date(b.published_at)-new Date(a.published_at))
+    : (new Date(a.published_at)-new Date(b.published_at))
+  );
 
   const start = 0;
   const end = page * PAGE_SIZE;
   const slice = data.slice(start, end);
 
-  const el = document.getElementById('list');
+  // ---- 3. 描画本体 ----
   el.innerHTML = slice.map(x => `
     <a class="card" href="${x.url}" target="_blank" rel="noopener">
-      <img class="thumb" src="${x.thumbnail_url || ''}" alt="">
+      <img class="thumb" src="${x.thumbnail_url || ''}" loading="lazy" alt="">
       <div class="pad">
-        <h3>${x.title || '(no title)'}</h3>
-        <div class="meta">${Site.fmtDate(x.published_at)} ・ ${Site.domain(x.url)}</div>
-        <div class="badge">${x.source_name || ''}</div>
+        <h3 class="clamp-2">${x.title || '(no title)'}</h3>
+        <div class="meta">${Site.fmtDate(x.published_at)} ・ <strong>${Site.domain(x.url)}</strong></div>
+        <div class="badge src">${x.source_name || ''}</div>
       </div>
     </a>
   `).join('');
 
+  // ---- 4. 描画完了：スケルトンOFF ----
+  if (sk) sk.style.display = 'none';
+
+  // ---- 5. 空状態の表示 ----
   document.getElementById('empty').style.display = slice.length ? 'none' : 'block';
 }
 

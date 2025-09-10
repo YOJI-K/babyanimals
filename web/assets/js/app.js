@@ -20,13 +20,21 @@ const Site = {
     </div>`;
     document.body.append(footer);
   },
-  fmtDate(iso){
+  // 既存の fmtDate を置き換え
+fmtDate(iso){
+  if(!iso) return '';
+  try{
     const d = new Date(iso);
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  },
+    // 例: 2025/09/10
+    return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+  }catch{ return ''; }
+},
+// 追加：月のラベル（例: 2025年9月）
+fmtMonthYM(d){
+  try{
+    return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long'}).format(d);
+  }catch{ return ''; }
+},
   domain(u){ try{ return new URL(u).host.replace(/^www\./,''); }catch{ return ''; } }
 };
 document.addEventListener('DOMContentLoaded', Site.mountShell);
