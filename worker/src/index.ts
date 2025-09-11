@@ -386,10 +386,6 @@ async function runBabiesJob(env: Env) {
 export default {
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
     try {
-      // CRON は wrangler.toml で設定
-      // '0 * * * *'       -> hourly news
-      // '15 18 * * *'     -> daily zoos (JST 03:15 相当)
-      // '30 18 * * *'     -> daily babies (JST 03:30 相当)
       if (event.cron === '0 * * * *') {
         await runNewsJob(env);
       } else if (event.cron === '15 18 * * *') {
@@ -403,5 +399,27 @@ export default {
       await logJob(env, { job: 'unknown', ok: false, error: String(e), started_at: new Date(), finished_at: new Date() });
       throw e;
     }
+  },
+
+  // ★ 追加：GET /run?job=news|zoos|babies&token=XXXX で手動実行
+  async fetch(req: Request, env: Env) {
+    const { searchParams, pathname } = new URL(req.url);
+    if (pathname === '/run') {
+      const token = searchParams.get('token') || '';
+      const job = (searchParams.get('job') || '').toLowerCase();
+      // Secret で保護
+      // wrangler secret put RUN_TOKEN で設定してください
+      // @ts-ignore
+      const ok = token && env.RUN_TOKEN && token === env.RUN_TOKEN;
+      if (!ok) return new Response('forbidden', { status: 403 });
+
+      if (job === 'news')      { await runNewsJob(env); }
+      else if (job === 'zoos') { await runZoosJob(env); }
+      else if (job === 'babies'){ await runBabiesJob(env); }
+      else return new Response('bad job', { status: 400 });
+
+      return new Response(JSON.stringify({ ok: true, job }), { headers: { 'content-type': 'application/json' } });
+    }
+    return new Response('ok');
   }
 };
