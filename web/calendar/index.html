@@ -1,18 +1,46 @@
-<!doctype html><html lang="ja"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>カレンダー | Baby Animals</title>
-<link rel="stylesheet" href="/assets/css/style.css">
-<script defer src="/assets/js/app.js"></script>
-<script defer src="/assets/js/calendar.js"></script>
-</head><body>
-<div class="container hero">
-  <h1>カレンダー</h1>
-  <div class="controls">
-    <button id="prev">前月</button>
-    <div id="month" class="badge"></div>
-    <button id="next">翌月</button>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>カレンダー | Baby Animals</title>
+
+  <!-- SEO / OGP -->
+  <meta name="description" content="日本の動物園にいる赤ちゃん動物の誕生日やイベントを月別カレンダーで一目で確認できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="カレンダー | Baby Animals">
+  <meta property="og:description" content="日本の動物園にいる赤ちゃん動物の誕生日やイベントを月別カレンダーで一目で確認。">
+  <meta property="og:url" content="https://babyanimals.pages.dev/calendar/">
+  <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <script defer src="/assets/js/app.js"></script>
+  <script defer src="/assets/js/calendar.js"></script>
+</head>
+<body>
+  <div class="container hero">
+    <h1>カレンダー</h1>
+
+    <!-- 操作（SPで指が届きやすい配置） -->
+    <div class="controls sticky" style="gap:12px">
+      <button id="prev">前月</button>
+      <div id="month" class="badge">読み込み中...</div>
+      <button id="next">翌月</button>
+    </div>
+
+    <!-- 曜日ヘッダ（2-2） -->
+    <div id="dow" class="grid" style="grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px">
+      <div class="small">日</div><div class="small">月</div><div class="small">火</div>
+      <div class="small">水</div><div class="small">木</div><div class="small">金</div><div class="small">土</div>
+    </div>
+
+    <!-- カレンダー本体 -->
+    <div id="cal"></div>
+
+    <!-- 凡例（2-2） -->
+    <div id="legend" class="small" style="margin-top:8px">凡例：<span class="badge">● イベント</span> / 枠線＝本日</div>
   </div>
-  <div id="cal"></div>
-  <div class="small">雛形：1件だけモック表示。後でSupabaseに接続。</div>
-</div>
-</body></html>
+</body>
+</html>
