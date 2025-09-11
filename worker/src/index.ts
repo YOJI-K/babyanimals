@@ -36,7 +36,21 @@ function normUrl(u: string | null | undefined): string | null {
 function domain(u: string) {
   try { return new URL(u).hostname.replace(/^www\./,''); } catch { return ''; }
 }
-
+// Google News のリンクから元記事URLを取り出す
+function unwrapGoogleNews(u: string | null | undefined): string | null {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.hostname.endsWith('news.google.com')) {
+      // 多くの場合、元記事URLは ?url= に入っている
+      const orig = url.searchParams.get('url');
+      if (orig) return normUrl(orig);
+    }
+    return normUrl(u);
+  } catch {
+    return normUrl(u || '');
+  }
+}
 // YYYY-MM-DD を返す（日本語日付にも対応）
 function parseDateToISO(input?: string | null): string | null {
   if (!input) return null;
@@ -153,36 +167,36 @@ function parseRSS(xml: string): FeedItem[] {
     let title = textBetween(b, 'title') || '';
     title = title.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim();
 
-    // link
-    let url = textBetween(b, 'link');
-    // Atom 形式 <link href="...">
-    if (!url) url = attrValue(b, 'link', 'href');
+    // link（Atomだと <link href="..."> の場合がある）
+    let link = textBetween(b, 'link');
+    if (!link) link = attrValue(b, 'link', 'href');
+    if (!link) link = textBetween(b, 'guid');
 
-    // guid がURLの時も
-    if (!url) url = textBetween(b, 'guid');
-    url = normUrl(url || '');
+    // Google News の場合は元記事URLを優先
+    const finalUrl = unwrapGoogleNews(link || '');
+    const norm = normUrl(finalUrl || '');
 
     // pubDate / updated
     const pub = textBetween(b, 'pubDate') || textBetween(b, 'updated');
     const published_at = parseDateToISO(pub || '') || null;
 
-    // media:thumbnail or enclosure
+    // media:thumbnail / enclosure
     const thumb = attrValue(b, 'media:thumbnail', 'url') ||
                   attrValue(b, 'enclosure', 'url') ||
                   null;
 
-    if (url) {
+    if (norm) {
       out.push({
-        title, url,
+        title,
+        url: norm,
         published_at,
         thumbnail_url: thumb,
-        source_name: domain(url)
+        source_name: domain(norm)
       });
     }
   }
   return out;
 }
-
 // -------------------------------
 // 収集ジョブ: ニュース（毎時）
 // -------------------------------
