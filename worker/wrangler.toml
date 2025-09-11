@@ -1,15 +1,19 @@
 name = "babyanimals-worker"
 main = "src/index.ts"
-compatibility_date = "2024-10-01"
-
-[triggers]
-# 毎時30分ごと（例） - CloudflareダッシュボードからGUI設定でもOK
-crons = ["*/30 * * * *"]
+compatibility_date = "2024-09-01"
 
 [vars]
-# 変数はダッシュボードでSecretsとして設定するのが安全です。ここでは型の目安のみ。
-# SUPABASE_URL = ""
-# SUPABASE_SERVICE_ROLE = ""
-# YOUTUBE_API_KEY = ""
-# YOUTUBE_CHANNEL_IDS = ""
-# RSS_SOURCES = "[]"
+SUPABASE_URL = "https://hvhpfrksyytthupboaeo.supabase.co"  # ← あなたのURLに置換
+
+[triggers]
+crons = [
+  "0 * * * *",      # ニュース: 毎時
+  "15 18 * * *",    # 動物園: 毎日 (JST 03:15 相当)
+  "30 18 * * *"     # 赤ちゃん: 毎日 (JST 03:30 相当)
+]
+
+[observability]
+enabled = true
+
+# Secret はダッシュボード or CLI で設定してください
+# wrangler secret put SUPABASE_SERVICE_ROLE

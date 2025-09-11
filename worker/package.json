@@ -1,14 +1,14 @@
 {
   "name": "babyanimals-worker",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "devDependencies": {
-    "wrangler": "^3.72.0",
-    "typescript": "^5.5.4"
-  },
   "scripts": {
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.75.0",
+    "typescript": "^5.4.0"
   }
 }
