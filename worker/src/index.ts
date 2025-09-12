@@ -16,6 +16,8 @@ const JP_TZ = 'Asia/Tokyo';
 const MAX_SOURCES_PER_RUN = 25;
 // 1回の実行で処理する babies ソース最大数（Cloudflare Workers の subrequests 制限対策）
 const MAX_BABY_SOURCES_PER_RUN = 25;
+// zoos upsert のチャンクサイズ（安全のため分割して書き込む）
+const MAX_ZOOS_UPSERT_CHUNK = 500;
 
 function nowIso() {
   return new Date().toISOString();
@@ -340,20 +342,32 @@ async function runZoosJob(env: Env) {
     const api = 'https://ja.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:%E6%97%A5%E6%9C%AC%E3%81%AE%E5%8B%95%E7%89%A9%E5%9C%92&cmlimit=500&format=json&origin=*';
     const res = await fetch(api, { cf: { cacheTtl: 3600 } });
     if (!res.ok) throw new Error(`wikipedia -> ${res.status}`);
+
     const json = await res.json();
     const members: any[] = json?.query?.categorymembers || [];
     counters.total = members.length;
 
-    const rows = members
-      .map(m => (m?.title || '').replace(/\s*\(.*?\)\s*/g, '').trim())
-      .filter(Boolean)
-      .map(name => ({ name }));
-
-    if (rows.length) {
-      // zoos: name だけ upsert（将来は公式URL等も突合）
-      await sbPost(env, '/rest/v1/zoos?on_conflict=name', rows);
-      counters.inserted = rows.length;
+    // タイトル整形と重複除去
+    const nameSet = new Set<string>();
+    for (const m of members) {
+      const clean = (m?.title || '').replace(/\s*\(.*?\)\s*/g, '').trim();
+      if (clean) nameSet.add(clean);
     }
+
+    const rows = Array.from(nameSet).map(name => ({ name }));
+
+    // まとめて一括 upsert（チャンク分割）
+    for (const part of chunk(rows, MAX_ZOOS_UPSERT_CHUNK)) {
+      if (part.length) await sbPost(env, '/rest/v1/zoos?on_conflict=name', part);
+      counters.inserted += part.length; // 重複はignoreのため概算でOK
+    }
+
+    // 観測用の軽量ログ
+    console.log('ZOOS JOB STATS', {
+      total: counters.total,
+      uniqueRows: rows.length,
+      chunk: MAX_ZOOS_UPSERT_CHUNK
+    });
 
     await logJob(env, {
       job: 'zoos', ok: true, started_at: started, finished_at: new Date(),
@@ -364,6 +378,7 @@ async function runZoosJob(env: Env) {
     throw e;
   }
 }
+
 
 // -------------------------------
 // 収集ジョブ: 赤ちゃん（毎日）
