@@ -441,7 +441,7 @@ async function runBabiesJob(env: Env) {
 
           babyRows.push({
             // name はページ依存なので未知（将来強化）
-            name: null,
+            name: ensureBabyName(it.title, hint),
             species: hint,
             birthday: bday,
             thumbnail_url: it.thumbnail_url,
@@ -468,7 +468,13 @@ async function runBabiesJob(env: Env) {
         if (part.length) await sbPost(env, '/rest/v1/babies', part);
         counters.inserted += part.length; // 重複があっても概算でOK
       }
-
+      // 個体名が不明でもNOT NULLを満たすためのフォールバック
+      function ensureBabyName(title?: string | null, hint?: string | null) {
+        const t = (title || '').trim();
+        if (t) return t.slice(0, 100); // タイトルを最大100文字で流用
+        if (hint) return `赤ちゃん（${hint}）`;
+        return '赤ちゃん';
+        }
       // 3) 今回処理した source のみ last_checked を一括更新（1回）
       if (processedIds.length) {
         const inList = processedIds.join(',');
