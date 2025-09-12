@@ -99,7 +99,12 @@ function decodeEntities(s: string) {
   // URLで致命になりやすい &amp; のみ最低限
   return s.replace(/&amp;/g, '&');
 }
-
+// 配列ユーティリティ：チャンク分割
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
 // -------------------------------
 // Supabase REST
 // -------------------------------
@@ -238,6 +243,10 @@ async function runNewsJob(env: Env) {
   // 有効なソースを取得
   const sources = await sbGet(env, '/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,googlenews)');
 
+  // 一括書き込み用のバッファ
+  const fpSet = new Set<string>();   // fingerprints（重複除去）
+  const newsRows: any[] = [];        // news_items
+
   for (const s of sources as any[]) {
     try {
       const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
@@ -247,16 +256,14 @@ async function runNewsJob(env: Env) {
 
       counters.total += items.length;
 
-      // fingerprints で重複ガード → news_items upsert
-      const rows = [];
+      // ここでは“貯めるだけ”で Supabase には投げない（サブリクエスト抑制）
       for (const it of items) {
         const u = normUrl(it.url);
         if (!u) continue;
         const fp = await sha256hex(u);
-        // fingerprints に記録（重複は無視）
-        await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', [{ fp, kind: 'news' }]);
+        fpSet.add(fp);
 
-        rows.push({
+        newsRows.push({
           title: it.title?.slice(0, 300) || null,
           url: u,
           published_at: it.published_at,
@@ -265,20 +272,31 @@ async function runNewsJob(env: Env) {
           source_id: s.id
         });
       }
-
-      if (rows.length) {
-        // news_items(url unique) に upsert
-        await sbPost(env, '/rest/v1/news_items?on_conflict=url', rows);
-        // 挿入数は厳密に取れないので概算（重複はignoreされる）
-        counters.inserted += rows.length;
-      }
-      // 最終チェック時間更新（PATCHに変更）
-      await sbPatch(env, '/rest/v1/sources?id=eq.' + s.id, { last_checked: nowIso() });
-
     } catch (e) {
       console.error('news source failed', s.url, e);
       counters.skipped++;
     }
+  }
+
+  // ---- ここから一括書き込み ----
+  try {
+    // 1) fingerprints をチャンクで upsert
+    const fpRows = Array.from(fpSet).map(fp => ({ fp, kind: 'news' }));
+    for (const part of chunk(fpRows, 1000)) {
+      if (part.length) await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', part);
+    }
+
+    // 2) news_items(url unique) をチャンクで upsert
+    for (const part of chunk(newsRows, 500)) {
+      if (part.length) await sbPost(env, '/rest/v1/news_items?on_conflict=url', part);
+      counters.inserted += part.length; // 重複はignoreされるため概算
+    }
+
+    // 3) sources.last_checked を対象ソース全件まとめて更新（1回）
+    await sbPatch(env, '/rest/v1/sources?enabled=eq.true&kind=in.(rss,youtube,googlenews)', { last_checked: nowIso() });
+  } catch (e) {
+    console.error('bulk upsert failed', e);
+    // 失敗してもログは残す
   }
 
   await logJob(env, {
