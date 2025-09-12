@@ -208,55 +208,77 @@ async function runNewsJob(env: Env) {
   const sources = await sbGet(env, '/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,googlenews)');
 
   for (const s of sources as any[]) {
-    try {
-      const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
-      if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
-      const xml = await res.text();
-      const items = parseRSS(xml);
+  try {
+    const res = await fetch(s.url, {
+      cf: { cacheTtl: 0 },
+      headers: {
+        'Accept': 'application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5',
+        'User-Agent': 'Mozilla/5.0 (compatible; BabyAnimalsBot/1.0; +https://babyanimals.pages.dev)'
+      },
+      redirect: 'follow'
+    });
+    if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
 
-      counters.total += items.length;
+    const ct = res.headers.get('content-type') || '';
+    const body = await res.text();
 
-      // fingerprints で重複ガード → news_items upsert
-      const rows = [];
-      for (const it of items) {
-        const u = normUrl(it.url);
-        if (!u) continue;
-        const fp = await sha256hex(u);
-        // fingerprints に記録（重複は無視）
-        await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', [{ fp, kind: 'news' }]);
-
-        rows.push({
-          title: it.title?.slice(0, 300) || null,
-          url: u,
-          published_at: it.published_at,
-          thumbnail_url: it.thumbnail_url,
-          source_name: it.source_name,
-          source_id: s.id
-        });
-      }
-
-      if (rows.length) {
-        // news_items(url unique) に upsert
-        await sbPost(env, '/rest/v1/news_items?on_conflict=url', rows);
-        // 挿入数は厳密に取れないので概算（重複はignoreされる）
-        counters.inserted += rows.length;
-      }
-      // 最終チェック時間更新
-      await sbPost(env, '/rest/v1/sources?id=eq.' + s.id, [{ last_checked: nowIso() }], {
-        'Prefer': 'resolution=merge-duplicates'
-      });
-
-    } catch (e) {
-      console.error('news source failed', s.url, e);
-      counters.skipped++;
+    // RSS/Atomでない可能性に軽く警告（本文にもタグが無ければ）
+    if (!/xml|rss|atom/i.test(ct) && !/<(rss|feed|entry|item)\b/i.test(body)) {
+      console.warn('non-rss response', s.url, ct.slice(0, 80));
     }
-  }
 
-  await logJob(env, {
-    job: 'news', ok: true, started_at: started, finished_at: new Date(),
-    total: counters.total, inserted: counters.inserted, updated: counters.updated, skipped: counters.skipped
-  });
+    const items = parseRSS(body);
+    counters.total += items.length;
+
+    // fingerprints で重複ガード → news_items upsert
+    const rows: any[] = [];
+    for (const it of items) {
+      const u = normUrl(it.url);
+      if (!u) continue;
+
+      const fp = await sha256hex(u);
+      // fingerprints に記録（重複は無視）
+      await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', [{ fp, kind: 'news' }]);
+
+      rows.push({
+        title: it.title?.slice(0, 300) || null,
+        url: u,
+        published_at: it.published_at,
+        thumbnail_url: it.thumbnail_url,
+        source_name: it.source_name,
+        source_id: s.id
+      });
+    }
+
+    if (rows.length) {
+      // news_items(url unique) に upsert
+      await sbPost(env, '/rest/v1/news_items?on_conflict=url', rows);
+      // 挿入数は厳密に取れないので概算（重複はignoreされる）
+      counters.inserted += rows.length;
+    }
+
+    // 最終チェック時間更新
+    await sbPost(env, '/rest/v1/sources?id=eq.' + s.id, [{ last_checked: nowIso() }], {
+      'Prefer': 'resolution=merge-duplicates'
+    });
+
+  } catch (e) {
+    console.error('news source failed', s.url, e);
+    counters.skipped++;
+  }
 }
+
+await logJob(env, {
+  job: 'news',
+  ok: true,
+  started_at: started,
+  finished_at: new Date(),
+  total: counters.total,
+  inserted: counters.inserted,
+  updated: counters.updated,
+  skipped: counters.skipped
+});
+
 
 // -------------------------------
 // 収集ジョブ: 動物園（毎日）
