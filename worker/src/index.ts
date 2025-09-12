@@ -277,6 +277,7 @@ async function runNewsJob(env: Env) {
           published_at: it.published_at,
           thumbnail_url: it.thumbnail_url,
           source_name: it.source_name,
+          source_url: s.url,
           source_id: s.id
         });
       }
