@@ -13,7 +13,9 @@ export interface Env {
 // -------------------------------
 const JP_TZ = 'Asia/Tokyo';
 // 1回の実行で処理する news ソース最大数（Cloudflare Workers の subrequests 制限対策）
-const MAX_SOURCES_PER_RUN = 20;
+const MAX_SOURCES_PER_RUN = 25;
+// 1回の実行で処理する babies ソース最大数（Cloudflare Workers の subrequests 制限対策）
+const MAX_BABY_SOURCES_PER_RUN = 25;
 
 function nowIso() {
   return new Date().toISOString();
@@ -379,11 +381,21 @@ async function runBabiesJob(env: Env) {
   let counters = { total: 0, inserted: 0, updated: 0, skipped: 0 };
 
   try {
-    // RSS/YouTube/Site から候補抽出（site は OGP のみ参照）
-    const sources = await sbGet(env, '/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,site)');
+    // 有効なソースを last_checked 昇順で最大 N 件だけ取得（上限回避）
+    const sources = await sbGet(
+      env,
+      `/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,site)&order=last_checked.asc.nullsfirst&limit=${MAX_BABY_SOURCES_PER_RUN}`
+    );
+
+    // 一括書き込み用バッファ
+    const fpSet = new Set<string>();     // fingerprints（重複除去, kind='baby'）
+    const babyRows: any[] = [];          // babies テーブルへの upsert 行
+    const processedIds: string[] = [];   // 今回処理した source.id（last_checked 更新用）
 
     for (const s of sources as any[]) {
       try {
+        if (s?.id) processedIds.push(s.id); // ローテーション対象として記録
+
         const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
         if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
 
@@ -401,14 +413,14 @@ async function runBabiesJob(env: Env) {
           candidates = [{ title, url, published_at: pub, thumbnail_url: null, source_name: domain(url) }];
         } else {
           const xml = await res.text();
-          candidates = parseRSS(xml);
+          candidates = parseRSS(xml);    // YouTube/Atom も OK（published 対応済み）
         }
 
         counters.total += candidates.length;
 
         // ルール判定
         const approve = candidates.filter(it => {
-          const text = `${it.title || ''}`; // 説明は最小で未使用
+          const text = `${it.title || ''}`;
           return BABY_KEYWORDS.test(text);
         });
 
@@ -417,32 +429,24 @@ async function runBabiesJob(env: Env) {
           continue;
         }
 
-        // babies テーブルに upsert（name は未知なら null、species はヒント一致、birthday は日付抽出）
-        const upserts = [];
         for (const it of approve) {
           const u = normUrl(it.url);
           if (!u) continue;
 
           const fp = await sha256hex(u);
-          await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', [{ fp, kind: 'baby' }]);
+          fpSet.add(fp);
 
           const hint = SPECIES_HINTS.find(sp => (it.title || '').includes(sp)) || null;
           const bday = parseDateToISO(it.title) || it.published_at || null;
 
-          upserts.push({
-            // name はページに依存するので未知扱い（将来強化）
+          babyRows.push({
+            // name はページ依存なので未知（将来強化）
             name: null,
             species: hint,
             birthday: bday,
             thumbnail_url: it.thumbnail_url,
             zoo_id: s.zoo_id || null,
-            // 参考のため news_items にも残っているはず（URLユニーク）
           });
-        }
-
-        if (upserts.length) {
-          await sbPost(env, '/rest/v1/babies', upserts);
-          counters.inserted += upserts.length;
         }
 
       } catch (e) {
@@ -450,6 +454,38 @@ async function runBabiesJob(env: Env) {
         counters.skipped++;
       }
     }
+
+    // ---- ここから一括書き込み ----
+    try {
+      // 1) fingerprints（kind='baby'）をチャンクで upsert
+      const fpRows = Array.from(fpSet).map(fp => ({ fp, kind: 'baby' }));
+      for (const part of chunk(fpRows, 1000)) {
+        if (part.length) await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', part);
+      }
+
+      // 2) babies をチャンクで upsert
+      for (const part of chunk(babyRows, 500)) {
+        if (part.length) await sbPost(env, '/rest/v1/babies', part);
+        counters.inserted += part.length; // 重複があっても概算でOK
+      }
+
+      // 3) 今回処理した source のみ last_checked を一括更新（1回）
+      if (processedIds.length) {
+        const inList = processedIds.join(',');
+        await sbPatch(env, `/rest/v1/sources?id=in.(${inList})`, { last_checked: nowIso() });
+      }
+    } catch (e) {
+      console.error('babies bulk upsert failed', e);
+      // 失敗しても logJob は残す
+    }
+
+    // 観測用の軽量ログ
+    console.log('BABIES JOB STATS', {
+      total: counters.total,
+      babyRows: babyRows.length,
+      fpSize: fpSet.size,
+      sources: Array.isArray(sources) ? (sources as any[]).length : 0
+    });
 
     await logJob(env, {
       job: 'babies', ok: true, started_at: started, finished_at: new Date(),
@@ -461,7 +497,6 @@ async function runBabiesJob(env: Env) {
     throw e;
   }
 }
-
 // -------------------------------
 // スケジュール・エントリポイント
 // -------------------------------
