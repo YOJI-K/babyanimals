@@ -441,7 +441,7 @@ async function runBabiesJob(env: Env) {
 
           babyRows.push({
             // name はページ依存なので未知（将来強化）
-            name: ensureBabyName(it.title, hint),
+            name: ((it.title || '').trim().slice(0, 100)) || (hint ? `赤ちゃん（${hint}）` : '赤ちゃん'),
             species: hint,
             birthday: bday,
             thumbnail_url: it.thumbnail_url,
