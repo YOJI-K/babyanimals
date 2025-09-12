@@ -340,7 +340,45 @@ async function runZoosJob(env: Env) {
 
   try {
     const api = 'https://ja.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:%E6%97%A5%E6%9C%AC%E3%81%AE%E5%8B%95%E7%89%A9%E5%9C%92&cmlimit=500&format=json&origin=*';
-    const res = await fetch(api, { cf: { cacheTtl: 3600 } });
+    // Wikipedia API は明示的な User-Agent が必須（APIエチケット）
+    const res = await fetch(api, {
+      headers: {
+        // 連絡先を含むわかりやすいUAにしてください（サイトURLやメールなど）
+        'User-Agent': 'BabyAnimalsCrawler/1.0 (+https://babyanimals.pages; contact: co.az.mu@gmail.com)',
+        'Accept': 'application/json'
+        },
+        cf: { cacheTtl: 3600 }
+       });
+      if (res.status === 403) {
+  console.warn('Wikipedia 403 received. Retrying once with same UA...');
+  // 短い待機（200ms）
+  await new Promise(r => setTimeout(r, 200));
+  const res2 = await fetch(api, {
+    headers: {
+      'User-Agent': 'BabyAnimalsCrawler/1.0 (+https://your-site.example; contact: you@example.com)',
+      'Accept': 'application/json'
+    },
+    cf: { cacheTtl: 3600 }
+  });
+  if (!res2.ok) {
+    const body = await res2.text().catch(() => '');
+    throw new Error(`wikipedia -> ${res2.status} ${body ? `(body: ${body.slice(0,200)}...)` : ''}`);
+  }
+  // 成功したら res を入れ替え
+  var resJson = await res2.json();
+  const json = resJson;
+  const members: any[] = json?.query?.categorymembers || [];
+  counters.total = members.length;
+  // 以降は現行の処理（nameSet～rows～一括upsert）に続ける
+  // 既存の json 取得ロジックが下にある場合は、そこをこの json を使うように調整してください
+} else {
+  // 403でなければ従来どおり
+  const json = await res.json();
+  const members: any[] = json?.query?.categorymembers || [];
+  counters.total = members.length;
+  // 以降は現行処理
+}
+
     if (!res.ok) throw new Error(`wikipedia -> ${res.status}`);
 
     const json = await res.json();
