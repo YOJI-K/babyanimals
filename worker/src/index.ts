@@ -12,6 +12,8 @@ export interface Env {
 // 小さな共通ユーティリティ
 // -------------------------------
 const JP_TZ = 'Asia/Tokyo';
+// 1回の実行で処理する news ソース最大数（Cloudflare Workers の subrequests 制限対策）
+const MAX_SOURCES_PER_RUN = 20;
 
 function nowIso() {
   return new Date().toISOString();
@@ -240,23 +242,29 @@ async function runNewsJob(env: Env) {
   const started = new Date();
   let counters = { total: 0, inserted: 0, updated: 0, skipped: 0 };
 
-  // 有効なソースを取得
-  const sources = await sbGet(env, '/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,googlenews)');
+  // 有効なソースを last_checked 昇順で最大 N 件だけ取得（上限回避）
+  const sources = await sbGet(
+    env,
+    `/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,googlenews)&order=last_checked.asc.nullsfirst&limit=${MAX_SOURCES_PER_RUN}`
+  );
 
   // 一括書き込み用のバッファ
-  const fpSet = new Set<string>();   // fingerprints（重複除去）
-  const newsRows: any[] = [];        // news_items
+  const fpSet = new Set<string>();     // fingerprints（重複除去）
+  const newsRows: any[] = [];          // news_items
+  const processedIds: string[] = [];   // 今回処理した source.id
 
   for (const s of sources as any[]) {
     try {
+      if (s?.id) processedIds.push(s.id); // ローテーション対象として記録
+
       const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
       if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
+
       const xml = await res.text();
       const items = parseRSS(xml);
-
       counters.total += items.length;
 
-      // ここでは“貯めるだけ”で Supabase には投げない（サブリクエスト抑制）
+      // ここでは貯めるだけ（Supabase へは後で一括送信）
       for (const it of items) {
         const u = normUrl(it.url);
         if (!u) continue;
@@ -292,18 +300,30 @@ async function runNewsJob(env: Env) {
       counters.inserted += part.length; // 重複はignoreされるため概算
     }
 
-    // 3) sources.last_checked を対象ソース全件まとめて更新（1回）
-    await sbPatch(env, '/rest/v1/sources?enabled=eq.true&kind=in.(rss,youtube,googlenews)', { last_checked: nowIso() });
+    // 3) 今回処理した source のみ last_checked を一括更新（1回）
+    if (processedIds.length) {
+      const inList = processedIds.join(',');
+      await sbPatch(env, `/rest/v1/sources?id=in.(${inList})`, { last_checked: nowIso() });
+    }
   } catch (e) {
     console.error('bulk upsert failed', e);
     // 失敗してもログは残す
   }
+
+  // 観測用の軽量ログ
+  console.log('NEWS JOB STATS', {
+    total: counters.total,
+    newsRows: newsRows.length,
+    fpSize: fpSet.size,
+    sources: Array.isArray(sources) ? (sources as any[]).length : 0
+  });
 
   await logJob(env, {
     job: 'news', ok: true, started_at: started, finished_at: new Date(),
     total: counters.total, inserted: counters.inserted, updated: counters.updated, skipped: counters.skipped
   });
 }
+
 
 // -------------------------------
 // 収集ジョブ: 動物園（毎日）
