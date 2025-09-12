@@ -5,6 +5,7 @@
 export interface Env {
   SUPABASE_URL: string;                // 例: https://xxxxx.supabase.co
   SUPABASE_SERVICE_ROLE: string;       // Supabase Service Role key（Secret）
+  RUN_TOKEN?: string;                  // GET /run 用の手動実行トークン（オプショナル）
 }
 
 // -------------------------------
@@ -27,6 +28,9 @@ function normUrl(u: string | null | undefined): string | null {
   try {
     const url = new URL(u);
     url.hash = '';
+    // 追跡系クエリを削除（重複抑止）
+    const drop = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid'];
+    drop.forEach(k => url.searchParams.delete(k));
     return url.toString();
   } catch {
     return null;
@@ -87,6 +91,15 @@ function parseDateToISO(input?: string | null): string | null {
   return null;
 }
 
+// CDATA/エンティティ処理（RSSの堅牢化）
+function stripCDATA(s: string) {
+  return s.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').trim();
+}
+function decodeEntities(s: string) {
+  // URLで致命になりやすい &amp; のみ最低限
+  return s.replace(/&amp;/g, '&');
+}
+
 // -------------------------------
 // Supabase REST
 // -------------------------------
@@ -124,6 +137,24 @@ async function sbGet(env: Env, path: string) {
     throw new Error(`Supabase GET ${path} -> ${res.status}: ${t}`);
   }
   return res.json();
+}
+
+async function sbPatch(env: Env, path: string, body: unknown) {
+  const url = `${env.SUPABASE_URL}${path}`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'apikey': env.SUPABASE_SERVICE_ROLE,
+      'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(()=> '');
+    throw new Error(`Supabase PATCH ${path} -> ${res.status}: ${t}`);
+  }
 }
 
 async function logJob(env: Env, row: any) {
@@ -165,25 +196,24 @@ function parseRSS(xml: string): FeedItem[] {
   for (const b of blocks) {
     // title
     let title = textBetween(b, 'title') || '';
-    title = title.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').trim();
+    title = stripCDATA(title);
 
-    // link（Atomだと <link href="..."> の場合がある）
-    let link = textBetween(b, 'link');
-    if (!link) link = attrValue(b, 'link', 'href');
-    if (!link) link = textBetween(b, 'guid');
+    // link: Atomの <link href="..."> を優先 → 無ければ <link>…</link> → <guid>
+    let link = attrValue(b, 'link', 'href') || textBetween(b, 'link') || textBetween(b, 'guid') || '';
+    link = decodeEntities(stripCDATA(link));
 
-    // Google News の場合は元記事URLを優先
-    const finalUrl = unwrapGoogleNews(link || '');
-    const norm = normUrl(finalUrl || '');
-
-    // pubDate / updated
-    const pub = textBetween(b, 'pubDate') || textBetween(b, 'updated');
-    const published_at = parseDateToISO(pub || '') || null;
+    // pubDate / updated / published を順に評価（YouTube Atomは <published>）
+    const pubRaw = textBetween(b, 'pubDate') || textBetween(b, 'updated') || textBetween(b, 'published') || '';
+    const published_at = parseDateToISO(stripCDATA(pubRaw)) || null;
 
     // media:thumbnail / enclosure
     const thumb = attrValue(b, 'media:thumbnail', 'url') ||
                   attrValue(b, 'enclosure', 'url') ||
                   null;
+
+    // Google News の場合は元記事URLを優先（?url= が無い型もあるため最後に正規化）
+    const finalUrl = unwrapGoogleNews(link || '');
+    const norm = normUrl(finalUrl || '');
 
     if (norm) {
       out.push({
@@ -197,6 +227,7 @@ function parseRSS(xml: string): FeedItem[] {
   }
   return out;
 }
+
 // -------------------------------
 // 収集ジョブ: ニュース（毎時）
 // -------------------------------
@@ -241,10 +272,8 @@ async function runNewsJob(env: Env) {
         // 挿入数は厳密に取れないので概算（重複はignoreされる）
         counters.inserted += rows.length;
       }
-      // 最終チェック時間更新
-      await sbPost(env, '/rest/v1/sources?id=eq.' + s.id, [{ last_checked: nowIso() }], {
-        'Prefer': 'resolution=merge-duplicates'
-      });
+      // 最終チェック時間更新（PATCHに変更）
+      await sbPatch(env, '/rest/v1/sources?id=eq.' + s.id, { last_checked: nowIso() });
 
     } catch (e) {
       console.error('news source failed', s.url, e);
@@ -421,10 +450,8 @@ export default {
     if (pathname === '/run') {
       const token = searchParams.get('token') || '';
       const job = (searchParams.get('job') || '').toLowerCase();
-      // Secret で保護
-      // wrangler secret put RUN_TOKEN で設定してください
-      // @ts-ignore
-      const ok = token && env.RUN_TOKEN && token === env.RUN_TOKEN;
+      // Secret で保護（wrangler secret put RUN_TOKEN で設定）
+      const ok = Boolean(token && env.RUN_TOKEN && token === env.RUN_TOKEN);
       if (!ok) return new Response('forbidden', { status: 403 });
 
       if (job === 'news')      { await runNewsJob(env); }
