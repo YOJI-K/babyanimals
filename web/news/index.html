@@ -20,6 +20,7 @@
   <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
   <link rel="stylesheet" href="/assets/css/style.css">
+  <!-- ※もし外部スクリプトが衝突する場合は下2行を一時的に外してください -->
   <script defer src="/assets/js/app.js"></script>
   <script defer src="/assets/js/news.js"></script>
 
@@ -52,51 +53,20 @@
     .card:hover { transform: translateY(-2px); }
     .card a { color: inherit; text-decoration: none; }
 
-    .thumb {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #f2f2f2;
-      overflow: hidden;
-    }
-    .thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+    .thumb { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #f2f2f2; overflow: hidden; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .pad { padding: 10px 12px 12px; }
     .title {
-      font-size: 14.5px;
-      line-height: 1.5;
-      font-weight: 600;
-      margin: 6px 0 8px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-size: 14.5px; line-height: 1.5; font-weight: 600; margin: 6px 0 8px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
-    .meta {
-      font-size: 12px;
-      color: #666;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .meta { font-size: 12px; color: #666; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .meta .dot::before { content: "・"; margin: 0 2px; color: #aaa; }
 
     .controls.sticky {
-      position: sticky;
-      top: 0;
-      background: #fff;
-      padding: 8px 12px;
-      border-bottom: 1px solid #eee;
-      z-index: 10;
-      display: grid;
-      grid-template-columns: 1fr 160px 120px;
-      gap: 8px;
+      position: sticky; top: 0; background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee; z-index: 10;
+      display: grid; grid-template-columns: 1fr 160px 120px; gap: 8px;
     }
     @media (max-width: 599px) {
       .controls.sticky { grid-template-columns: 1fr 1fr; }
@@ -105,40 +75,20 @@
 
     .skeleton {
       background: linear-gradient(90deg, #eee 25%, #f7f7f7 37%, #eee 63%);
-      animation: shimmer 1.35s infinite;
-      background-size: 400% 100%;
+      animation: shimmer 1.35s infinite; background-size: 400% 100%;
     }
-    @keyframes shimmer {
-      0% { background-position: 100% 0; }
-      100% { background-position: 0 0; }
-    }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
     #error {
-      display: none;
-      background: #fff7f7;
-      border: 1px solid #ffdede;
-      color: #a40000;
-      padding: 10px 12px;
-      border-radius: 10px;
-      margin: 14px 0;
+      display: none; background: #fff7f7; border: 1px solid #ffdede; color: #a40000;
+      padding: 10px 12px; border-radius: 10px; margin: 14px 0; white-space: pre-line;
     }
 
-    .more-wrap {
-      display: flex;
-      justify-content: center;
-      margin: 16px 0 32px;
-    }
-    #more {
-      padding: 10px 16px;
-      font-size: 14px;
-      border-radius: 999px;
-      border: 1px solid #ddd;
-      background: #fff;
-      cursor: pointer;
-    }
+    .more-wrap { display: flex; justify-content: center; margin: 16px 0 32px; }
+    #more { padding: 10px 16px; font-size: 14px; border-radius: 999px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
     #more[disabled] { opacity: .6; cursor: not-allowed; }
   </style>
 </head>
-<body>
+<body data-news-v2="1">
   <div class="container hero">
     <h1>ニュース一覧</h1>
 
@@ -186,10 +136,14 @@
 
   <script>
     (function () {
+      // 二重初期化防止（外部スクリプトとの競合対策）
+      if (window.__NEWS_V2_INITED) return;
+      window.__NEWS_V2_INITED = true;
+
       // ===== パラメータ =====
-      const INITIAL_COUNT = 12;  // 初期表示件数（ご要望）
-      const LOAD_MORE = 12;      // 1クリックで増える件数（ご要望）
-      const SERVER_PAGE_SIZE = 50; // サーバー取得単位（多少大きめに取得してクライアントで分割）
+      const INITIAL_COUNT = 12;        // 初期表示件数
+      const LOAD_MORE     = 12;        // 1クリックの追加件数
+      const SERVER_PAGE   = 60;        // 取得単位（余裕を持って = 12 の倍数）
 
       const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
       const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
@@ -209,22 +163,21 @@
       // 状態
       let fetched = [];        // サーバーから蓄積した生データ
       let filtered = [];       // フィルタ/ソート後の配列
-      let renderedCount = 0;   // 現在表示している件数
+      let renderedCount = 0;   // 現在表示している件数（絶対に勝手に減らさない）
       let serverOffset = 0;    // サーバー側 OFFSET
       let serverHasMore = true;
       let serverSort = 'desc'; // 'desc' | 'asc'
       let loading = false;
 
-      // ===== 共通ユーティリティ =====
+      // ===== 共通 =====
       function showError(msg) {
         $error.style.display = 'block';
         $error.textContent = msg;
       }
 
-      function renderCards(items) {
-        // items は「表示したい件数に切り出された filtered のスライス」
+      function renderCards(slice) {
         const frag = document.createDocumentFragment();
-        for (const it of items) {
+        for (const it of slice) {
           const a = document.createElement('a');
           a.href = it.url || it.source_url || '#';
           a.target = '_blank';
@@ -266,7 +219,7 @@
         $list.appendChild(frag);
       }
 
-      function applyFilterAndSort({ resetRendered = true } = {}) {
+      function recomputeFiltered() {
         const q = ($q.value || '').trim().toLowerCase();
         const src = ($source.value || '').trim();
 
@@ -279,24 +232,25 @@
           return hitQ && hitS;
         });
 
-        // 並び：UI の sort 値（published_at + id）
-        const dir = $sort.value === 'asc' ? 1 : -1;
+        // 並び（published_at → id）
+        const asc = ($sort.value === 'asc');
         filtered.sort((a, b) => {
           const ad = new Date(a.published_at || 0).getTime();
           const bd = new Date(b.published_at || 0).getTime();
-          if (ad !== bd) return (ad < bd ? -1 : 1) * dir;
-          if (a.id !== b.id) return (a.id < b.id ? -1 : 1) * dir;
-          return 0;
+          if (ad !== bd) return asc ? ad - bd : bd - ad;
+          return asc ? (a.id > b.id ? 1 : -1) : (a.id < b.id ? 1 : -1);
         });
+      }
 
-        // resetRendered=true のときは初期件数に戻す（検索・ソート操作時）
-        if (resetRendered) {
+      function applyFilterAndSort({ keepRendered = false } = {}) {
+        const prev = renderedCount;
+        recomputeFiltered();
+        if (!keepRendered) {
           renderedCount = Math.min(INITIAL_COUNT, filtered.length);
         } else {
-          // resetしない場合（＝サーバーから追加入荷など）は、既存の renderedCount を維持
-          renderedCount = Math.min(renderedCount, filtered.length);
+          // 既に表示している件数を維持（データが減った場合のみ縮む）
+          renderedCount = Math.min(prev, filtered.length);
         }
-
         renderCards(filtered.slice(0, renderedCount));
         $empty.style.display = filtered.length ? 'none' : 'block';
         toggleMoreButton();
@@ -313,40 +267,33 @@
       function debounce(fn, ms) {
         let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
       }
-      $q.addEventListener('input', debounce(() => applyFilterAndSort({ resetRendered: true }), 200));
-      $source.addEventListener('change', () => applyFilterAndSort({ resetRendered: true }));
+      $q.addEventListener('input', debounce(() => applyFilterAndSort({ keepRendered: false }), 200));
+      $source.addEventListener('change', () => applyFilterAndSort({ keepRendered: false }));
       $sort.addEventListener('change', () => {
         serverSort = $sort.value === 'asc' ? 'asc' : 'desc';
-        applyFilterAndSort({ resetRendered: true });
+        applyFilterAndSort({ keepRendered: true }); // 並び替えしても現在の表示件数は維持
       });
 
       $more.addEventListener('click', async () => {
-        // まずクライアント側の未描画分を追加
-        if (renderedCount < filtered.length) {
-          renderedCount = Math.min(renderedCount + LOAD_MORE, filtered.length);
-          renderCards(filtered.slice(0, renderedCount));
-          toggleMoreButton();
-          return;
-        }
-        // クライアントが尽きていれば、サーバーからさらに取得
-        if (serverHasMore && !loading) {
+        // 目標件数（今より12件増やす）
+        const target = Math.min(renderedCount + LOAD_MORE, Number.MAX_SAFE_INTEGER);
+
+        // クライアントに不足分があるか？
+        // 不足していれば、サーバーから必要分を満たすまで入荷（在庫切れまで）
+        while (filtered.length < target && serverHasMore && !loading) {
           const got = await fetchFromServer({ append: true });
-          // 取得件数があれば、レンダリング数は +LOAD_MORE 増やして維持（初期化しない）
-          if (got > 0) {
-            // フィルタ・ソートは維持しつつ resetRendered=false
-            applyFilterAndSort({ resetRendered: false });
-            // さらにクライアント側でLOAD_MORE分増やす（新規データ分を使って拡張）
-            const target = Math.min(renderedCount + LOAD_MORE, filtered.length);
-            renderedCount = target;
-            renderCards(filtered.slice(0, renderedCount));
-            toggleMoreButton();
-          } else {
-            toggleMoreButton();
-          }
+          if (got === 0) break; // これ以上入らない
+          // 新規入荷分も含めて並び替えをし直すが、表示件数は維持
+          applyFilterAndSort({ keepRendered: true });
         }
+
+        // 表示件数を増やして再描画（リセットしない）
+        renderedCount = Math.min(target, filtered.length);
+        renderCards(filtered.slice(0, renderedCount));
+        toggleMoreButton();
       });
 
-      // ===== サーバー取得 =====
+      // ===== サーバー取得（PostgREST） =====
       async function fetchFromServer({ append } = { append: false }) {
         if (!SUPABASE_URL || !SUPABASE_KEY) {
           showError('Supabase の URL / ANON KEY が設定されていません。');
@@ -358,7 +305,7 @@
         try {
           const orderParam = `order=published_at.${serverSort},id.${serverSort}`;
           const rangeFrom = serverOffset;
-          const rangeTo = serverOffset + SERVER_PAGE_SIZE - 1;
+          const rangeTo = serverOffset + SERVER_PAGE - 1;
           const url = `${SUPABASE_URL}/rest/v1/news_items?select=id,title,url,published_at,source_name,source_url,thumbnail_url&${orderParam}`;
           const resp = await fetch(url, {
             headers: {
@@ -376,7 +323,7 @@
               received = data.length;
               fetched = append ? fetched.concat(data) : data;
               serverOffset += data.length;
-              if (data.length < SERVER_PAGE_SIZE) serverHasMore = false;
+              if (data.length < SERVER_PAGE) serverHasMore = false;
             } else {
               serverHasMore = false;
             }
@@ -401,8 +348,7 @@
       // ===== 初期ロード =====
       (async function init() {
         await fetchFromServer({ append: false });
-        // 初期表示は INITIAL_COUNT 件
-        applyFilterAndSort({ resetRendered: true });
+        applyFilterAndSort({ keepRendered: false }); // 初期は12件
       })();
     })();
   </script>
