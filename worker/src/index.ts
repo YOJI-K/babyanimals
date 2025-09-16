@@ -420,14 +420,100 @@ async function runZoosJob(env: Env) {
 
 // -------------------------------
 // 収集ジョブ: 赤ちゃん（毎日）
-// ルールベースでタイトル/説明から誕生を推定 → babies に upsert（暫定）
+// タイトル/説明から誕生を推定し babies に upsert（改良版）
+// - 個体名抽出（name をできるだけ赤ちゃん本人の名前に）
+// - 誕生日の逆算（「○月○日（NN日齢）」→基準日-日齢）
+// - サイトの og:image をサムネ候補に
+// - fingerprints を事前照会して重複を挿入しない
 // -------------------------------
-const BABY_KEYWORDS = /(誕生|出産|赤ちゃん|赤仔|ベビー|生まれ)/;
-const SPECIES_HINTS = [
-  'ジャイアントパンダ','レッサーパンダ','ホッキョクグマ',
-  'トラ','ライオン','ゴリラ','チンパンジー','キリン','カバ','ゾウ','シロクマ',
-  'コツメカワウソ','コアラ','カンガルー','シマウマ','フラミンゴ'
+const BABY_KEYWORDS = /(誕生|出産|赤ちゃん|赤仔|ベビー|生まれ|命名|名前に決定)/;
+
+const SPECIES_MAP = new Map<string, string>([
+  ["ジャイアントパンダ", "ジャイアントパンダ"],
+  ["レッサーパンダ", "レッサーパンダ"],
+  ["ホッキョクグマ", "ホッキョクグマ"],
+  ["シロクマ", "ホッキョクグマ"], // 同義
+  ["トラ", "トラ"],
+  ["ライオン", "ライオン"],
+  ["ゴリラ", "ゴリラ"],
+  ["チンパンジー", "チンパンジー"],
+  ["キリン", "キリン"],
+  ["カバ", "カバ"],
+  ["ゾウ", "ゾウ"],
+  ["コツメカワウソ", "コツメカワウソ"],
+  ["コアラ", "コアラ"],
+  ["カンガルー", "カンガルー"],
+  ["シマウマ", "シマウマ"],
+  ["フラミンゴ", "フラミンゴ"],
+]);
+
+// --- 個体名抽出（できるだけ短い実用実装） ---
+const NAME_PATTERNS: RegExp[] = [
+  /命名[「『\"](?<name>[^」』\"\s]{1,12})[」』\"]/,
+  /名前[は：:\s]*[「『\"]?(?<name>[^」』\"\s]{1,12})[」』\"]?/,
+  /[「『\"](?<name>[^」』\"\s]{1,12})[」』\"][にへ]?決定/,
+  /赤ちゃん[「『\"](?<name>[^」』\"\s]{1,12})[」』\"]/,
+  /['"“”‘’](?<name>[^'"“”‘’\s]{1,12})['"“”‘’]/,
+  /(?<![ぁ-んァ-ヴーa-zA-Z0-9])(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(ちゃん|くん)(?![ぁ-んァ-ヴーA-Za-z0-9])/,
 ];
+
+function extractBabyName(text: string): string | null {
+  const t = (text || "").replace(/\s+/g, "");
+  for (const re of NAME_PATTERNS) {
+    const m = t.match(re);
+    const name = m?.groups?.name;
+    if (!name) continue;
+    // よくある一般語を除外
+    if (/赤ちゃん|命名|動画|shorts|まとめ|観察|様子/.test(name)) continue;
+    // 文字種・長さの簡易チェック
+    if (/^[一-龯ぁ-んァ-ヴーA-Za-z]{1,12}$/.test(name)) return name;
+  }
+  return null;
+}
+
+function extractSpeciesAlias(title: string): { species?: string; alias?: string } {
+  for (const [alias, canonical] of SPECIES_MAP) {
+    if (title.includes(alias)) return { species: canonical, alias };
+  }
+  return {};
+}
+
+// 「○月○日（NN日齢）」→ 誕生日を逆算（ISO yyyy-mm-dd）
+function decideBirthdayByAge(title: string, fallbackISO?: string | null): string | null {
+  const m = title.match(/(?<m>\d{1,2})月(?<d>\d{1,2})日（(?<age>\d{1,3})日齢）/);
+  if (!m?.groups) return null;
+  const pub = fallbackISO ? new Date(fallbackISO) : null;
+  const nowY = new Date().getFullYear();
+  // 参照日は「タイトルの月日@今年」。ただし公開日がある場合で不整合になりそうなら公開日ベースに
+  const refY = pub ? pub.getFullYear() : nowY;
+  const ref = new Date(refY, Number(m.groups.m) - 1, Number(m.groups.d));
+  // 未来日になる等の不整合は公開日にフォールバック
+  const refDate = pub && ref.getTime() > pub.getTime() ? pub : ref;
+  refDate.setDate(refDate.getDate() - Number(m.groups.age));
+  return refDate.toISOString().slice(0, 10);
+}
+
+// name のフォールバックを一本化
+function ensureBabyName(givenName?: string | null, hint?: string | null) {
+  if (givenName && givenName.trim()) return givenName.trim().slice(0, 100);
+  if (hint) return `赤ちゃん（${hint}）`;
+  return '赤ちゃん';
+}
+
+// サイト HTML から OGP を取り出し（og:image も見る）
+function parseSiteOG(html: string, fallbackUrl: string) {
+  const ogt = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)?.[1] || '';
+  const ogd = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i)?.[1] || '';
+  const ogu = html.match(/<meta\s+property=["']og:url["']\s+content=["']([^"']+)["']/i)?.[1] || fallbackUrl;
+  const ogi = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i)?.[1] || '';
+  return {
+    title: (ogt || '').trim(),
+    url: normUrl(ogu || fallbackUrl)!,
+    published_at: parseDateToISO(ogd) || null, // 説明に日付があれば
+    thumbnail_url: ogi || null,
+    source_name: domain(ogu || fallbackUrl)
+  } as FeedItem;
+}
 
 async function runBabiesJob(env: Env) {
   const started = new Date();
@@ -441,9 +527,10 @@ async function runBabiesJob(env: Env) {
     );
 
     // 一括書き込み用バッファ
-    const fpSet = new Set<string>();     // fingerprints（重複除去, kind='baby'）
-    const babyRows: any[] = [];          // babies テーブルへの upsert 行
     const processedIds: string[] = [];   // 今回処理した source.id（last_checked 更新用）
+    type PendingRow = { fp: string; row: any };
+    const pending: PendingRow[] = [];    // babies upsert 用（指紋付き）
+    const fpSet = new Set<string>();     // 事前照会用
 
     for (const s of sources as any[]) {
       try {
@@ -453,30 +540,18 @@ async function runBabiesJob(env: Env) {
         if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
 
         let candidates: FeedItem[] = [];
-
         if (s.kind === 'site') {
-          // OGP を拾って1件だけ評価
           const html = await res.text();
-          const ogt = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)?.[1] || '';
-          const ogd = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i)?.[1] || '';
-          const ogu = html.match(/<meta\s+property=["']og:url["']\s+content=["']([^"']+)["']/i)?.[1] || s.url;
-          const title = (ogt || '').trim();
-          const url = normUrl(ogu || s.url)!;
-          const pub = parseDateToISO(ogd) || null; // 説明に日付があれば
-          candidates = [{ title, url, published_at: pub, thumbnail_url: null, source_name: domain(url) }];
+          candidates = [parseSiteOG(html, s.url)]; // og:image も拾う
         } else {
           const xml = await res.text();
-          candidates = parseRSS(xml);    // YouTube/Atom も OK（published 対応済み）
+          candidates = parseRSS(xml); // YouTube/Atom も OK（published 対応済み）
         }
 
         counters.total += candidates.length;
 
         // ルール判定
-        const approve = candidates.filter(it => {
-          const text = `${it.title || ''}`;
-          return BABY_KEYWORDS.test(text);
-        });
-
+        const approve = candidates.filter(it => BABY_KEYWORDS.test(`${it.title || ''}`));
         if (!approve.length) {
           counters.skipped++;
           continue;
@@ -489,45 +564,65 @@ async function runBabiesJob(env: Env) {
           const fp = await sha256hex(u);
           fpSet.add(fp);
 
-          const hint = SPECIES_HINTS.find(sp => (it.title || '').includes(sp)) || null;
-          const bday = parseDateToISO(it.title) || it.published_at || null;
+          // 種ヒント（表示用は alias、保存は canonical）
+          const { species, alias } = extractSpeciesAlias(it.title || "");
 
-          babyRows.push({
-            // name はページ依存なので未知（将来強化）
-            name: ((it.title || '').trim().slice(0, 100)) || (hint ? `赤ちゃん（${hint}）` : '赤ちゃん'),
-            species: hint,
+          // 個体名（できるだけ本人の名前に）
+          const givenName = extractBabyName(it.title || "");
+
+          // 誕生日：日齢→逆算＞タイトル日付＞published_at
+          const bdayByAge = decideBirthdayByAge(it.title || "", it.published_at || null);
+          const bday =
+            bdayByAge ||
+            parseDateToISO(it.title || "") ||
+            it.published_at ||
+            null;
+
+          // babies 行（既存スキーマに合わせる）
+          const row = {
+            name: ensureBabyName(givenName, alias || species || null),
+            species: species || alias || null,
             birthday: bday,
-            thumbnail_url: it.thumbnail_url,
+            thumbnail_url: it.thumbnail_url || null, // site のときは og:image が入っている可能性あり
             zoo_id: s.zoo_id || null,
-          });
-        }
+          };
 
+          pending.push({ fp, row });
+        }
       } catch (e) {
-        console.error('babies source failed', s.url, e);
+        console.error('babies source failed', s?.url, e);
         counters.skipped++;
       }
     }
 
     // ---- ここから一括書き込み ----
     try {
-      // 1) fingerprints（kind='baby'）をチャンクで upsert
-      const fpRows = Array.from(fpSet).map(fp => ({ fp, kind: 'baby' }));
+      // 0) fingerprints 既存照会 → すでに登録済みの URL は babies へ入れない
+      const allFps = Array.from(fpSet);
+      const known = new Set<string>();
+      for (const part of chunk(allFps, 1000)) {
+        if (!part.length) continue;
+        const q = `/rest/v1/fingerprints?select=fp&kind=eq.baby&fp=in.(${part.join(',')})`;
+        const hits = await sbGet(env, q);
+        for (const r of (hits as any[] || [])) known.add(r.fp);
+      }
+
+      // 1) fingerprints（kind='baby'）をチャンクで upsert（新規分を作る）
+      const fpRows = allFps.map(fp => ({ fp, kind: 'baby' }));
       for (const part of chunk(fpRows, 1000)) {
         if (part.length) await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', part);
       }
 
-      // 2) babies をチャンクで upsert
-      for (const part of chunk(babyRows, 500)) {
+      // 2) babies をチャンクで upsert（known にある指紋はスキップ）
+      const toInsert = pending
+        .filter(p => !known.has(p.fp))
+        .map(p => p.row);
+
+      for (const part of chunk(toInsert, 500)) {
         if (part.length) await sbPost(env, '/rest/v1/babies', part);
-        counters.inserted += part.length; // 重複があっても概算でOK
+        counters.inserted += part.length; // 概算
       }
-      // 個体名が不明でもNOT NULLを満たすためのフォールバック
-      function ensureBabyName(title?: string | null, hint?: string | null) {
-        const t = (title || '').trim();
-        if (t) return t.slice(0, 100); // タイトルを最大100文字で流用
-        if (hint) return `赤ちゃん（${hint}）`;
-        return '赤ちゃん';
-        }
+
       // 3) 今回処理した source のみ last_checked を一括更新（1回）
       if (processedIds.length) {
         const inList = processedIds.join(',');
@@ -541,8 +636,8 @@ async function runBabiesJob(env: Env) {
     // 観測用の軽量ログ
     console.log('BABIES JOB STATS', {
       total: counters.total,
-      babyRows: babyRows.length,
-      fpSize: fpSet.size,
+      preparedRows: pending.length,
+      inserted: counters.inserted,
       sources: Array.isArray(sources) ? (sources as any[]).length : 0
     });
 
