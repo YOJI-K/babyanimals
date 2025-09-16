@@ -1,12 +1,20 @@
-// /assets/js/news.js  — v2 (Supabase専用 / サンプル無効 / 12件ずつ増分)
+// /assets/js/news.js — v3 (Supabase専用 / 競合回避 / 12件ずつ増分 / エラー抑制)
 (() => {
-  if (window.__NEWS_JS_V2_INITED) return; // 二重初期化防止
-  window.__NEWS_JS_V2_INITED = true;
+  // --- 競合回避: すでに別のニュース実装が初期化済みなら何もしない ---
+  if (window.__NEWS_ANY_INITED) return;
+  window.__NEWS_ANY_INITED = true;
+
+  // --- 競合回避: index.html に旧インライン実装の印（data-news-v2等）があれば退出 ---
+  const body = document.body;
+  if (body && (body.hasAttribute('data-news-v2') || body.getAttribute('data-news') === 'inline')) {
+    // 旧実装に委ねる
+    return;
+  }
 
   // ===== 設定 =====
-  let page = 1;                 // 現在のページ（1ページ=12件）
-  const PAGE_SIZE = 12;         // 1回の増分
-  let all = [];                 // Supabaseから取得した全データ（最大200件など）
+  let page = 1;
+  const PAGE_SIZE = 12;
+  let all = [];
 
   // DOM参照
   const $list     = document.getElementById('list');
@@ -45,15 +53,13 @@
     return { URL, ANON };
   }
 
-  // ===== データ取得（サンプルは使わない）=====
+  // ===== データ取得（サンプル/モックは使わない）=====
   async function loadSupabase() {
     const { URL, ANON } = getSupabaseConfig();
     if (!URL || !ANON) throw new Error('Supabase config missing');
 
     const u = new URL(`${URL}/rest/v1/news_items`);
-    // id を含めて安定ソート可能にする
     u.searchParams.set('select', 'id,title,url,published_at,source_name,thumbnail_url,source_url');
-    // 初回まとめて取得（必要なら値調整）
     u.searchParams.set('order', 'published_at.desc,id.desc');
     u.searchParams.set('limit', '200');
 
@@ -65,37 +71,30 @@
   }
 
   // ===== データ加工（検索・絞り込み・並び替え）=====
-  function normalize(str) { return (str || '').toString().toLowerCase(); }
-  function isYouTubeSource(name) { return normalize(name).includes('youtube'); }
+  const normalize = (s) => (s || '').toString().toLowerCase();
+  const isYouTube = (name) => normalize(name).includes('youtube');
 
   function filterAndSort() {
-    const qVal     = normalize($q?.value);
-    const srcVal   = $source?.value || '';
-    const sortVal  = $sort?.value === 'asc' ? 'asc' : 'desc';
+    const qVal   = normalize($q?.value);
+    const srcVal = $source?.value || '';
+    const sort   = $sort?.value === 'asc' ? 'asc' : 'desc';
 
     let data = Array.isArray(all) ? all.slice() : [];
 
-    // 検索（タイトル / ソース名）
     if (qVal) {
       data = data.filter(x =>
         normalize(x.title).includes(qVal) || normalize(x.source_name).includes(qVal)
       );
     }
+    if (srcVal === 'YouTube')       data = data.filter(x => isYouTube(x.source_name));
+    else if (srcVal === 'blog')     data = data.filter(x => !isYouTube(x.source_name));
 
-    // ソース絞り込み
-    if (srcVal === 'YouTube') {
-      data = data.filter(x => isYouTubeSource(x.source_name));
-    } else if (srcVal === 'blog') {
-      data = data.filter(x => !isYouTubeSource(x.source_name));
-    }
-
-    // 並び替え（published_at → id の安定ソート）
     data.sort((a, b) => {
       const ad = new Date(a.published_at || 0).getTime();
       const bd = new Date(b.published_at || 0).getTime();
-      if (ad !== bd) return sortVal === 'asc' ? ad - bd : bd - ad;
-      // id は文字列比較でOK（同日時の安定化）
-      if (a.id !== b.id) return sortVal === 'asc' ? (a.id > b.id ? 1 : -1) : (a.id < b.id ? 1 : -1);
+      if (ad !== bd) return sort === 'asc' ? ad - bd : bd - ad;
+      // 同時刻は id で安定化
+      if (a.id !== b.id) return sort === 'asc' ? (a.id > b.id ? 1 : -1) : (a.id < b.id ? 1 : -1);
       return 0;
     });
 
@@ -109,14 +108,14 @@
     const end = page * PAGE_SIZE;
     const slice = data.slice(0, end);
 
-    // HTML構築（16:9のため <div class="thumb"><img /></div> 構造）
+    // HTML構築：16:9に合わせて <div class="thumb"><img /></div> 構造
     const html = slice.map(x => {
-      const href = x.url || x.source_url || '#';
-      const date = Site.fmtDate(x.published_at);
-      const src  = x.source_name || '';
+      const href   = x.url || x.source_url || '#';
+      const date   = Site.fmtDate(x.published_at);
+      const src    = x.source_name || '';
       const domain = Site.domain(x.url || x.source_url || '');
+      const thumb  = x.thumbnail_url || '';
 
-      const thumb = x.thumbnail_url || '';
       return `
         <a class="card" href="${href}" target="_blank" rel="noopener">
           <div class="thumb"><img src="${thumb}" loading="lazy" alt=""></div>
@@ -134,7 +133,7 @@
     // 空状態
     if ($empty) $empty.style.display = slice.length ? 'none' : 'block';
 
-    // もっと読むの制御（末尾に到達したら非表示/disabled）
+    // もっと読むの表示制御
     const hasMore = slice.length < data.length;
     if ($more) {
       $more.disabled = !hasMore;
@@ -146,33 +145,31 @@
   function debounce(fn, ms) {
     let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
   }
-
   function onFilterChange() {
-    page = 1; // フィルタ変更時は先頭から
+    page = 1; // フィルタ/ソート変更時は先頭から
     render();
   }
 
   // ===== 初期化 =====
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      // 初回フェッチ中のみスケルトン表示
+      // 初回フェッチ中だけスケルトン表示
       if ($skeleton) $skeleton.style.display = 'grid';
       if ($error) { $error.style.display = 'none'; $error.textContent = ''; }
 
-      all = await loadSupabase();     // 成功: 取得データのみ使用（サンプルには一切フォールバックしない）
+      all = await loadSupabase();
     } catch (e) {
-      console.error(e);
-      all = [];                       // 失敗時は空配列
-      if ($error) {
-        $error.style.display = 'block';
-        $error.textContent = 'データの取得に失敗しました。設定やCORS/RLSをご確認ください。';
-      }
+      // 取得に失敗しても、サンプルは使わない。空表示にする。
+      console.warn('[news.js] fetch error:', e);
+      all = [];
+      // ユーザー体験を優先し、目立つエラーは出さない（空表示に留める）
+      if ($error) { $error.style.display = 'none'; $error.textContent = ''; }
     } finally {
       if ($skeleton) $skeleton.style.display = 'none';
       render();
     }
 
-    // イベント登録
+    // イベント登録（重複防止のため addEventListener のみ／inline onclickは使わない）
     if ($q)      $q.addEventListener('input', debounce(onFilterChange, 200));
     if ($source) $source.addEventListener('change', onFilterChange);
     if ($sort)   $sort.addEventListener('change', onFilterChange);
