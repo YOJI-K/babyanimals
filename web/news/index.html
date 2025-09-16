@@ -16,13 +16,14 @@
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 
   <!-- ▼ Supabase REST 設定（環境に合わせて差し替え） -->
-  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
-  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
+  <meta name="supabase-url" content="YOUR_SUPABASE_URL">
+  <meta name="supabase-anon-key" content="YOUR_SUPABASE_ANON_KEY">
 
   <link rel="stylesheet" href="/assets/css/style.css">
   <script defer src="/assets/js/app.js"></script>
   <script defer src="/assets/js/news.js"></script>
 
+  <!-- 16:9固定サムネ & レイアウト -->
   <style>
     .grid {
       display: grid;
@@ -98,12 +99,8 @@
       gap: 8px;
     }
     @media (max-width: 599px) {
-      .controls.sticky {
-        grid-template-columns: 1fr 1fr;
-      }
-      .controls.sticky #sort {
-        grid-column: span 2;
-      }
+      .controls.sticky { grid-template-columns: 1fr 1fr; }
+      .controls.sticky #sort { grid-column: span 2; }
     }
 
     .skeleton {
@@ -145,6 +142,7 @@
   <div class="container hero">
     <h1>ニュース一覧</h1>
 
+    <!-- 検索/絞り込み/ソート（「もっと読む」は下部に配置） -->
     <div class="controls sticky">
       <input id="q" type="search" placeholder="キーワード検索（タイトル/ソース）">
       <select id="source">
@@ -160,6 +158,7 @@
 
     <div class="banner">（インフィード広告枠）</div>
 
+    <!-- スケルトン（初期表示） -->
     <div id="skeleton-news" class="grid" aria-hidden="true">
       <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
       <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
@@ -172,9 +171,14 @@
     </div>
 
     <div id="error"></div>
+
+    <!-- 実データ -->
     <div id="list" class="grid" aria-live="polite"></div>
+
+    <!-- 空状態 -->
     <div id="empty" class="empty" style="display:none;">データがありません</div>
 
+    <!-- 下部に「もっと読む」 -->
     <div class="more-wrap">
       <button id="more">もっと読む</button>
     </div>
@@ -182,13 +186,17 @@
 
   <script>
     (function () {
+      // ===== パラメータ =====
+      const INITIAL_COUNT = 12;  // 初期表示件数（ご要望）
+      const LOAD_MORE = 12;      // 1クリックで増える件数（ご要望）
+      const SERVER_PAGE_SIZE = 50; // サーバー取得単位（多少大きめに取得してクライアントで分割）
+
       const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
       const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
       const SUPABASE_URL = window.SUPABASE_URL || metaUrl;
       const SUPABASE_KEY = window.SUPABASE_ANON_KEY || metaKey;
 
-      const PAGE_SIZE = 20;
-
+      // DOM
       const $q = document.getElementById('q');
       const $source = document.getElementById('source');
       const $sort = document.getElementById('sort');
@@ -198,20 +206,23 @@
       const $error = document.getElementById('error');
       const $more = document.getElementById('more');
 
-      let fetched = [];
-      let filtered = [];
-      let page = 0;
-      let serverOffset = 0;
+      // 状態
+      let fetched = [];        // サーバーから蓄積した生データ
+      let filtered = [];       // フィルタ/ソート後の配列
+      let renderedCount = 0;   // 現在表示している件数
+      let serverOffset = 0;    // サーバー側 OFFSET
       let serverHasMore = true;
-      let serverSort = 'desc';
+      let serverSort = 'desc'; // 'desc' | 'asc'
       let loading = false;
 
+      // ===== 共通ユーティリティ =====
       function showError(msg) {
         $error.style.display = 'block';
         $error.textContent = msg;
       }
 
-      function renderCards(items, { append = false } = {}) {
+      function renderCards(items) {
+        // items は「表示したい件数に切り出された filtered のスライス」
         const frag = document.createDocumentFragment();
         for (const it of items) {
           const a = document.createElement('a');
@@ -251,14 +262,15 @@
           a.appendChild(card);
           frag.appendChild(a);
         }
-        if (!append) $list.innerHTML = '';
+        $list.innerHTML = '';
         $list.appendChild(frag);
       }
 
-      function applyFilterAndSort() {
+      function applyFilterAndSort({ resetRendered = true } = {}) {
         const q = ($q.value || '').trim().toLowerCase();
         const src = ($source.value || '').trim();
 
+        // フィルタ
         filtered = fetched.filter(it => {
           const hitQ = !q || ((it.title || '').toLowerCase().includes(q) || (it.source_name || '').toLowerCase().includes(q));
           const hitS = !src || (src === 'YouTube'
@@ -267,6 +279,7 @@
           return hitQ && hitS;
         });
 
+        // 並び：UI の sort 値（published_at + id）
         const dir = $sort.value === 'asc' ? 1 : -1;
         filtered.sort((a, b) => {
           const ad = new Date(a.published_at || 0).getTime();
@@ -276,60 +289,76 @@
           return 0;
         });
 
-        page = 0;
-        const slice = filtered.slice(0, PAGE_SIZE);
-        renderCards(slice);
+        // resetRendered=true のときは初期件数に戻す（検索・ソート操作時）
+        if (resetRendered) {
+          renderedCount = Math.min(INITIAL_COUNT, filtered.length);
+        } else {
+          // resetしない場合（＝サーバーから追加入荷など）は、既存の renderedCount を維持
+          renderedCount = Math.min(renderedCount, filtered.length);
+        }
+
+        renderCards(filtered.slice(0, renderedCount));
         $empty.style.display = filtered.length ? 'none' : 'block';
         toggleMoreButton();
       }
 
       function toggleMoreButton() {
-        const canMoreClient = (page + 1) * PAGE_SIZE < filtered.length;
-        const shouldShow = canMoreClient || serverHasMore;
+        const clientHasMore = renderedCount < filtered.length;
+        const shouldShow = clientHasMore || serverHasMore;
         $more.disabled = !shouldShow;
         $more.style.display = shouldShow ? 'inline-flex' : 'none';
       }
 
-      $more.addEventListener('click', async () => {
-        const nextStart = (page + 1) * PAGE_SIZE;
-        const nextEnd = nextStart + PAGE_SIZE;
-        const nextChunk = filtered.slice(nextStart, nextEnd);
-
-        if (nextChunk.length) {
-          page += 1;
-          renderCards(filtered.slice(0, nextEnd), { append: false });
-          toggleMoreButton();
-          return;
-        }
-
-        if (serverHasMore && !loading) {
-          await fetchFromServer({ append: true });
-          applyFilterAndSort();
-        }
-      });
-
+      // ===== イベント =====
       function debounce(fn, ms) {
         let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
       }
-      $q.addEventListener('input', debounce(applyFilterAndSort, 200));
-      $source.addEventListener('change', applyFilterAndSort);
+      $q.addEventListener('input', debounce(() => applyFilterAndSort({ resetRendered: true }), 200));
+      $source.addEventListener('change', () => applyFilterAndSort({ resetRendered: true }));
       $sort.addEventListener('change', () => {
         serverSort = $sort.value === 'asc' ? 'asc' : 'desc';
-        applyFilterAndSort();
+        applyFilterAndSort({ resetRendered: true });
       });
 
+      $more.addEventListener('click', async () => {
+        // まずクライアント側の未描画分を追加
+        if (renderedCount < filtered.length) {
+          renderedCount = Math.min(renderedCount + LOAD_MORE, filtered.length);
+          renderCards(filtered.slice(0, renderedCount));
+          toggleMoreButton();
+          return;
+        }
+        // クライアントが尽きていれば、サーバーからさらに取得
+        if (serverHasMore && !loading) {
+          const got = await fetchFromServer({ append: true });
+          // 取得件数があれば、レンダリング数は +LOAD_MORE 増やして維持（初期化しない）
+          if (got > 0) {
+            // フィルタ・ソートは維持しつつ resetRendered=false
+            applyFilterAndSort({ resetRendered: false });
+            // さらにクライアント側でLOAD_MORE分増やす（新規データ分を使って拡張）
+            const target = Math.min(renderedCount + LOAD_MORE, filtered.length);
+            renderedCount = target;
+            renderCards(filtered.slice(0, renderedCount));
+            toggleMoreButton();
+          } else {
+            toggleMoreButton();
+          }
+        }
+      });
+
+      // ===== サーバー取得 =====
       async function fetchFromServer({ append } = { append: false }) {
         if (!SUPABASE_URL || !SUPABASE_KEY) {
           showError('Supabase の URL / ANON KEY が設定されていません。');
-          return;
+          return 0;
         }
         loading = true;
-        $skeleton.style.display = append ? 'none' : 'grid';
+        if (!append) $skeleton.style.display = 'grid';
+        let received = 0;
         try {
           const orderParam = `order=published_at.${serverSort},id.${serverSort}`;
           const rangeFrom = serverOffset;
-          const rangeTo = serverOffset + PAGE_SIZE - 1;
-
+          const rangeTo = serverOffset + SERVER_PAGE_SIZE - 1;
           const url = `${SUPABASE_URL}/rest/v1/news_items?select=id,title,url,published_at,source_name,source_url,thumbnail_url&${orderParam}`;
           const resp = await fetch(url, {
             headers: {
@@ -343,14 +372,11 @@
 
           if (resp.status === 206 || resp.status === 200) {
             const data = await resp.json();
-            if (Array.isArray(data)) {
-              if (append) {
-                fetched = fetched.concat(data);
-              } else {
-                fetched = data;
-              }
+            if (Array.isArray(data) && data.length) {
+              received = data.length;
+              fetched = append ? fetched.concat(data) : data;
               serverOffset += data.length;
-              if (data.length < PAGE_SIZE) serverHasMore = false;
+              if (data.length < SERVER_PAGE_SIZE) serverHasMore = false;
             } else {
               serverHasMore = false;
             }
@@ -364,15 +390,19 @@
         } catch (e) {
           console.error(e);
           showError('ネットワークエラーが発生しました。');
+          serverHasMore = false;
         } finally {
           $skeleton.style.display = 'none';
           loading = false;
         }
+        return received;
       }
 
+      // ===== 初期ロード =====
       (async function init() {
         await fetchFromServer({ append: false });
-        applyFilterAndSort();
+        // 初期表示は INITIAL_COUNT 件
+        applyFilterAndSort({ resetRendered: true });
       })();
     })();
   </script>
