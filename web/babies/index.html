@@ -20,23 +20,25 @@
   <script defer src="/assets/js/app.js"></script>
   <script defer src="/assets/js/babies.js"></script>
 
-  <!-- 16:9固定サムネ & レイアウト（news一覧に準拠） -->
+  <!-- レイアウト/レスポンシブ/Sticky強化（news一覧準拠＋SP見切れ対策） -->
   <style>
+    /* ===== コンテナ：親の overflow が sticky を殺すことがあるため可視化 ===== */
+    .container.hero { overflow: visible; }
+
+    /* ===== グリッド（モバイルファースト） ===== */
     .grid {
       display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px; /* SP 基準 */
     }
-    @media (max-width: 599px) {
-      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    }
-    @media (min-width: 600px) and (max-width: 1023px) {
-      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (min-width: 600px) {
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     }
     @media (min-width: 1024px) {
       .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
+    /* ===== カード ===== */
     .card {
       background: #fff;
       border-radius: 12px;
@@ -59,44 +61,84 @@
     }
     .meta { font-size: 12px; color: #666; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .meta .dot::before { content: "・"; margin: 0 2px; color: #aaa; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #f6f8ff; color: #3b5bd6;
+    }
 
+    /* ===== コントロール（sticky + SP見切れ対策） ===== */
     .controls.sticky {
-      position: sticky; top: 0; background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee; z-index: 10;
-      display: grid; grid-template-columns: 1fr 160px 120px; gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      padding: 8px 12px;
+      display: grid;
+      grid-template-columns: 1fr minmax(140px, 1fr) minmax(120px, 1fr);
+      gap: 8px;
+      /* フォーム要素のはみ出し防止 */
+      align-items: center;
     }
-    @media (max-width: 599px) {
-      .controls.sticky { grid-template-columns: 1fr 1fr; }
-      .controls.sticky #sort { grid-column: span 2; }
+    .controls.sticky > * { min-width: 0; }
+    .controls.sticky input[type="search"],
+    .controls.sticky select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
     }
 
+    /* SP：2カラム、ソートは改行して全幅 */
+    @media (max-width: 599px) {
+      .controls.sticky {
+        grid-template-columns: 1fr 1fr;
+      }
+      .controls.sticky #sort {
+        grid-column: 1 / -1; /* 2列またぎ */
+      }
+    }
+
+    /* ===== スケルトン ===== */
     .skeleton {
       background: linear-gradient(90deg, #eee 25%, #f7f7f7 37%, #eee 63%);
       animation: shimmer 1.35s infinite; background-size: 400% 100%;
     }
     @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
 
+    /* ===== エラー/空状態/もっと読む ===== */
     #error {
       display: none; background: #fff7f7; border: 1px solid #ffdede; color: #a40000;
       padding: 10px 12px; border-radius: 10px; margin: 14px 0; white-space: pre-line;
     }
-
     .more-wrap { display: flex; justify-content: center; margin: 16px 0 32px; }
     #more { padding: 10px 16px; font-size: 14px; border-radius: 999px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
     #more[disabled] { opacity: .6; cursor: not-allowed; }
 
-    .badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #f6f8ff; color: #3b5bd6;
+    /* ===== 固定フォールバック用（必要時にJSで付与） ===== */
+    .controls.sticky.is-fixed {
+      position: fixed;
+      left: 0; right: 0; top: 0;
+      margin: 0;
+      width: 100%;
+      /* .container の左右余白と整合を取りたい場合は、以下をコメント解除＆調整
+      max-width: 1120px;  margin-left: auto; margin-right: auto;
+      */
     }
+    .controls-placeholder { height: 0; }
+    .controls-placeholder.active { height: var(--controls-h, 0px); }
   </style>
 </head>
-<body data-babies-v2="1">
+<body data-babies-v2="2">
   <div class="container hero">
     <h1>赤ちゃん一覧</h1>
 
     <!-- 検索/絞り込み/ソート（news一覧と同様の3カラム） -->
-    <div class="controls sticky">
-      <input id="q" type="search" placeholder="名前・動物種で検索">
+    <div id="controls" class="controls sticky" role="region" aria-label="検索と絞り込み">
+      <input id="q" type="search" placeholder="名前・動物種で検索" aria-label="名前・動物種で検索">
       <select id="zoo" aria-label="所属動物園で絞り込み">
         <option value="">すべての動物園</option>
       </select>
@@ -105,6 +147,8 @@
         <option value="asc">誕生日が古い順</option>
       </select>
     </div>
+    <!-- フォールバックで fixed 化した際にページのガタつきを防ぐダミー -->
+    <div id="controls-ph" class="controls-placeholder" aria-hidden="true"></div>
 
     <div class="banner">（インフィード広告枠）</div>
 
@@ -151,15 +195,73 @@
     </a>
   -->
 
-  <!-- 任意：最小限の防御コード（外部 babies.js と衝突しない範囲で）
-       - babies.js で #error / #empty / #more を制御可能にしておくと安全 -->
+  <!-- Sticky フォールバック（必要時のみ fixed に切替） -->
   <script>
     (function () {
-      // 既存 babies.js が同様の初期化を行う前提。ここではUIの初期状態だけを整える。
-      const $error = document.getElementById('error');
-      $error.style.display = 'none';
-      const $more = document.getElementById('more');
-      // babies.js 側で「もっと読む」対応がない場合は非表示のままになる想定
+      const $controls = document.getElementById('controls');
+      const $ph = document.getElementById('controls-ph');
+
+      // 1) sticky サポート簡易判定
+      const test = document.createElement('div');
+      test.style.cssText = 'position:sticky; position:-webkit-sticky; top:1px;';
+      const supportsSticky = /sticky/i.test(test.style.position);
+
+      // 2) 祖先の overflow が原因で効かないケースを考慮し、スクロール時の挙動を監視
+      //    うまく固定されない環境では fixed にフォールバック
+      let usingFixed = false;
+      let headerTop = 0;
+      let headerH = 0;
+
+      function measure() {
+        const rect = $controls.getBoundingClientRect();
+        headerH = rect.height;
+        headerTop = window.scrollY + rect.top;
+        // プレースホルダーの高さを更新（CSS変数で管理）
+        $ph.style.setProperty('--controls-h', headerH + 'px');
+      }
+
+      function toFixedMode() {
+        if (usingFixed) return;
+        usingFixed = true;
+        $controls.classList.add('is-fixed');
+        $ph.classList.add('active');
+      }
+
+      function toStickyMode() {
+        if (!usingFixed) return;
+        usingFixed = false;
+        $controls.classList.remove('is-fixed');
+        $ph.classList.remove('active');
+      }
+
+      function onScroll() {
+        if (!supportsSticky) {
+          // sticky 未対応 → 常に fixed
+          toFixedMode();
+          return;
+        }
+        // sticky 対応でも、実際に機能していない場合（上部で一緒に流れてしまう等）を簡易検出
+        // 目安：スクロールがヘッダー初期位置を超えたら、ヘッダーの top がほぼ 0 付近で止まっているか？
+        const rect = $controls.getBoundingClientRect();
+        if (window.scrollY > headerTop && Math.abs(rect.top) > 2) {
+          // 本来は 0px 近辺に張り付くはず → 効いてないと判断して fixed に
+          toFixedMode();
+        } else {
+          // sticky が効いているか、まだ閾値未満
+          if (usingFixed && window.scrollY <= headerTop) {
+            toStickyMode();
+          }
+        }
+      }
+
+      // 初期計測
+      measure();
+      window.addEventListener('resize', measure, { passive: true });
+      window.addEventListener('orientationchange', measure, { passive: true });
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      // iOS 等で初回スクロール前に高さが変わることがあるため、遅延計測を一度
+      setTimeout(measure, 50);
     })();
   </script>
 </body>
