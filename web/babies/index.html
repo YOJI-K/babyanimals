@@ -16,84 +16,151 @@
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 
   <link rel="stylesheet" href="/assets/css/style.css">
+  <!-- ※もし外部スクリプトが衝突する場合は下2行を一時的に外してください -->
   <script defer src="/assets/js/app.js"></script>
   <script defer src="/assets/js/babies.js"></script>
+
+  <!-- 16:9固定サムネ & レイアウト（news一覧に準拠） -->
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 599px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    }
+    @media (min-width: 600px) and (max-width: 1023px) {
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1024px) {
+      .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      transition: transform .12s ease;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card a { color: inherit; text-decoration: none; display: block; }
+
+    .thumb { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #f2f2f2; overflow: hidden; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .pad { padding: 10px 12px 12px; }
+    .title {
+      font-size: 14.5px; line-height: 1.5; font-weight: 600; margin: 6px 0 8px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .meta { font-size: 12px; color: #666; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .meta .dot::before { content: "・"; margin: 0 2px; color: #aaa; }
+
+    .controls.sticky {
+      position: sticky; top: 0; background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee; z-index: 10;
+      display: grid; grid-template-columns: 1fr 160px 120px; gap: 8px;
+    }
+    @media (max-width: 599px) {
+      .controls.sticky { grid-template-columns: 1fr 1fr; }
+      .controls.sticky #sort { grid-column: span 2; }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #eee 25%, #f7f7f7 37%, #eee 63%);
+      animation: shimmer 1.35s infinite; background-size: 400% 100%;
+    }
+    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+    #error {
+      display: none; background: #fff7f7; border: 1px solid #ffdede; color: #a40000;
+      padding: 10px 12px; border-radius: 10px; margin: 14px 0; white-space: pre-line;
+    }
+
+    .more-wrap { display: flex; justify-content: center; margin: 16px 0 32px; }
+    #more { padding: 10px 16px; font-size: 14px; border-radius: 999px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+    #more[disabled] { opacity: .6; cursor: not-allowed; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #f6f8ff; color: #3b5bd6;
+    }
+  </style>
 </head>
-<body>
+<body data-babies-v2="1">
   <div class="container hero">
     <h1>赤ちゃん一覧</h1>
 
-    <!-- 検索/絞り込み（sticky） -->
+    <!-- 検索/絞り込み/ソート（news一覧と同様の3カラム） -->
     <div class="controls sticky">
       <input id="q" type="search" placeholder="名前・動物種で検索">
-      <select id="zoo"><option value="">すべての動物園</option></select>
+      <select id="zoo" aria-label="所属動物園で絞り込み">
+        <option value="">すべての動物園</option>
+      </select>
+      <select id="sort" aria-label="並び替え（誕生日）">
+        <option value="desc" selected>誕生日が新しい順</option>
+        <option value="asc">誕生日が古い順</option>
+      </select>
     </div>
 
-    <!-- スケルトン（初期表示8件分） -->
+    <div class="banner">（インフィード広告枠）</div>
+
+    <!-- スケルトン（初期表示） -->
     <div id="skeleton-babies" class="grid" aria-hidden="true">
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="thumb skeleton"></div>
-        <div class="pad">
-          <div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div>
-          <div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div>
-        </div>
-      </div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
     </div>
 
-    <!-- 実データ -->
-    <div id="list" class="grid"></div>
+    <!-- エラー表示 -->
+    <div id="error"></div>
+
+    <!-- 実データ（babies.js で流し込み） -->
+    <div id="list" class="grid" aria-live="polite"></div>
 
     <!-- 空状態 -->
-    <div id="empty" class="empty" style="display:none;">データがありません</div>
+    <div id="empty" class="empty" style="display:none;">条件に合う赤ちゃんが見つかりませんでした</div>
+
+    <!-- 下部に「もっと読む」 -->
+    <div class="more-wrap">
+      <button id="more" style="display:none;">もっと読む</button>
+    </div>
   </div>
+
+  <!-- 参考：カード生成の想定HTML（babies.js側で生成）
+    <a href="/babies/123">
+      <div class="card">
+        <div class="thumb"><img loading="lazy" src="/path/to/16x9.jpg" alt="〇〇（キリン）"></div>
+        <div class="pad">
+          <div class="title">〇〇（キリン）</div>
+          <div class="meta">
+            <span>2025/05/03 生まれ</span><span class="dot"></span>
+            <span>上野動物園</span>
+            <span class="badge">♂</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  -->
+
+  <!-- 任意：最小限の防御コード（外部 babies.js と衝突しない範囲で）
+       - babies.js で #error / #empty / #more を制御可能にしておくと安全 -->
+  <script>
+    (function () {
+      // 既存 babies.js が同様の初期化を行う前提。ここではUIの初期状態だけを整える。
+      const $error = document.getElementById('error');
+      $error.style.display = 'none';
+      const $more = document.getElementById('more');
+      // babies.js 側で「もっと読む」対応がない場合は非表示のままになる想定
+    })();
+  </script>
 </body>
 </html>
