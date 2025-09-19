@@ -1,20 +1,24 @@
 /* ======================================================================
-  Zoo Baby – Pink/Orange Theme (SP-first)
+  Zoo Baby – Pink/Orange Theme (SP-first, compact)
   File: /assets/css/style.css
   Last update: 2025-09-19
 ====================================================================== */
 
-/* -------- Normalize / Reset (最小限) -------- */
+/* -------- Reset -------- */
 *,
 *::before,
 *::after { box-sizing: border-box; }
 :root { -webkit-text-size-adjust: 100%; }
 html, body { height: 100%; }
-body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "YuGothic", "Meiryo", sans-serif; line-height: 1.6; color: #3a2a2a; background: #fff; }
-
-/* 画像/絵文字の暴れ防止 */
-img, svg { max-width: 100%; height: auto; display: block; }
-[class*="icon"], .tabbar__icon, .panel-icon, .chip__icon { font-size: 18px; line-height: 1; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+    "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI",
+    "YuGothic", "Meiryo", sans-serif;
+  line-height: 1.6;
+  color: #3a2a2a;
+  background: #fff;
+}
 
 /* -------- Theme Vars -------- */
 :root{
@@ -33,11 +37,13 @@ img, svg { max-width: 100%; height: auto; display: block; }
   --card:#ffffff;
   --border:rgba(0,0,0,.08);
   --shadow:0 8px 24px rgba(255,77,166,.08), 0 2px 8px rgba(0,0,0,.06);
-  --radius-12:12px; --radius-16:16px; --radius-24:24px;
+  --radius-12:12px; --radius-16:16px; --radius-18:18px; --radius-24:24px;
   --grad:linear-gradient(135deg, var(--pink-500) 0%, var(--orange-500) 100%);
+  --icon: 20px;          /* 基本アイコンサイズ（SP） */
+  --icon-lg: 24px;       /* 大きめアイコン */
 }
 
-/* -------- Containers / Layout -------- */
+/* -------- Container / Background -------- */
 .container{
   width: min(980px, 100%);
   margin-inline: auto;
@@ -47,27 +53,43 @@ img, svg { max-width: 100%; height: auto; display: block; }
     radial-gradient(800px 400px at -100px 30%, #fff2e3 0, transparent 60%);
 }
 
+/* ------------------------------------------------------------------ */
+/* Header（SPは1行固定）                                             */
+/* ------------------------------------------------------------------ */
 .site-header{
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; padding: 12px 16px;
+  padding: 8px 12px;
   background: linear-gradient(180deg, #fffdfa 0%, rgba(255,253,250,.92) 100%);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(6px);
+  min-height: 48px; /* 1行高さ */
 }
-.brand{ display:flex; align-items:center; gap:8px; font-weight:700; }
-.brand__icon{ font-size:22px; }
-.brand__title{ font-size:15px; }
+.site-header__left,
+.site-header__right{ display:flex; align-items:center; gap:8px; }
 
-/* -------- Tabbar (上部の4タブ) -------- */
+.brand{ display:flex; align-items:center; gap:8px; min-width: 0; }
+.brand__icon{ font-size: var(--icon); line-height: 1; }
+.brand__title{
+  font-size: 14px; font-weight: 700; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 70vw;
+}
+.pill-btn.like-btn{
+  width: 36px; height: 36px; border-radius: 999px; border:1px solid var(--border);
+  display:grid; place-items:center; background:#fff;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tabbar（上部の4タブ）                                              */
+/* ------------------------------------------------------------------ */
 .tabbar{
   display: grid; grid-template-columns: repeat(4,1fr);
-  gap: 10px; padding: 12px; margin: 12px 16px 0;
+  gap: 10px; padding: 10px; margin: 10px 12px 0;
   background: linear-gradient(135deg, #fff, var(--orange-50));
-  border: 1px solid var(--border); border-radius: 18px;
+  border: 1px solid var(--border); border-radius: 16px;
 }
 .tabbar__link{
-  display:grid; grid-template-columns: 20px 1fr; align-items:center; gap:8px;
+  display:grid; grid-template-columns: 22px 1fr; align-items:center; gap:8px;
   min-height:44px; padding: 10px 12px;
   background: var(--card);
   border:1px solid var(--border);
@@ -75,23 +97,32 @@ img, svg { max-width: 100%; height: auto; display: block; }
   font-weight:700; letter-spacing:.02em;
   box-shadow: 0 1px 0 #fff inset;
 }
-.tabbar__link:is(:hover,:focus-visible){ outline: 3px solid rgb(255 170 215 / .35); }
 .tabbar__link.is-active{
   color:#fff; background: var(--grad); border-color: transparent;
 }
+.tabbar__icon{ font-size: var(--icon); line-height: 1; }
+.tabbar__link :where(svg,img){ width: var(--icon); height: var(--icon); }
 
-/* -------- Headings / Page hero -------- */
+/* ------------------------------------------------------------------ */
+/* Page hero / segmented                                              */
+/* ------------------------------------------------------------------ */
 .page-hero{ padding: 8px 0 4px; }
 .page-title{ margin: 8px 0 12px; font-size: clamp(20px, 5vw, 28px); letter-spacing:.02em; }
-.segmented{ display:flex; gap:8px; }
+.segmented{ display:flex; gap:8px; flex-wrap: wrap; }
 .segmented__btn{
   border:1px solid var(--border); background:#fff; color:var(--ink);
   padding:8px 12px; border-radius:999px; font-weight:700;
 }
 .segmented__btn.is-selected{ background:var(--grad); color:#fff; border-color:transparent; }
 
-/* -------- Card / Panel -------- */
-.card{ background:var(--card); border:1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); padding: 14px; margin: 16px 0; }
+/* ------------------------------------------------------------------ */
+/* Card / Panel                                                       */
+/* ------------------------------------------------------------------ */
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius: var(--radius-18); box-shadow: var(--shadow);
+  padding: 14px; margin: 16px 0;
+}
 .card--panel{ padding: 14px; }
 .card--message{ background: linear-gradient(180deg, #fff, var(--pink-50)); }
 
@@ -100,11 +131,13 @@ img, svg { max-width: 100%; height: auto; display: block; }
   width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
   background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
   border:1px solid var(--border);
+  font-size: var(--icon-lg); line-height: 1; /* ← ここでアイコン肥大を抑制 */
 }
-.panel-title{ margin:0; font-size: clamp(18px, 4.5vw, 22px); }
-.panel-desc{ margin:.25rem 0 0; color:var(--muted); font-size:14px; }
+.panel-head :where(svg,img){ width: var(--icon-lg); height: var(--icon-lg); }
 
-/* -------- Calendar Head -------- */
+/* ------------------------------------------------------------------ */
+/* Calendar Head                                                      */
+/* ------------------------------------------------------------------ */
 .calendar-head{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
   margin: 12px 0 10px;
@@ -115,13 +148,17 @@ img, svg { max-width: 100%; height: auto; display: block; }
   border:1px solid var(--border); font-weight:800;
 }
 .chip--calendar{ background: linear-gradient(135deg, #fff, #fff7f0); }
+.chip__icon{ font-size: var(--icon); line-height: 1; }
+.chip :where(svg,img){ width: var(--icon); height: var(--icon); }
 .nav-icon{
   width:40px; height:40px; display:grid; place-items:center;
-  border-radius:12px; border:1px solid var(--border); background:#fff; font-size:16px; font-weight:900;
+  border-radius:12px; border:1px solid var(--border); background:#fff;
+  font-size:16px; font-weight:900;
 }
-.nav-icon:is(:hover,:focus-visible){ outline: 3px solid rgb(255 165 210 / .35); }
 
-/* -------- Calendar Grid -------- */
+/* ------------------------------------------------------------------ */
+/* Calendar Grid                                                      */
+/* ------------------------------------------------------------------ */
 .calendar{ margin-top: 2px; }
 .calendar__weekday{
   display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
@@ -130,8 +167,6 @@ img, svg { max-width: 100%; height: auto; display: block; }
 .calendar__grid{
   display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
 }
-
-/* 日セル */
 .cal-day{
   position:relative; height:52px;
   display:grid; place-items:center;
@@ -140,17 +175,28 @@ img, svg { max-width: 100%; height: auto; display: block; }
 }
 .cal-day--muted{ color:#b8aeb2; background: #fffdfa; }
 .cal-day--has{ box-shadow: inset 0 0 0 2px rgba(255, 77, 166, .25); }
-.cal-day__date{ position:absolute; top:6px; right:8px; color:#6b6b6b; font-size:11px; font-weight:900; }
-.cal-day__dot{ position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:6px; height:6px; border-radius:50%; background: var(--pink-400); }
+.cal-day__date{
+  position:absolute; top:6px; right:8px; color:#6b6b6b;
+  font-size:11px; font-weight:900;
+}
+.cal-day__dot{
+  position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+  width:6px; height:6px; border-radius:50%; background: var(--pink-400);
+}
 .cal-day__dot--past{ background:#96a0ad; }
 
-/* -------- Legend -------- */
-.legend{ display:flex; align-items:center; gap:16px; margin-top:8px; color:#6b6b6b; font-size:13px; }
+/* Legend */
+.legend{
+  display:flex; align-items:center; gap:16px; margin-top:8px;
+  color:#6b6b6b; font-size:13px;
+}
 .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; transform:translateY(1px); margin-right:4px; }
 .dot--future{ background: var(--pink-400); }
 .dot--past{ background: #96a0ad; }
 
-/* -------- Birthday List -------- */
+/* ------------------------------------------------------------------ */
+/* Birthday List                                                      */
+/* ------------------------------------------------------------------ */
 .bday-list{ display:grid; gap:10px; }
 .bday-card{
   display:grid; grid-template-columns: 48px 1fr auto; gap:12px; align-items:center;
@@ -160,6 +206,7 @@ img, svg { max-width: 100%; height: auto; display: block; }
   width:48px; height:48px; border-radius:12px; display:grid; place-items:center;
   background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
   border:1px solid var(--border);
+  font-size: var(--icon-lg);
 }
 .bday-card__title{ margin:0; font-size:16px; font-weight:800; }
 .bday-card__meta{ margin:2px 0 0; color:#7c6e73; font-size:12px; }
@@ -168,23 +215,42 @@ img, svg { max-width: 100%; height: auto; display: block; }
   padding:6px 10px; font-size:12px; white-space:nowrap;
 }
 
-/* -------- Message card -------- */
+/* ------------------------------------------------------------------ */
+/* Message card                                                       */
+/* ------------------------------------------------------------------ */
 .card--message h3{ display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:18px; }
-.icon-heart{ width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
-  background: var(--grad); color:#fff; }
+.icon-heart{
+  width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
+  background: var(--grad); color:#fff; font-size: var(--icon);
+}
 
-/* -------- Footer -------- */
+/* ------------------------------------------------------------------ */
+/* Footer                                                             */
+/* ------------------------------------------------------------------ */
 .site-footer{ color:#7a6d72; text-align:center; padding: 24px 16px; font-size:12px; }
 
-/* -------- Desktop enhancements -------- */
+/* ------------------------------------------------------------------ */
+/* アイコン暴走ガード（カード／ボタン内の svg/img/emoji を強制縮小）   */
+/* ------------------------------------------------------------------ */
+.tabbar__link :where(svg,img),
+.panel-head :where(svg,img),
+.chip :where(svg,img),
+.nav-icon :where(svg,img),
+.bday-card__avatar :where(svg,img) { width: var(--icon); height: var(--icon); }
+
+.card :where(.panel-icon, .tabbar__icon, .icon, .emoji){ font-size: var(--icon); line-height: 1; }
+
+/* ※カード内部で意図的に大きな画像を使う場合は data-allow-big を付けて回避 */
+.card :where(svg,img):not([data-allow-big]){ max-height: 40px; }
+
+/* ------------------------------------------------------------------ */
+/* Desktop enhancements                                               */
+/* ------------------------------------------------------------------ */
 @media (min-width: 720px){
-  .panel-head{ gap:14px; }
+  :root{ --icon: 22px; --icon-lg: 26px; }
   .panel-icon{ width:40px; height:40px; }
   .calendar__grid .cal-day{ height:64px; }
   .bday-card{ grid-template-columns: 56px 1fr auto; padding:14px; }
   .bday-card__avatar{ width:56px; height:56px; }
   .tabbar{ margin-inline: auto; width:min(980px, 100%); }
 }
-
-/* -------- Safety: emoji blow-up guard -------- */
-:where(.tabbar__link span, .chip span, .panel-icon, .bday-card__avatar){ font-variation-settings:"opsz" 14; }
