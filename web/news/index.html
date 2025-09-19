@@ -3,20 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>動物園ベビー情報 | ニュース一覧</title>
-  <meta name="description" content="日本全国の動物園にいる赤ちゃん動物のニュースを集約。公式ブログや動画からまとめてチェックできます。">
+  <title>ニュース一覧 | Baby Animals</title>
+
+  <!-- SEO / OGP -->
+  <meta name="description" content="日本の動物園にいる赤ちゃん動物のニュースを集約。ブログ・公式サイト・YouTubeなどからまとめて一覧表示。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ニュース一覧 | Baby Animals">
+  <meta property="og:description" content="日本の動物園にいる赤ちゃん動物のニュースを集約。ブログ・公式・YouTubeなどからまとめて一覧表示。">
+  <meta property="og:url" content="https://babyanimals.pages.dev/news/">
+  <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
-  <meta property="og:title" content="ニュース一覧 | 動物園ベビー情報" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="../assets/img/og.png" />
-  <meta property="og:site_name" content="Zoo Baby Information Site" />
+
+  <!-- Supabase REST 設定（環境に合わせて差し替え可） -->
+  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
+  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
+
+  <!-- Global styles & scripts -->
   <link rel="stylesheet" href="../assets/css/style.css" />
+  <script defer src="../assets/js/app.js"></script>
+  <!-- このページ専用の取得/描画ロジックは news.js に分離 -->
+  <script defer src="../assets/js/news.js"></script>
 </head>
-<body class="theme">
+<body class="theme" data-news-v2="1">
   <!-- Global Header -->
   <header class="site-header">
     <div class="site-header__left">
-      <a class="brand" href="../index.html" aria-label="トップへ">
+      <a class="brand" href="../index.html">
         <svg class="brand__icon" aria-hidden="true">
           <use href="../assets/icons/icons.svg#icon-logo"></use>
         </svg>
@@ -61,12 +74,11 @@
   </nav>
 
   <main class="container" id="main">
-    <!-- Page Hero -->
+    <!-- Page Title -->
     <section class="page-hero">
       <h1 class="page-title">ニュース一覧</h1>
-
       <div class="segmented" role="tablist" aria-label="ページ切替（無効化中）">
-        <button class="segmented__btn" disabled="">
+        <button class="segmented__btn" disabled>
           <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
           ホーム
         </button>
@@ -74,60 +86,82 @@
           <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-news"></use></svg>
           ニュース
         </button>
-        <button class="segmented__btn" disabled="">
+        <button class="segmented__btn" disabled>
           <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-baby"></use></svg>
           赤ちゃん
         </button>
-        <button class="segmented__btn" disabled="">
+        <button class="segmented__btn" disabled>
           <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
           カレンダー
         </button>
       </div>
     </section>
 
-    <!-- Controls -->
-    <div class="controls sticky">
-      <input id="q" type="search" placeholder="キーワード検索（タイトル/ソース）" aria-label="ニュース検索">
-      <select id="source" aria-label="ニュースの種類で絞り込み">
-        <option value="">すべてのソース</option>
-        <option value="YouTube">YouTube</option>
-        <option value="blog">ブログ/ニュース</option>
-      </select>
-      <select id="sort" aria-label="並び替え">
-        <option value="desc" selected>新着順</option>
-        <option value="asc">古い順</option>
-      </select>
-    </div>
+    <!-- Filters / Sort -->
+    <section class="card card--panel">
+      <header class="panel-head">
+        <div class="panel-icon" aria-hidden="true">📰</div>
+        <div>
+          <h2 class="panel-title">ニュースを探す</h2>
+          <p class="panel-desc">キーワード・ソースで絞り込み、並び順を変更できます</p>
+        </div>
+      </header>
 
-    <!-- News List -->
-    <section>
-      <!-- 初期スケルトン -->
-      <div id="skeleton-news" class="cards-grid" aria-hidden="true">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-      </div>
-
-      <!-- 実データ -->
-      <div id="list" class="cards-grid" aria-live="polite"></div>
-
-      <!-- 空状態 -->
-      <div id="empty" class="empty" style="display:none;">データがありません</div>
-
-      <!-- 読み込みエラー -->
-      <div id="error" class="empty" style="display:none;">読み込みエラーが発生しました</div>
-
-      <!-- もっと読む -->
-      <div class="more-wrap">
-        <button id="more">もっと読む</button>
+      <div class="filters" id="js-filters">
+        <label class="field">
+          <span class="field__label">キーワード</span>
+          <input id="q" class="input" type="search" placeholder="タイトル / ソース名で検索">
+        </label>
+        <label class="field">
+          <span class="field__label">ソース</span>
+          <select id="source" class="select">
+            <option value="">すべてのソース</option>
+            <option value="YouTube">YouTube</option>
+            <option value="blog">ブログ/ニュース</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">並び順</span>
+          <select id="sort" class="select">
+            <option value="desc" selected>新着順</option>
+            <option value="asc">古い順</option>
+          </select>
+        </label>
       </div>
     </section>
+
+    <!-- (広告などインフィードを置く場合) -->
+    <div class="banner" aria-hidden="true">（インフィード広告枠）</div>
+
+    <!-- Skeleton -->
+    <section aria-label="読み込み中" id="skeleton-news" class="grid grid--cards" aria-hidden="true">
+      <!-- 8枚分のスケルトン -->
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
+    </section>
+
+    <div id="error" class="alert" role="status" style="display:none;"></div>
+
+    <!-- Actual list -->
+    <section aria-label="ニュース一覧" id="list" class="grid grid--cards" aria-live="polite"></section>
+
+    <!-- Empty -->
+    <div id="empty" class="empty" style="display:none;">データがありません</div>
+
+    <!-- Load more -->
+    <div class="more-wrap">
+      <button id="more" class="pill-btn">もっと読む</button>
+    </div>
   </main>
 
   <footer class="site-footer" aria-label="フッター">
     <small>© Zoo Baby Information</small>
   </footer>
-
-  <script src="../assets/js/news.js" defer></script>
 </body>
 </html>
