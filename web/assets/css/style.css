@@ -1,275 +1,190 @@
-/* ================================
-   Zoo Baby Information — Pink/Orange (Mobile-first)
-   File: assets/css/style.css
-   ================================ */
+/* ======================================================================
+  Zoo Baby – Pink/Orange Theme (SP-first)
+  File: /assets/css/style.css
+  Last update: 2025-09-19
+====================================================================== */
 
-/* -------- Reset -------- */
+/* -------- Normalize / Reset (最小限) -------- */
 *,
 *::before,
 *::after { box-sizing: border-box; }
+:root { -webkit-text-size-adjust: 100%; }
 html, body { height: 100%; }
-body, h1, h2, h3, p { margin: 0; }
-img, picture { max-width: 100%; display: block; }
-button, input, select, textarea { font: inherit; color: inherit; }
-a { color: inherit; text-decoration: none; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", "YuGothic", "Meiryo", sans-serif; line-height: 1.6; color: #3a2a2a; background: #fff; }
 
-/* -------- Theme Tokens -------- */
+/* 画像/絵文字の暴れ防止 */
+img, svg { max-width: 100%; height: auto; display: block; }
+[class*="icon"], .tabbar__icon, .panel-icon, .chip__icon { font-size: 18px; line-height: 1; }
+
+/* -------- Theme Vars -------- */
 :root{
-  --bg: #fff7fb;
-  --bg-2: #fff0f5;
-  --surface: #ffffff;
-  --surface-2: #fff5f7;
-  --text: #2b2b2b;
-  --muted: #6b7280;
-
-  --accent:  #ff4da6; /* magenta */
-  --accent-2:#ff7ac7; /* pink */
-  --accent-3:#ffaf61; /* orange */
-
-  --success:#f472b6;  /* future dot */
-  --done:   #94a3b8;  /* past dot */
-
-  --r-lg: 18px;
-  --r-md: 14px;
-  --r-sm: 10px;
-
-  --bd-soft: 1px solid rgba(0,0,0,.06);
-  --bd-accent: 1px solid rgba(255,77,166,.18);
-
-  --shadow-sm: 0 4px 10px rgba(255,77,166,.10);
-  --shadow-md: 0 8px 24px rgba(255,77,166,.16);
-  --shadow-soft: 0 12px 40px rgba(255,175,97,.18);
-
-  --chip-bg: linear-gradient(135deg,#ffe3ee,#ffeede);
-  --tab-grad: linear-gradient(135deg,#ffe8f2,#fff2e2);
-  --active-grad: linear-gradient(135deg,var(--accent),var(--accent-3));
+  --pink-50:#fff5fa;
+  --pink-100:#ffe8f2;
+  --pink-200:#ffd0e6;
+  --pink-400:#ff7ac7;
+  --pink-500:#ff4da6;
+  --orange-50:#fff7ef;
+  --orange-100:#ffefe1;
+  --orange-300:#ffd0a3;
+  --orange-500:#ffaf61;
+  --bg:#fff7fb;
+  --ink:#41363a;
+  --muted:#8e7c82;
+  --card:#ffffff;
+  --border:rgba(0,0,0,.08);
+  --shadow:0 8px 24px rgba(255,77,166,.08), 0 2px 8px rgba(0,0,0,.06);
+  --radius-12:12px; --radius-16:16px; --radius-24:24px;
+  --grad:linear-gradient(135deg, var(--pink-500) 0%, var(--orange-500) 100%);
 }
 
-/* -------- Base -------- */
-body.theme{
-  background:
-    radial-gradient(900px 400px at 0% -10%, #ffeaf3 0%, transparent 60%),
-    radial-gradient(900px 400px at 100% 0%, #fff1e4 0%, transparent 60%),
-    var(--bg);
-  color: var(--text);
-  font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",Arial,sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
+/* -------- Containers / Layout -------- */
 .container{
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 20px 14px 80px;
+  width: min(980px, 100%);
+  margin-inline: auto;
+  padding: 16px clamp(12px, 3.5vw, 24px);
+  background:
+    radial-gradient(1200px 600px at 80% -200px, #ffe5f3 0, transparent 60%),
+    radial-gradient(800px 400px at -100px 30%, #fff2e3 0, transparent 60%);
 }
 
-/* -------- Header -------- */
 .site-header{
-  position: sticky; top: 0; z-index: 40;
+  position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(255,255,255,.82);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border-bottom: var(--bd-soft);
+  gap: 12px; padding: 12px 16px;
+  background: linear-gradient(180deg, #fffdfa 0%, rgba(255,253,250,.92) 100%);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(6px);
 }
 .brand{ display:flex; align-items:center; gap:8px; font-weight:700; }
-.brand__icon{ font-size: 20px; line-height: 1; }
-.brand__title{ font-size: 15px; }
+.brand__icon{ font-size:22px; }
+.brand__title{ font-size:15px; }
 
-.pill-btn{
-  border: 0; background: var(--active-grad); color: #fff;
-  border-radius: 999px; padding: 8px 10px; line-height: 1;
-  box-shadow: var(--shadow-sm);
-}
-
-/* -------- Top Tabbar -------- */
+/* -------- Tabbar (上部の4タブ) -------- */
 .tabbar{
-  margin: 12px auto 0;
-  max-width: 960px;
-  background: var(--tab-grad);
-  border-radius: var(--r-lg);
-  padding: 8px;
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  box-shadow: var(--shadow-md);
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 10px; padding: 12px; margin: 12px 16px 0;
+  background: linear-gradient(135deg, #fff, var(--orange-50));
+  border: 1px solid var(--border); border-radius: 18px;
 }
 .tabbar__link{
-  display: grid; grid-template-columns: 24px 1fr; align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.92);
-  border: var(--bd-soft);
-  transition: transform .12s ease, box-shadow .12s ease;
+  display:grid; grid-template-columns: 20px 1fr; align-items:center; gap:8px;
+  min-height:44px; padding: 10px 12px;
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius: 12px; text-decoration:none; color:var(--ink);
+  font-weight:700; letter-spacing:.02em;
+  box-shadow: 0 1px 0 #fff inset;
 }
-.tabbar__link:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.tabbar__icon{ font-size: 18px !important; line-height: 1; } /* 強制固定 */
-.tabbar__text{ font-size: 13px; font-weight: 700; letter-spacing: .06em; }
+.tabbar__link:is(:hover,:focus-visible){ outline: 3px solid rgb(255 170 215 / .35); }
 .tabbar__link.is-active{
-  color: #fff; background: var(--active-grad); box-shadow: var(--shadow-soft);
+  color:#fff; background: var(--grad); border-color: transparent;
 }
 
-/* -------- Page Hero -------- */
-.page-hero{ margin: 22px 0 14px; display: grid; gap: 12px; }
-.page-title{ font-size: 22px; font-weight: 800; }
-
-/* Segmented */
-.segmented{
-  display: inline-flex; gap: 6px; padding: 6px;
-  background: var(--chip-bg); border-radius: 999px; border: var(--bd-soft);
-}
+/* -------- Headings / Page hero -------- */
+.page-hero{ padding: 8px 0 4px; }
+.page-title{ margin: 8px 0 12px; font-size: clamp(20px, 5vw, 28px); letter-spacing:.02em; }
+.segmented{ display:flex; gap:8px; }
 .segmented__btn{
-  border:0; padding:6px 12px; border-radius:999px; line-height: 1;
-  background:#fff; color: var(--muted); font-weight:700; font-size: 13px;
+  border:1px solid var(--border); background:#fff; color:var(--ink);
+  padding:8px 12px; border-radius:999px; font-weight:700;
 }
-.segmented__btn.is-selected{ background: var(--active-grad); color:#fff; }
+.segmented__btn.is-selected{ background:var(--grad); color:#fff; border-color:transparent; }
 
 /* -------- Card / Panel -------- */
-.card{
-  background: var(--surface);
-  border-radius: var(--r-lg);
-  padding: 16px;
-  border: var(--bd-soft);
-  box-shadow: var(--shadow-sm);
-}
-.card + .card{ margin-top: 14px; }
+.card{ background:var(--card); border:1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); padding: 14px; margin: 16px 0; }
+.card--panel{ padding: 14px; }
+.card--message{ background: linear-gradient(180deg, #fff, var(--pink-50)); }
 
-.card--panel{ padding: 16px; }
-.panel-head{
-  display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center;
-  margin-bottom: 10px;
-}
+.panel-head{ display:flex; align-items:center; gap:12px; margin-bottom: 8px; }
 .panel-icon{
-  width: 40px; height: 40px; border-radius: 12px;
-  display: grid; place-items: center;
-  background: var(--chip-bg); box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
-  font-size: 18px !important; line-height: 1; /* 強制固定 */
+  width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
+  background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
+  border:1px solid var(--border);
 }
-.panel-title{ font-size: 17px; font-weight: 800; }
-.panel-desc{ color: var(--muted); font-size: 13px; }
+.panel-title{ margin:0; font-size: clamp(18px, 4.5vw, 22px); }
+.panel-desc{ margin:.25rem 0 0; color:var(--muted); font-size:14px; }
 
 /* -------- Calendar Head -------- */
-.calendar-head{ margin: 6px 0 10px; display:flex; align-items:center; justify-content:space-between; }
+.calendar-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin: 12px 0 10px;
+}
 .chip{
-  display:inline-flex; align-items:center; gap:8px;
-  background: var(--chip-bg); border: var(--bd-soft);
-  border-radius:999px; padding:8px 12px; font-weight:800;
+  display:inline-grid; grid-auto-flow:column; gap:8px; align-items:center;
+  padding:8px 12px; border-radius:999px; background: #fff;
+  border:1px solid var(--border); font-weight:800;
 }
-.chip__icon{ font-size: 18px !important; line-height: 1; } /* 強制固定 */
-
+.chip--calendar{ background: linear-gradient(135deg, #fff, #fff7f0); }
 .nav-icon{
-  width: 40px; height: 40px; border-radius: 12px;
-  border: var(--bd-soft); background:#fff; cursor:pointer;
-  display:inline-grid; place-items:center; line-height: 1; font-size: 16px;
+  width:40px; height:40px; display:grid; place-items:center;
+  border-radius:12px; border:1px solid var(--border); background:#fff; font-size:16px; font-weight:900;
 }
-.nav-icon + .nav-icon{ margin-left: 8px; }
-.nav-icon:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.nav-icon:is(:hover,:focus-visible){ outline: 3px solid rgb(255 165 210 / .35); }
 
 /* -------- Calendar Grid -------- */
-.calendar{ margin-top: 4px; }
+.calendar{ margin-top: 2px; }
 .calendar__weekday{
-  display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px;
+  display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
+  padding: 6px 2px; color:#6b6b6b; font-weight:700; text-align:center;
 }
-.calendar__cell--wk{
-  text-align:center; padding:4px 0; font-size:12px; color: var(--muted);
+.calendar__grid{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
 }
 
-.calendar__grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
-
+/* 日セル */
 .cal-day{
-  position:relative; height:46px; border-radius:12px;
-  background:#fff; border: var(--bd-soft);
+  position:relative; height:52px;
   display:grid; place-items:center;
-  color: var(--text); font-weight:700;
+  background:#fff; border:1px solid var(--border); border-radius:12px;
+  font-weight:700; color:#2e2a2b;
 }
-.cal-day--muted{ color:#b8bec7; background: linear-gradient(180deg,#fff,#fff9fc); }
-.cal-day.is-today{
-  box-shadow: 0 0 0 2px rgba(255,77,166,.35) inset, var(--shadow-sm);
-}
-.cal-day.is-disabled{ opacity:.5; }
+.cal-day--muted{ color:#b8aeb2; background: #fffdfa; }
+.cal-day--has{ box-shadow: inset 0 0 0 2px rgba(255, 77, 166, .25); }
+.cal-day__date{ position:absolute; top:6px; right:8px; color:#6b6b6b; font-size:11px; font-weight:900; }
+.cal-day__dot{ position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:6px; height:6px; border-radius:50%; background: var(--pink-400); }
+.cal-day__dot--past{ background:#96a0ad; }
 
-.cal-day__date{
-  position:absolute; top:6px; right:8px;
-  font-size:11px; font-weight:800; color: var(--muted);
-}
-.cal-day__dot{
-  position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
-  width:6px; height:6px; border-radius:999px; background: var(--success);
-}
-.cal-day__dot--past{ background: var(--done); }
-
-.legend{
-  display:flex; align-items:center; gap:14px; margin-top:10px;
-  color: var(--muted); font-size:13px;
-}
-.dot{ width:8px; height:8px; border-radius:999px; display:inline-block; margin-right:6px; }
-.dot--future{ background: var(--success); }
-.dot--past{ background: var(--done); }
+/* -------- Legend -------- */
+.legend{ display:flex; align-items:center; gap:16px; margin-top:8px; color:#6b6b6b; font-size:13px; }
+.dot{ display:inline-block; width:10px; height:10px; border-radius:50%; transform:translateY(1px); margin-right:4px; }
+.dot--future{ background: var(--pink-400); }
+.dot--past{ background: #96a0ad; }
 
 /* -------- Birthday List -------- */
 .bday-list{ display:grid; gap:10px; }
 .bday-card{
-  display:grid; grid-template-columns:48px 1fr auto; gap:10px; align-items:center;
-  background: var(--surface-2); border: var(--bd-soft);
-  border-radius: var(--r-md); padding: 10px;
+  display:grid; grid-template-columns: 48px 1fr auto; gap:12px; align-items:center;
+  padding:12px; border:1px solid var(--border); border-radius:16px; background:#fff;
 }
 .bday-card__avatar{
-  width:48px; height:48px; border-radius:12px;
-  display:grid; place-items:center;
-  background: linear-gradient(135deg,#ffe4f0,#ffe7d5);
-  font-size:20px !important; line-height:1; /* 強制固定 */
+  width:48px; height:48px; border-radius:12px; display:grid; place-items:center;
+  background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
+  border:1px solid var(--border);
 }
-.bday-card__name{ font-weight:800; }
-.bday-card__desc{ color: var(--muted); font-size: 13px; }
-.bday-card__meta{ text-align:right; }
-.badge{
-  display:inline-flex; align-items:center; gap:6px;
-  padding:6px 10px; font-size:12px; border-radius:999px;
-  background:#fff; border: var(--bd-soft);
+.bday-card__title{ margin:0; font-size:16px; font-weight:800; }
+.bday-card__meta{ margin:2px 0 0; color:#7c6e73; font-size:12px; }
+.bday-chip{
+  background: var(--grad); color:#fff; border-radius:999px; font-weight:800;
+  padding:6px 10px; font-size:12px; white-space:nowrap;
 }
-.badge--future{ background: rgba(255,122,199,.12); color: var(--accent-2); border-color: rgba(255,122,199,.35); }
-.badge--past{ background: rgba(148,163,184,.14); color:#475569; border-color: rgba(148,163,184,.35); }
-.meta-date{ font-weight:800; }
 
-/* -------- Message Card -------- */
-.card--message{
-  background: linear-gradient(180deg,#fff,#fff4f7);
-  border: 1px solid rgba(255,122,199,.25);
-  box-shadow: var(--shadow-soft);
-}
-.message-head{
-  display:inline-flex; align-items:center; gap:10px; margin-bottom:8px;
-  background: var(--chip-bg); padding:8px 12px; border-radius:999px; border: var(--bd-soft);
-}
-.icon-heart{ color: var(--accent-2); font-size: 16px !important; line-height: 1; }
+/* -------- Message card -------- */
+.card--message h3{ display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:18px; }
+.icon-heart{ width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
+  background: var(--grad); color:#fff; }
 
 /* -------- Footer -------- */
-.site-footer{ margin-top:36px; text-align:center; color: var(--muted); padding: 22px 0 28px; font-size:12px; }
+.site-footer{ color:#7a6d72; text-align:center; padding: 24px 16px; font-size:12px; }
 
-/* -------- Utilities -------- */
-.hidden{ display:none !important; }
-
-/* =================================
-   Responsive Up
-   ================================= */
-@media (min-width: 400px){
-  .cal-day{ height: 50px; }
+/* -------- Desktop enhancements -------- */
+@media (min-width: 720px){
+  .panel-head{ gap:14px; }
+  .panel-icon{ width:40px; height:40px; }
+  .calendar__grid .cal-day{ height:64px; }
+  .bday-card{ grid-template-columns: 56px 1fr auto; padding:14px; }
+  .bday-card__avatar{ width:56px; height:56px; }
+  .tabbar{ margin-inline: auto; width:min(980px, 100%); }
 }
 
-@media (min-width: 600px){
-  .container{ padding-left: 18px; padding-right: 18px; }
-  .page-title{ font-size: 24px; }
-  .calendar__grid{ gap: 8px; }
-  .calendar__weekday{ gap: 8px; }
-  .cal-day{ height: 56px; }
-  .panel-title{ font-size: 18px; }
-}
-
-@media (min-width: 900px){
-  .container{ padding-left: 22px; padding-right: 22px; }
-  .tabbar{ grid-template-columns: repeat(4,minmax(0,1fr)); }
-  .panel-title{ font-size: 20px; }
-  .cal-day{ height: 64px; }
-}
+/* -------- Safety: emoji blow-up guard -------- */
+:where(.tabbar__link span, .chip span, .panel-icon, .bday-card__avatar){ font-variation-settings:"opsz" 14; }
