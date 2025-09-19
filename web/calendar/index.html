@@ -4,45 +4,46 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>動物園ベビー情報 | 誕生日カレンダー</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="../assets/css/styles.css" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='20' cy='20' r='10' fill='%23FF7AC7'/%3E%3Ccircle cx='44' cy='20' r='10' fill='%23FFAF61'/%3E%3Cpath d='M12 40c6 8 34 8 40 0' fill='%23FF4D9A'/%3E%3C/svg%3E">
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- Favicon / OGP（任意） -->
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <meta property="og:image" content="../assets/img/og.png">
 </head>
 <body class="theme">
   <!-- Global Header -->
   <header class="site-header">
     <div class="site-header__left">
-      <button class="icon-btn" aria-label="メニュー" data-js="openMenu" hidden>
-        <!-- reserved for future -->
-      </button>
-      <div class="brand">
-        <span class="brand__icon" aria-hidden="true">🐘</span>
+      <a class="brand" href="../index.html">
+        <svg class="brand__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-logo"></use></svg>
         <span class="brand__title">Zoo Baby Information Site</span>
-      </div>
+      </a>
     </div>
     <div class="site-header__right">
       <button class="pill-btn like-btn" aria-label="お気に入り">
-        <span class="icon" aria-hidden="true">❤</span>
+        <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg>
       </button>
     </div>
   </header>
 
   <!-- Sticky Tabbar -->
   <nav class="tabbar" aria-label="メイン">
-    <a class="tabbar__link" href="./index.html" aria-label="ホーム">
-      <span class="tabbar__icon">🏠</span>
+    <a class="tabbar__link" href="../index.html" aria-label="ホーム">
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
       <span class="tabbar__text">ホーム</span>
     </a>
-    <a class="tabbar__link" href="./news.html" aria-label="ニュース">
-      <span class="tabbar__icon">📰</span>
+    <a class="tabbar__link" href="../news/index.html" aria-label="ニュース">
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-news"></use></svg>
       <span class="tabbar__text">ニュース</span>
     </a>
-    <a class="tabbar__link" href="./babies.html" aria-label="赤ちゃん">
-      <span class="tabbar__icon">🍼</span>
+    <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん">
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-baby"></use></svg>
       <span class="tabbar__text">赤ちゃん</span>
     </a>
-    <a class="tabbar__link is-active" href="./calendar.html" aria-current="page" aria-label="カレンダー">
-      <span class="tabbar__icon">📅</span>
+    <a class="tabbar__link is-active" href="./index.html" aria-current="page" aria-label="カレンダー">
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
       <span class="tabbar__text">カレンダー</span>
     </a>
   </nav>
@@ -50,24 +51,36 @@
   <main class="container" id="main">
     <!-- Page Title -->
     <section class="page-hero">
-      <h1 class="page-title">
-        動物園ベビー情報
-      </h1>
-      <div class="segmented">
-        <button class="segmented__btn" data-route="home" disabled>ホーム</button>
-        <button class="segmented__btn" data-route="news" disabled>ニュース</button>
-        <button class="segmented__btn" data-route="babies" disabled>赤ちゃん</button>
-        <button class="segmented__btn is-selected" data-route="calendar" aria-pressed="true">カレンダー</button>
+      <h1 class="page-title">動物園ベビー情報</h1>
+      <div class="segmented" role="tablist" aria-label="ページ切替（無効化中）">
+        <button class="segmented__btn" disabled>
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
+          ホーム
+        </button>
+        <button class="segmented__btn" disabled>
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-news"></use></svg>
+          ニュース
+        </button>
+        <button class="segmented__btn" disabled>
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-baby"></use></svg>
+          赤ちゃん
+        </button>
+        <button class="segmented__btn is-selected" aria-pressed="true">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
+          カレンダー
+        </button>
       </div>
     </section>
 
     <!-- Birthday Calendar -->
     <section class="card card--panel">
       <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">🎂</div>
+        <div class="panel-icon" aria-hidden="true">
+          <svg class="icon-lg"><use href="../assets/icons/icons.svg#icon-cake"></use></svg>
+        </div>
         <div>
           <h2 class="panel-title">誕生日カレンダー</h2>
-          <p class="panel-desc">みんなでお祝いしよう！赤ちゃん動物の誕生日</p>
+          <p class="panel-desc">みんなでお祝いしよう！ 赤ちゃん動物の誕生日</p>
         </div>
       </header>
 
@@ -75,16 +88,16 @@
       <div class="calendar-head">
         <div class="calendar-head__left">
           <div class="chip chip--calendar">
-            <span class="chip__icon" aria-hidden="true">🗓</span>
-            <span id="js-monthLabel">2025年1月</span>
+            <svg class="chip__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
+            <span id="js-monthLabel">—</span>
           </div>
         </div>
         <div class="calendar-head__right">
           <button class="nav-icon" id="js-prevMonth" aria-label="前の月">
-            ◀
+            <svg class="icon"><use href="../assets/icons/icons.svg#icon-chevron-left"></use></svg>
           </button>
           <button class="nav-icon" id="js-nextMonth" aria-label="次の月">
-            ▶
+            <svg class="icon"><use href="../assets/icons/icons.svg#icon-chevron-right"></use></svg>
           </button>
         </div>
       </div>
@@ -101,7 +114,7 @@
           <div class="calendar__cell calendar__cell--wk" role="columnheader">土</div>
         </div>
         <div class="calendar__grid" id="js-calendarGrid" role="rowgroup">
-          <!-- JS で日付セルを描画 -->
+          <!-- JS が日付セルを描画 -->
         </div>
         <div class="legend">
           <span class="dot dot--future" aria-hidden="true"></span><span> 誕生日予定</span>
@@ -113,21 +126,23 @@
     <!-- Monthly Birthdays List -->
     <section class="card card--panel">
       <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">🎁</div>
+        <div class="panel-icon" aria-hidden="true">
+          <svg class="icon-lg"><use href="../assets/icons/icons.svg#icon-gift"></use></svg>
+        </div>
         <div>
-          <h2 class="panel-title"><span id="js-monthLabelList">2025年1月</span>の誕生日</h2>
+          <h2 class="panel-title"><span id="js-monthLabelList">—</span> の誕生日</h2>
         </div>
       </header>
 
       <div id="js-birthdayList" class="bday-list" aria-live="polite">
-        <!-- JS でカードを描画 -->
+        <!-- JS がカードを描画 -->
       </div>
     </section>
 
     <!-- Celebration Message -->
     <section class="card card--message">
       <div class="message-head">
-        <span class="icon-heart" aria-hidden="true">💗</span>
+        <svg class="icon-heart" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg>
         <h3>お祝いメッセージ</h3>
       </div>
       <p>
@@ -141,6 +156,7 @@
     <small>© Zoo Baby Information</small>
   </footer>
 
-  <script src="./calendar.js" defer></script>
+  <!-- Page JS -->
+  <script src="../assets/js/calendar.js" defer></script>
 </body>
 </html>
