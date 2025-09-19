@@ -254,3 +254,110 @@ body {
   .bday-card__avatar{ width:56px; height:56px; }
   .tabbar{ margin-inline: auto; width:min(980px, 100%); }
 }
+/* =========================
+  Hotfix: header/tabbar/segmented (SP)
+  2025-09-19
+========================= */
+
+/* ① Header（1行固定・アイコン/タイトルのサイズを強制） */
+.site-header{
+  min-height: 48px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.site-header__left,
+.site-header__right{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* brand を1行に・はみ出し省略 */
+.brand{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;            /* ← 省略記号に必須 */
+}
+.brand__title{
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70vw;         /* タイトルが長くても1行 */
+}
+/* ロゴ/ハートの暴走抑制 */
+.brand__icon,
+.site-header .icon{
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+.pill-btn.like-btn{
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+}
+
+/* ② Tabbar（横並び固定・アイコン/テキストの行揃え） */
+.tabbar{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+  padding: 10px;
+}
+.tabbar__link{
+  display: flex;                 /* ← グリッドではなくフレックスで横並び */
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+}
+.tabbar__icon{
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+.tabbar__text{
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ③ Segmented（横スクロール可・アイコン/テキストを1行に） */
+.segmented{
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;              /* 画面幅が狭い時は横スクロール */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.segmented__btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  white-space: nowrap;           /* 折り返し防止 */
+}
+.segmented__btn .icon{
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+/* 汎用：SVGサイズの最終ガード（対象セクション内） */
+.site-header svg,
+.tabbar svg,
+.segmented svg { width: 1em; height: 1em; }
