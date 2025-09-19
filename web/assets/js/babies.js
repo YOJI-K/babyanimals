@@ -1,5 +1,5 @@
 // assets/js/babies.js
-// babies.js (refined for UX & mobile)
+// babies.js (robust with fallbacks & mobile-friendly)
 
 let BABIES = [];
 let ZOOS = [];
@@ -47,7 +47,11 @@ function filteredData(){
   const q=(document.getElementById('q')?.value||'').toLowerCase().trim();
   const zooId=document.getElementById('zoo')?.value||'';
   let data=[...BABIES];
-  if(q){ data=data.filter(x => (x.name||'').toLowerCase().includes(q) || (x.species||'').toLowerCase().includes(q) || (x.zoo_name||'').toLowerCase().includes(q)); }
+  if(q){ data=data.filter(x =>
+    (x.name||'').toLowerCase().includes(q) ||
+    (x.species||'').toLowerCase().includes(q) ||
+    (x.zoo_name||'').toLowerCase().includes(q)
+  );}
   if(zooId){ data=data.filter(x => String(x.zoo_id||'')===String(zooId)); }
   const asc=currentSort()==='asc';
   data.sort((a,b)=>{
@@ -77,17 +81,19 @@ function render(){
   log('render:', slice.length, '/', data.length);
 }
 
-// ===== Supabase REST（metaタグ fallback 追加 / ベースURL連結の不具合修正） =====
-async function fetchJSON(u){
+// ===== Supabase helpers =====
+function getSupabaseEnv(){
   const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
   const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-  const SUPA_URL = window.SUPABASE?.URL || metaUrl;
-  const ANON     = window.SUPABASE?.ANON || metaKey;
+  const URL = window.SUPABASE?.URL || metaUrl;
+  const ANON = window.SUPABASE?.ANON || metaKey;
+  return { URL, ANON };
+}
+
+async function fetchJSON(u){
+  const { URL: SUPA_URL, ANON } = getSupabaseEnv();
   if(!SUPA_URL || !ANON) throw new Error('Supabase config missing (URL/ANON)');
-
-  // ✅ 相対パスを Supabase ベースURLに正しく結合
-  const url = new URL(u, SUPA_URL);
-
+  const url = new URL(u, SUPA_URL); // 安全に結合
   const res = await fetch(url.toString(), {
     headers:{
       apikey: ANON,
@@ -99,21 +105,56 @@ async function fetchJSON(u){
   });
   if(!res.ok){
     const t = await res.text().catch(()=> '');
-    throw new Error(`Fetch failed ${res.status}: ${t}`);
+    throw new Error(`HTTP ${res.status} @ ${url.pathname}: ${t}`);
   }
   return res.json();
 }
 
+// ===== Data loaders (with fallbacks) =====
 async function loadZoos(){
   setSkeleton(true);
-  ZOOS = await fetchJSON('/rest/v1/zoos?select=id,name&order=name.asc');
-  const sel=document.getElementById('zoo');
-  if(sel){ sel.innerHTML = `<option value="">すべての動物園</option>` + ZOOS.map(z=>`<option value="${z.id}">${z.name}</option>`).join(''); }
-}
-async function loadBabies(){
-  BABIES = await fetchJSON('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name&order=birthday.desc.nullslast&limit=500');
+  try{
+    ZOOS = await fetchJSON('/rest/v1/zoos?select=id,name&order=name.asc');
+    const sel=document.getElementById('zoo');
+    if(sel){ sel.innerHTML = `<option value="">すべての動物園</option>` + ZOOS.map(z=>`<option value="${z.id}">${z.name}</option>`).join(''); }
+  }catch(e){
+    console.warn('[zoos] fallback: continue without zoo list', e);
+    // 取得できなくても一覧は表示できるので続行
+    ZOOS = [];
+  }
 }
 
+// babies_public → babies(embed) → babies(素)
+async function loadBabies(){
+  // 1) babies_public（既定）
+  try{
+    BABIES = await fetchJSON('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name&order=birthday.desc.nullslast&limit=500');
+    return;
+  }catch(e1){
+    console.warn('[babies_public] failed, try babies with embed', e1);
+  }
+  // 2) babies + embed zoos(name)  ※外部キー設定がある場合
+  try{
+    const data = await fetchJSON('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo:zoos(name)&order=birthday.desc.nullslast&limit=500');
+    BABIES = (data || []).map(x => ({
+      id:x.id, name:x.name, species:x.species, birthday:x.birthday,
+      thumbnail_url:x.thumbnail_url, zoo_id:x.zoo_id, zoo_name:x.zoo?.name || ''
+    }));
+    return;
+  }catch(e2){
+    console.warn('[babies embed] failed, try babies plain', e2);
+  }
+  // 3) babies 素のまま（zoo_name は空）
+  try{
+    const data = await fetchJSON('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo_id&order=birthday.desc.nullslast&limit=500');
+    BABIES = (data || []).map(x => ({ ...x, zoo_name:'' }));
+  }catch(e3){
+    console.error('[babies plain] failed', e3);
+    throw e3; // ここまで失敗したら画面にエラー表示
+  }
+}
+
+// ===== Init =====
 document.addEventListener('DOMContentLoaded', async ()=>{
   window.onImgError = onImgError;
   try{
