@@ -1,352 +1,275 @@
 /* ================================
-   Zoo Baby Information — Pink/Orange Theme
+   Zoo Baby Information — Pink/Orange (Mobile-first)
    File: assets/css/style.css
    ================================ */
 
-/* -------- CSS Reset (simplified) -------- */
+/* -------- Reset -------- */
 *,
 *::before,
 *::after { box-sizing: border-box; }
 html, body { height: 100%; }
-body, h1, h2, h3, h4, p, figure, blockquote, dl, dd { margin: 0; }
-ul[role='list'], ol[role='list'] { list-style: none; }
+body, h1, h2, h3, p { margin: 0; }
 img, picture { max-width: 100%; display: block; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: inherit; text-decoration: none; }
 
 /* -------- Theme Tokens -------- */
 :root{
-  --bg: #fff7fb;              /* ごく淡いピンクのベース */
-  --bg-2: #fff0f5;            /* セクションの薄い面 */
-  --surface: #ffffff;         /* カードの背景 */
-  --surface-2: #fff5f7;       /* サブ面 */
-  --text: #2b2b2b;            /* メイン文字色 */
-  --muted: #6b7280;           /* 補助テキスト */
+  --bg: #fff7fb;
+  --bg-2: #fff0f5;
+  --surface: #ffffff;
+  --surface-2: #fff5f7;
+  --text: #2b2b2b;
+  --muted: #6b7280;
 
-  --accent: #ff4da6;          /* マゼンタ */
-  --accent-2: #ff7ac7;        /* ピンク */
-  --accent-3: #ffaf61;        /* オレンジ */
+  --accent:  #ff4da6; /* magenta */
+  --accent-2:#ff7ac7; /* pink */
+  --accent-3:#ffaf61; /* orange */
 
-  --success: #f472b6;         /* 予定ドット（ピンク） */
-  --done: #94a3b8;            /* 終了ドット（スレート） */
+  --success:#f472b6;  /* future dot */
+  --done:   #94a3b8;  /* past dot */
 
-  --radius-lg: 18px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 10px;
 
-  --shadow-sm: 0 4px 10px rgba(255,77,166,.12), 0 1px 0 rgba(0,0,0,.03);
-  --shadow-md: 0 8px 24px rgba(255,74,163,.18), 0 2px 0 rgba(0,0,0,.04);
-  --shadow-soft: 0 12px 40px rgba(255,175,97,.20);
+  --bd-soft: 1px solid rgba(0,0,0,.06);
+  --bd-accent: 1px solid rgba(255,77,166,.18);
 
-  --border: 1px solid rgba(255,77,166,.18);
-  --border-soft: 1px solid rgba(0,0,0,.06);
+  --shadow-sm: 0 4px 10px rgba(255,77,166,.10);
+  --shadow-md: 0 8px 24px rgba(255,77,166,.16);
+  --shadow-soft: 0 12px 40px rgba(255,175,97,.18);
 
-  --chip-bg: linear-gradient(135deg, #ffe3ee, #ffeede);
-  --active-grad: linear-gradient(135deg, var(--accent), var(--accent-3));
-  --tab-grad: linear-gradient(135deg, #ffe8f2, #fff2e2);
+  --chip-bg: linear-gradient(135deg,#ffe3ee,#ffeede);
+  --tab-grad: linear-gradient(135deg,#ffe8f2,#fff2e2);
+  --active-grad: linear-gradient(135deg,var(--accent),var(--accent-3));
 }
 
 /* -------- Base -------- */
 body.theme{
   background:
-    radial-gradient(1200px 500px at 0% -10%, #ffeaf3 0%, transparent 60%),
-    radial-gradient(1200px 600px at 100% 0%, #fff1e4 0%, transparent 60%),
+    radial-gradient(900px 400px at 0% -10%, #ffeaf3 0%, transparent 60%),
+    radial-gradient(900px 400px at 100% 0%, #fff1e4 0%, transparent 60%),
     var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",Arial,sans-serif;
+  font-size: 16px;
   line-height: 1.6;
 }
 
-/* Container */
 .container{
-  max-width: 980px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 24px 16px 80px;
+  padding: 20px 14px 80px;
 }
 
 /* -------- Header -------- */
 .site-header{
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: rgba(255,255,255,.75);
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.82);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border-bottom: var(--border-soft);
+  border-bottom: var(--bd-soft);
 }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:700; }
+.brand__icon{ font-size: 20px; line-height: 1; }
+.brand__title{ font-size: 15px; }
 
-.brand{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-}
-.brand__icon{ font-size: 22px; }
-.brand__title{ letter-spacing: .2px; }
-
-.icon-btn,
 .pill-btn{
-  border: 0;
-  background: var(--surface);
-  border-radius: 999px;
-  padding: 8px 12px;
+  border: 0; background: var(--active-grad); color: #fff;
+  border-radius: 999px; padding: 8px 10px; line-height: 1;
   box-shadow: var(--shadow-sm);
 }
-.like-btn{
-  background: var(--active-grad);
-  color: #fff;
-}
 
-/* -------- Tabbar (Top nav) -------- */
+/* -------- Top Tabbar -------- */
 .tabbar{
-  margin: 16px auto 0;
-  max-width: 980px;
+  margin: 12px auto 0;
+  max-width: 960px;
   background: var(--tab-grad);
-  border-radius: var(--radius-lg);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  padding: 10px;
-  gap: 10px;
+  border-radius: var(--r-lg);
+  padding: 8px;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
   box-shadow: var(--shadow-md);
 }
 .tabbar__link{
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255,255,255,.7);
-  border: var(--border-soft);
-  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  display: grid; grid-template-columns: 24px 1fr; align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.92);
+  border: var(--bd-soft);
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 .tabbar__link:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.tabbar__icon{ font-size: 18px; }
-.tabbar__text{ font-weight: 600; letter-spacing: .08em; }
+.tabbar__icon{ font-size: 18px !important; line-height: 1; } /* 強制固定 */
+.tabbar__text{ font-size: 13px; font-weight: 700; letter-spacing: .06em; }
 .tabbar__link.is-active{
-  color: #fff;
-  background: var(--active-grad);
-  box-shadow: var(--shadow-soft);
+  color: #fff; background: var(--active-grad); box-shadow: var(--shadow-soft);
 }
 
 /* -------- Page Hero -------- */
-.page-hero{ margin: 28px 0 18px; display: grid; gap: 14px; }
-.page-title{
-  font-size: clamp(22px, 3.6vw, 28px);
-  font-weight: 800;
-}
+.page-hero{ margin: 22px 0 14px; display: grid; gap: 12px; }
+.page-title{ font-size: 22px; font-weight: 800; }
 
 /* Segmented */
 .segmented{
-  display: inline-flex;
-  gap: 8px;
-  background: var(--chip-bg);
-  padding: 6px;
-  border-radius: 999px;
-  border: var(--border-soft);
+  display: inline-flex; gap: 6px; padding: 6px;
+  background: var(--chip-bg); border-radius: 999px; border: var(--bd-soft);
 }
 .segmented__btn{
-  background: rgba(255,255,255,.9);
-  border: 0;
-  padding: 8px 14px;
-  border-radius: 999px;
-  color: var(--muted);
-  font-weight: 600;
+  border:0; padding:6px 12px; border-radius:999px; line-height: 1;
+  background:#fff; color: var(--muted); font-weight:700; font-size: 13px;
 }
-.segmented__btn.is-selected{
-  background: var(--active-grad);
-  color: #fff;
-}
+.segmented__btn.is-selected{ background: var(--active-grad); color:#fff; }
 
 /* -------- Card / Panel -------- */
 .card{
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 18px;
+  border-radius: var(--r-lg);
+  padding: 16px;
+  border: var(--bd-soft);
   box-shadow: var(--shadow-sm);
-  border: var(--border-soft);
 }
-.card + .card{ margin-top: 16px; }
+.card + .card{ margin-top: 14px; }
 
-.card--panel{ padding: 18px 18px 16px; }
+.card--panel{ padding: 16px; }
 .panel-head{
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
+  display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center;
+  margin-bottom: 10px;
 }
 .panel-icon{
-  width: 44px; height: 44px;
-  border-radius: 12px;
+  width: 40px; height: 40px; border-radius: 12px;
   display: grid; place-items: center;
-  background: var(--chip-bg);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
-  font-size: 20px;
+  background: var(--chip-bg); box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  font-size: 18px !important; line-height: 1; /* 強制固定 */
 }
-.panel-title{
-  font-size: 18px; font-weight: 800;
-}
-.panel-desc{ color: var(--muted); font-size: 14px; }
+.panel-title{ font-size: 17px; font-weight: 800; }
+.panel-desc{ color: var(--muted); font-size: 13px; }
 
 /* -------- Calendar Head -------- */
-.calendar-head{
-  margin: 8px 0 10px;
-  display: flex; align-items: center; justify-content: space-between;
-}
+.calendar-head{ margin: 6px 0 10px; display:flex; align-items:center; justify-content:space-between; }
 .chip{
-  display: inline-flex; align-items: center; gap: 8px;
-  border-radius: 999px; padding: 8px 12px;
-  background: var(--chip-bg);
-  border: var(--border-soft);
-  font-weight: 700;
+  display:inline-flex; align-items:center; gap:8px;
+  background: var(--chip-bg); border: var(--bd-soft);
+  border-radius:999px; padding:8px 12px; font-weight:800;
 }
-.chip__icon{ font-size: 18px; }
+.chip__icon{ font-size: 18px !important; line-height: 1; } /* 強制固定 */
 
 .nav-icon{
-  width: 44px; height: 44px;
-  border-radius: 14px;
-  border: 0;
-  margin-left: 8px;
-  background: #fff;
-  box-shadow: var(--shadow-sm);
-  border: var(--border-soft);
-  cursor: pointer;
+  width: 40px; height: 40px; border-radius: 12px;
+  border: var(--bd-soft); background:#fff; cursor:pointer;
+  display:inline-grid; place-items:center; line-height: 1; font-size: 16px;
 }
-.nav-icon:hover{ transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.nav-icon + .nav-icon{ margin-left: 8px; }
+.nav-icon:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 
 /* -------- Calendar Grid -------- */
-.calendar{ margin-top: 6px; }
+.calendar{ margin-top: 4px; }
 .calendar__weekday{
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  margin-bottom: 8px;
+  display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px;
 }
 .calendar__cell--wk{
-  font-size: 12px;
-  color: var(--muted);
-  text-align: center;
-  padding: 4px 0;
+  text-align:center; padding:4px 0; font-size:12px; color: var(--muted);
 }
-.calendar__grid{
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-}
+
+.calendar__grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
 
 .cal-day{
-  position: relative;
-  height: 58px;
-  border-radius: 14px;
-  background: #fff;
-  border: var(--border-soft);
-  display: grid; place-items: center;
-  font-weight: 700;
-  color: var(--text);
-  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset;
+  position:relative; height:46px; border-radius:12px;
+  background:#fff; border: var(--bd-soft);
+  display:grid; place-items:center;
+  color: var(--text); font-weight:700;
 }
-.cal-day--muted{
-  color: #c0c4cc;
-  background: linear-gradient(180deg, #fff, #fff9fc);
-}
+.cal-day--muted{ color:#b8bec7; background: linear-gradient(180deg,#fff,#fff9fc); }
 .cal-day.is-today{
-  outline: 2px solid rgba(53, 125, 255, .0);
   box-shadow: 0 0 0 2px rgba(255,77,166,.35) inset, var(--shadow-sm);
 }
-.cal-day.is-disabled{ opacity: .5; filter: grayscale(.15); }
+.cal-day.is-disabled{ opacity:.5; }
 
 .cal-day__date{
-  position: absolute; top: 8px; right: 10px;
-  font-size: 12px; font-weight: 800; color: var(--muted);
+  position:absolute; top:6px; right:8px;
+  font-size:11px; font-weight:800; color: var(--muted);
 }
 .cal-day__dot{
-  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-  width: 6px; height: 6px; border-radius: 999px;
-  background: var(--success);
+  position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+  width:6px; height:6px; border-radius:999px; background: var(--success);
 }
 .cal-day__dot--past{ background: var(--done); }
 
-/* Legend */
 .legend{
-  display: flex; align-items: center; gap: 14px;
-  margin-top: 12px; color: var(--muted); font-size: 13px;
+  display:flex; align-items:center; gap:14px; margin-top:10px;
+  color: var(--muted); font-size:13px;
 }
-.dot{
-  width: 8px; height: 8px; display: inline-block; border-radius: 999px; margin-right: 6px;
-}
+.dot{ width:8px; height:8px; border-radius:999px; display:inline-block; margin-right:6px; }
 .dot--future{ background: var(--success); }
 .dot--past{ background: var(--done); }
 
 /* -------- Birthday List -------- */
-.bday-list{ display: grid; gap: 12px; }
+.bday-list{ display:grid; gap:10px; }
 .bday-card{
-  display: grid; grid-template-columns: 56px 1fr auto;
-  gap: 12px; align-items: center;
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  border: var(--border-soft);
+  display:grid; grid-template-columns:48px 1fr auto; gap:10px; align-items:center;
+  background: var(--surface-2); border: var(--bd-soft);
+  border-radius: var(--r-md); padding: 10px;
 }
 .bday-card__avatar{
-  width: 56px; height: 56px; border-radius: 14px;
-  background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
-  display: grid; place-items: center;
-  font-size: 22px;
+  width:48px; height:48px; border-radius:12px;
+  display:grid; place-items:center;
+  background: linear-gradient(135deg,#ffe4f0,#ffe7d5);
+  font-size:20px !important; line-height:1; /* 強制固定 */
 }
-.bday-card__name{ font-weight: 800; }
-.bday-card__desc{
-  color: var(--muted); font-size: 13px;
-}
-.bday-card__meta{ text-align: right; }
+.bday-card__name{ font-weight:800; }
+.bday-card__desc{ color: var(--muted); font-size: 13px; }
+.bday-card__meta{ text-align:right; }
 .badge{
-  display: inline-flex; align-items: center; gap: 6px;
-  border-radius: 999px; padding: 6px 10px; font-size: 12px;
-  background: #fff; border: var(--border-soft);
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 10px; font-size:12px; border-radius:999px;
+  background:#fff; border: var(--bd-soft);
 }
-.badge--future{
-  background: rgba(255,122,199,.12); color: var(--accent-2); border-color: rgba(255,122,199,.35);
-}
-.badge--past{
-  background: rgba(148,163,184,.14); color: #475569; border-color: rgba(148,163,184,.35);
-}
-.meta-date{ font-weight: 800; }
+.badge--future{ background: rgba(255,122,199,.12); color: var(--accent-2); border-color: rgba(255,122,199,.35); }
+.badge--past{ background: rgba(148,163,184,.14); color:#475569; border-color: rgba(148,163,184,.35); }
+.meta-date{ font-weight:800; }
 
 /* -------- Message Card -------- */
 .card--message{
-  background: linear-gradient(180deg, #fff, #fff4f7);
+  background: linear-gradient(180deg,#fff,#fff4f7);
   border: 1px solid rgba(255,122,199,.25);
   box-shadow: var(--shadow-soft);
 }
 .message-head{
-  display: inline-flex; align-items: center; gap: 10px; margin-bottom: 8px;
-  background: var(--chip-bg); padding: 8px 12px; border-radius: 999px;
-  border: var(--border-soft);
+  display:inline-flex; align-items:center; gap:10px; margin-bottom:8px;
+  background: var(--chip-bg); padding:8px 12px; border-radius:999px; border: var(--bd-soft);
 }
-.icon-heart{ color: var(--accent-2); }
+.icon-heart{ color: var(--accent-2); font-size: 16px !important; line-height: 1; }
 
 /* -------- Footer -------- */
-.site-footer{
-  margin-top: 40px;
-  text-align: center;
-  color: var(--muted);
-  padding: 24px 0 30px;
-  font-size: 12px;
-}
+.site-footer{ margin-top:36px; text-align:center; color: var(--muted); padding: 22px 0 28px; font-size:12px; }
 
 /* -------- Utilities -------- */
-.hidden{ display: none !important; }
+.hidden{ display:none !important; }
 
-/* -------- Responsive -------- */
-@media (min-width: 768px){
-  .panel-title{ font-size: 20px; }
-  .calendar__grid .cal-day{ height: 64px; }
-  .bday-card{ grid-template-columns: 60px 1fr auto; }
+/* =================================
+   Responsive Up
+   ================================= */
+@media (min-width: 400px){
+  .cal-day{ height: 50px; }
 }
-@media (min-width: 1024px){
-  .container{ padding-left: 24px; padding-right: 24px; }
-  .tabbar{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (min-width: 600px){
+  .container{ padding-left: 18px; padding-right: 18px; }
+  .page-title{ font-size: 24px; }
+  .calendar__grid{ gap: 8px; }
+  .calendar__weekday{ gap: 8px; }
+  .cal-day{ height: 56px; }
+  .panel-title{ font-size: 18px; }
+}
+
+@media (min-width: 900px){
+  .container{ padding-left: 22px; padding-right: 22px; }
+  .tabbar{ grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .panel-title{ font-size: 20px; }
+  .cal-day{ height: 64px; }
 }
