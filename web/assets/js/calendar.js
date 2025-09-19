@@ -1,361 +1,314 @@
-/* =========================================================
- * Calendar UI Controller
- * - CSV（babies / news_items / sources）を貼り付けた場合は自動で解析
- * - 月替え、フィルタ（すべて/予定/実績）、当月の誕生日リスト表示
- * - カレンダー日付セルにドット（予定=ピンク / 実績=グレー）
- * --------------------------------------------------------- */
+/**
+ * 誕生日カレンダー（完成版）
+ * - カレンダーの描画
+ * - 月移動（前/次）
+ * - 当月の誕生日リスト表示
+ * - データは window.__BABIES__ があればそれを採用。無ければサンプルを利用。
+ */
 
-(function () {
-  // ===== DOM Helpers =====
-  const $ = (sel, ctx = document) => ctx.querySelector(sel);
-  const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+(() => {
+  // -----------------------------
+  // 1) データ取得（グローバルがあれば優先）
+  // -----------------------------
+  /** @type {Array<{id:string,name:string,species:string,birthday:string,thumbnail_url?:string,zoo?:string}>} */
+  const FALLBACK_BABIES = [
+    // ここは最小限のサンプル（必要に応じて置換可能）
+    {
+      id: "a1b2c3",
+      name: "えみ",
+      species: "レッサーパンダ",
+      birthday: "2023-07-09",
+      thumbnail_url: "https://www.nhdzoo.jp/wp-content/uploads/2023/12/redpanda-emi.jpg",
+      zoo: "のいち動物公園"
+    },
+    {
+      id: "b2c3d4",
+      name: "たけのこ",
+      species: "レッサーパンダ",
+      birthday: "2024-06-14",
+      thumbnail_url: "https://hamurazoo.jp/_res/projects/default_project/_page_/001/000/383/hamura_takenoko.jpg",
+      zoo: "羽村市動物公園"
+    },
+    {
+      id: "c3d4e5",
+      name: "ミルク",
+      species: "ホッキョクグマ",
+      birthday: "2025-03-01",
+      thumbnail_url: "https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/images/polar-milk.jpg",
+      zoo: "旭山動物園"
+    },
+    {
+      id: "d4e5f6",
+      name: "レオナ",
+      species: "アムールトラ",
+      birthday: "2024-05-02",
+      thumbnail_url: "https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/images/amur-leona.jpg",
+      zoo: "旭山動物園"
+    },
+    {
+      id: "e5f6g7",
+      name: "おうき",
+      species: "コアラ",
+      birthday: "2024-06-12",
+      thumbnail_url: "https://www.kobe-ojizoo.jp/wp-content/uploads/2025/03/koala-ooki.jpg",
+      zoo: "神戸市立王子動物園"
+    },
+  ];
 
-  // ===== Elements (存在しない場合は安全に無視) =====
-  const monthLabel = $("#monthLabel");
-  const prevBtn = $("#prevMonth");
-  const nextBtn = $("#nextMonth");
-  const weekdayRow = $("#weekdayRow");
-  const calendarGrid = $("#calendarGrid");
-  const bdayList = $("#bdayList");
-  const segmentedBtns = $$(".segmented__btn");
-  const tabLinks = $$(".tabbar__link");
+  const BABIES = Array.isArray(window.__BABIES__) && window.__BABIES__.length
+    ? window.__BABIES__
+    : FALLBACK_BABIES;
 
-  // Hidden CSV textareas（任意配置）
-  const csvBabiesEl = $("#csv-babies");
-  const csvNewsEl = $("#csv-news_items");
-  const csvSourcesEl = $("#csv-sources");
+  // -----------------------------
+  // 2) ユーティリティ
+  // -----------------------------
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const fmtMonthLabel = (y, m) => `${y}年${m}月`;
 
-  // ===== State =====
-  const today = new Date();
-  let viewYear = today.getFullYear();
-  let viewMonth = today.getMonth(); // 0-11
-  let filter = "all"; // 'all' | 'future' | 'past'
-
-  /** Data model
-   * babies: [{ id, name, species, birthday(ISO yyyy-mm-dd), zoo_id, thumbnail_url }]
-   * news:   [{ id, title, url, published_at, source_id, baby_id?, zoo_id? }]
-   * sources:[{ id, title, url, published_at, ... }]
-   */
-  let DATA = {
-    babies: [],
-    news: [],
-    sources: [],
+  const parseISO = (iso) => {
+    // yyyy-mm-dd のみを想定（時刻付きは切り捨て）
+    const [y, m, d] = iso.split("T")[0].split("-").map(Number);
+    // ローカルタイムで厳密に扱う
+    return new Date(y, m - 1, d);
   };
 
-  // ===== CSV Parser =====
-  function parseCSV(text) {
-    if (!text || typeof text !== "string") return [];
-    // 1) 行に分解（CRLF/CR対応）
-    const rows = text
-      .trim()
-      .split(/\r?\n/)
-      .filter((r) => r.trim().length > 0);
+  const sameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
 
-    if (rows.length <= 1) return [];
+  const toKey = (date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
-    // 2) ヘッダ抽出（カンマ区切り、ダブルクオート対応の簡易パーサ）
-    const headers = splitCSVLine(rows[0]);
+  const startOfMonth = (y, m) => new Date(y, m, 1);
+  const endOfMonth = (y, m) => new Date(y, m + 1, 0);
+  const startOfCalendar = (date) => {
+    const d = new Date(date.getFullYear(), date.getMonth(), 1);
+    const day = d.getDay(); // 0:日〜6:土
+    d.setDate(d.getDate() - day);
+    return d;
+  };
+  const endOfCalendar = (date) => {
+    const d = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const day = d.getDay();
+    d.setDate(d.getDate() + (6 - day));
+    return d;
+  };
 
-    // 3) レコード化
-    const items = [];
-    for (let i = 1; i < rows.length; i++) {
-      const cols = splitCSVLine(rows[i]);
-      const obj = {};
-      headers.forEach((h, idx) => (obj[h.trim()] = (cols[idx] ?? "").trim()));
-      items.push(obj);
+  // 当日（ローカル）の 0:00
+  const today = new Date();
+  const today0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  // 誕生日を「月ごと」「日付ごと」に素早く引けるようにインデックス化
+  const indexByMonthDay = (() => {
+    /** @type {Record<string, Array<any>>} */
+    const map = {};
+    for (const b of BABIES) {
+      if (!b.birthday) continue;
+      const date = parseISO(b.birthday);
+      const key = `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`; // "MM-DD"
+      (map[key] ||= []).push(b);
     }
-    return items;
-  }
+    return map;
+  })();
 
-  function splitCSVLine(line) {
-    const out = [];
-    let cur = "";
-    let inQuotes = false;
+  // -----------------------------
+  // 3) 描画処理
+  // -----------------------------
+  const monthLabelEl = $("#js-monthLabel");
+  const monthLabelListEl = $("#js-monthLabelList");
+  const gridEl = $("#js-calendarGrid");
+  const listEl = $("#js-birthdayList");
+  const prevBtn = $("#js-prevMonth");
+  const nextBtn = $("#js-nextMonth");
 
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          // 連続ダブルクオート -> エスケープ
-          cur += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (ch === "," && !inQuotes) {
-        out.push(cur);
-        cur = "";
-      } else {
-        cur += ch;
+  // 表示基準の年月
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth(); // 0-11
+
+  const setMonthLabel = (y, m0) => {
+    const label = fmtMonthLabel(y, m0 + 1);
+    if (monthLabelEl) monthLabelEl.textContent = label;
+    if (monthLabelListEl) monthLabelListEl.textContent = label;
+    document.title = `動物園ベビー情報 | 誕生日カレンダー（${label}）`;
+  };
+
+  const getBirthdaysOn = (date) => {
+    const k = `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    return indexByMonthDay[k] || [];
+  };
+
+  const renderGrid = (y, m0) => {
+    gridEl.innerHTML = "";
+
+    const start = startOfCalendar(new Date(y, m0, 1));
+    const end = endOfCalendar(new Date(y, m0, 1));
+    const curMonthStart = startOfMonth(y, m0);
+    const curMonthEnd = endOfMonth(y, m0);
+
+    // 全セルを日付順に回す
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const cell = document.createElement("div");
+      cell.className = "calendar__cell";
+      const isOut = d < curMonthStart || d > curMonthEnd;
+      if (isOut) cell.setAttribute("data-out", "1");
+
+      // 日付ヘッダ
+      const dateEl = document.createElement("div");
+      dateEl.className = "date";
+      dateEl.textContent = d.getDate();
+      cell.appendChild(dateEl);
+
+      // バッジ（その日に誕生日がある場合のみ）
+      const babies = getBirthdaysOn(d);
+      if (babies.length) {
+        const badges = document.createElement("div");
+        badges.className = "badges";
+        const isFutureOrToday = d >= today0;
+        const badge = document.createElement("span");
+        badge.className = `badge ${isFutureOrToday ? "badge--future" : "badge--past"}`;
+        badge.textContent = `誕生日 × ${babies.length}`;
+        badges.appendChild(badge);
+        cell.appendChild(badges);
       }
-    }
-    out.push(cur);
-    return out;
-  }
 
-  // ===== データ読込（CSVが無ければ空配列のまま）=====
-  function loadDataFromCSV() {
-    try {
-      if (csvBabiesEl) {
-        const babies = parseCSV(csvBabiesEl.value);
-        DATA.babies = normalizeBabies(babies);
+      // 当日の誕生日をリスト表示
+      if (babies.length) {
+        const ul = document.createElement("div");
+        ul.className = "cell-list";
+        babies.forEach((b) => {
+          const item = document.createElement("div");
+          item.className = "cell-item";
+
+          const t = document.createElement("div");
+          t.className = "thumb";
+          const img = document.createElement("img");
+          img.loading = "lazy";
+          img.decoding = "async";
+          img.src = b.thumbnail_url || "/assets/img/og.png";
+          img.alt = `${b.name}（${b.species}）`;
+          t.appendChild(img);
+
+          const meta = document.createElement("div");
+          const name = document.createElement("div");
+          name.className = "name";
+          name.textContent = b.name;
+          const spec = document.createElement("div");
+          spec.className = "spec";
+          spec.textContent = `${b.species}${b.zoo ? ` @ ${b.zoo}` : ""}`;
+
+          meta.appendChild(name);
+          meta.appendChild(spec);
+
+          item.appendChild(t);
+          item.appendChild(meta);
+          ul.appendChild(item);
+        });
+        cell.appendChild(ul);
       }
-      if (csvNewsEl) {
-        DATA.news = parseCSV(csvNewsEl.value);
-      }
-      if (csvSourcesEl) {
-        DATA.sources = parseCSV(csvSourcesEl.value);
-      }
-    } catch (e) {
-      console.warn("CSV parse error:", e);
+
+      gridEl.appendChild(cell);
     }
-  }
+  };
 
-  function normalizeBabies(list) {
-    return list
-      .map((b) => {
-        const birthday = safeDate(b.birthday);
-        return {
-          id: b.id || "",
-          name: b.name || "",
-          species: b.species || "",
-          birthday: birthday ? fmtDateISO(birthday) : "",
-          zoo_id: b.zoo_id || "",
-          thumbnail_url: b.thumbnail_url || "",
-          created_at: b.created_at || "",
-        };
-      })
-      .filter((b) => Boolean(b.birthday));
-  }
+  const renderList = (y, m0) => {
+    listEl.innerHTML = "";
 
-  // ===== Date Utils =====
-  function safeDate(v) {
-    if (!v) return null;
-    // support "YYYY-MM-DD" or "YYYY-MM-DD hh:mm:ss+00"
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  function fmtDateISO(d) {
-    const y = d.getFullYear();
-    const m = `${d.getMonth() + 1}`.padStart(2, "0");
-    const day = `${d.getDate()}`.padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
-  function isSameDay(a, b) {
-    return (
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
-    );
-  }
-  function startOfMonth(y, m) {
-    return new Date(y, m, 1);
-  }
-  function endOfMonth(y, m) {
-    return new Date(y, m + 1, 0);
-  }
-  function range(n) {
-    return Array.from({ length: n }, (_, i) => i);
-  }
+    // 当月の全日を走査して、当月該当のデータを収集
+    const start = startOfMonth(y, m0);
+    const end = endOfMonth(y, m0);
+    /** @type {Array<{date: Date, items: any[]}>} */
+    const perDay = [];
 
-  // ===== UI: Weekday Row =====
-  function renderWeekday() {
-    if (!weekdayRow) return;
-    const labels = ["日", "月", "火", "水", "木", "金", "土"];
-    weekdayRow.innerHTML = labels
-      .map((w) => `<div class="calendar__cell--wk">${w}</div>`)
-      .join("");
-  }
-
-  // ===== UI: Month Label =====
-  function renderMonthLabel() {
-    if (!monthLabel) return;
-    monthLabel.textContent = `${viewYear}年 ${viewMonth + 1}月`;
-  }
-
-  // ===== Filtered Babies for view month =====
-  function getBabiesInViewMonth() {
-    const start = startOfMonth(viewYear, viewMonth);
-    const end = endOfMonth(viewYear, viewMonth);
-    return DATA.babies.filter((b) => {
-      const d = safeDate(b.birthday);
-      if (!d) return false;
-      return d >= start && d <= end;
-    });
-  }
-
-  function passFilterByDate(dateObj) {
-    if (filter === "all") return true;
-    const isFuture = dateObj > today && !isSameDay(dateObj, today);
-    return filter === "future" ? isFuture : !isFuture || isSameDay(dateObj, today);
-  }
-
-  // ===== UI: Calendar Grid =====
-  function renderCalendarGrid() {
-    if (!calendarGrid) return;
-
-    const first = startOfMonth(viewYear, viewMonth);
-    const last = endOfMonth(viewYear, viewMonth);
-    const firstWeekday = first.getDay(); // 0..6
-    const daysInMonth = last.getDate();
-
-    // 前月の埋め
-    const prevTailCount = firstWeekday;
-    const prevMonthLast = endOfMonth(viewYear, viewMonth - 1).getDate();
-
-    const cells = [];
-
-    // 前月セル
-    for (let i = prevTailCount - 1; i >= 0; i--) {
-      const d = new Date(viewYear, viewMonth - 1, prevMonthLast - i);
-      cells.push(renderDayCell(d, true));
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const babies = getBirthdaysOn(d);
+      if (babies.length) perDay.push({ date: new Date(d), items: babies });
     }
 
-    // 当月セル
-    for (let d = 1; d <= daysInMonth; d++) {
-      cells.push(renderDayCell(new Date(viewYear, viewMonth, d), false));
-    }
-
-    // 次月セル（合計を 6週=42セルで埋める）
-    const total = cells.length;
-    const nextCount = 42 - total;
-    for (let i = 1; i <= nextCount; i++) {
-      const d = new Date(viewYear, viewMonth + 1, i);
-      cells.push(renderDayCell(d, true));
-    }
-
-    calendarGrid.innerHTML = cells.join("");
-  }
-
-  function renderDayCell(dateObj, isOut) {
-    const y = dateObj.getFullYear();
-    const m = dateObj.getMonth();
-    const d = dateObj.getDate();
-
-    // 当日の判定
-    const todayFlag = isSameDay(dateObj, today);
-
-    // 当日の誕生日ヒット数（フィルタ考慮）
-    const babies = DATA.babies.filter((b) => {
-      const bd = safeDate(b.birthday);
-      if (!bd) return false;
-      const hit = isSameDay(bd, dateObj);
-      return hit && passFilterByDate(bd);
-    });
-
-    // ドット（future/past）最大2個まで（視認性のため）
-    const dots = babies.slice(0, 4).map((b) => {
-      const isFuture = safeDate(b.birthday) > today && !isSameDay(safeDate(b.birthday), today);
-      return `<span class="dot ${isFuture ? "dot--future" : "dot--past"}" title="${b.name} (${b.species})"></span>`;
-    });
-
-    return `
-      <div class="day ${isOut ? "is-out" : ""} ${todayFlag ? "is-today" : ""}" data-date="${fmtDateISO(dateObj)}">
-        <span class="day__num">${d}</span>
-        <div class="day__dots">${dots.join("")}</div>
-      </div>
-    `;
-  }
-
-  // ===== UI: Birthday List (右側リスト) =====
-  function renderBirthdayList() {
-    if (!bdayList) return;
-
-    const babies = getBabiesInViewMonth()
-      .filter((b) => passFilterByDate(safeDate(b.birthday)))
-      .sort((a, b) => safeDate(a.birthday) - safeDate(b.birthday));
-
-    if (babies.length === 0) {
-      bdayList.innerHTML = `
-        <div class="bday" aria-live="polite">
-          <div class="bday__icon">🎈</div>
-          <div class="bday__body">
-            <p class="bday__name">該当データはありません</p>
-            <p class="bday__meta">CSVを貼り付けるか、別のフィルタ/月をお試しください。</p>
-          </div>
-        </div>`;
+    if (!perDay.length) {
+      const empty = document.createElement("p");
+      empty.style.color = "var(--muted)";
+      empty.textContent = "この月に誕生日の登録はありません。";
+      listEl.appendChild(empty);
       return;
     }
 
-    bdayList.innerHTML = babies
-      .map((b) => {
-        const d = safeDate(b.birthday);
-        const yyyy = d.getFullYear();
-        const mm = `${d.getMonth() + 1}`.padStart(2, "0");
-        const dd = `${d.getDate()}`.padStart(2, "0");
-        const isFuture = d > today && !isSameDay(d, today);
+    // 日付順にカードを作成
+    perDay.forEach(({ date, items }) => {
+      items.forEach((b) => {
+        const card = document.createElement("article");
+        card.className = "bcard";
 
-        return `
-          <article class="bday">
-            <div class="bday__icon">🐾</div>
-            <div class="bday__body">
-              <h4 class="bday__name">${b.name || "名称未設定"} <small>(${b.species || "-"})</small></h4>
-              <p class="bday__meta">${yyyy}年${mm}月${dd}日</p>
-            </div>
-            <div class="bday__right">
-              <span class="badge ${isFuture ? "badge--plan" : "badge--done"}">
-                ${isFuture ? "予定" : "実績"}
-              </span>
-              ${
-                b.thumbnail_url
-                  ? `<span class="bday__place"><a href="${b.thumbnail_url}" target="_blank" rel="noopener">画像</a></span>`
-                  : ``
-              }
-            </div>
-          </article>
-        `;
-      })
-      .join("");
+        const th = document.createElement("div");
+        th.className = "bcard__thumb";
+        const img = document.createElement("img");
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.src = b.thumbnail_url || "/assets/img/og.png";
+        img.alt = `${b.name}（${b.species}）`;
+        th.appendChild(img);
+
+        const body = document.createElement("div");
+        const h = document.createElement("h3");
+        h.className = "bcard__name";
+        h.textContent = b.name;
+
+        const meta = document.createElement("p");
+        meta.className = "bcard__meta";
+        const yyyy = date.getFullYear();
+        const mm = pad2(date.getMonth() + 1);
+        const dd = pad2(date.getDate());
+        meta.textContent = `${yyyy}/${mm}/${dd}・${b.species}${b.zoo ? ` @ ${b.zoo}` : ""}`;
+
+        body.appendChild(h);
+        body.appendChild(meta);
+
+        card.appendChild(th);
+        card.appendChild(body);
+        listEl.appendChild(card);
+      });
+    });
+  };
+
+  const renderAll = () => {
+    setMonthLabel(viewYear, viewMonth);
+    renderGrid(viewYear, viewMonth);
+    renderList(viewYear, viewMonth);
+  };
+
+  // -----------------------------
+  // 4) イベント
+  // -----------------------------
+  prevBtn?.addEventListener("click", () => {
+    viewMonth -= 1;
+    if (viewMonth < 0) {
+      viewMonth = 11;
+      viewYear -= 1;
+    }
+    renderAll();
+  });
+
+  nextBtn?.addEventListener("click", () => {
+    viewMonth += 1;
+    if (viewMonth > 11) {
+      viewMonth = 0;
+      viewYear += 1;
+    }
+    renderAll();
+  });
+
+  // -----------------------------
+  // 5) 初期描画（URLに年月があれば反映）
+  //    例: /calendar/?y=2025&m=3
+  // -----------------------------
+  const params = new URLSearchParams(location.search);
+  const yParam = parseInt(params.get("y") || "", 10);
+  const mParam = parseInt(params.get("m") || "", 10);
+  if (!Number.isNaN(yParam) && !Number.isNaN(mParam) && mParam >= 1 && mParam <= 12) {
+    viewYear = yParam;
+    viewMonth = mParam - 1;
   }
 
-  // ===== Event Handlers =====
-  function onMonthChange(delta) {
-    const next = new Date(viewYear, viewMonth + delta, 1);
-    viewYear = next.getFullYear();
-    viewMonth = next.getMonth();
-    paint();
-  }
-
-  function onFilterClick(e) {
-    const btn = e.currentTarget;
-    const val = btn.dataset.filter || "all";
-    filter = val;
-
-    segmentedBtns.forEach((b) =>
-      b.classList.toggle("is-selected", b.dataset.filter === filter)
-    );
-    paint();
-  }
-
-  function onTabClick(e) {
-    const link = e.currentTarget;
-    tabLinks.forEach((l) => l.classList.remove("is-active"));
-    link.classList.add("is-active");
-    // 実装対象が1ページ内のため画面切替処理は省略
-  }
-
-  // ===== Paint (再描画) =====
-  function paint() {
-    renderMonthLabel();
-    renderCalendarGrid();
-    renderBirthdayList();
-  }
-
-  // ===== Init =====
-  function init() {
-    loadDataFromCSV();
-    renderWeekday();
-    segmentedBtns.forEach((b) => b.addEventListener("click", onFilterClick));
-    tabLinks.forEach((t) => t.addEventListener("click", onTabClick));
-    if (prevBtn) prevBtn.addEventListener("click", () => onMonthChange(-1));
-    if (nextBtn) nextBtn.addEventListener("click", () => onMonthChange(1));
-    paint();
-  }
-
-  // DOM Ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  // 「今日」にバッジを付けたい場合はここで class を追加する等も可能
+  renderAll();
 })();
