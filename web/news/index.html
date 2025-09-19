@@ -1,356 +1,133 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ニュース一覧 | Baby Animals</title>
-
-  <!-- SEO / OGP -->
-  <meta name="description" content="日本の動物園にいる赤ちゃん動物のニュースを集約。ブログ・公式サイト・YouTubeなどからまとめて一覧表示。">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="ニュース一覧 | Baby Animals">
-  <meta property="og:description" content="日本の動物園にいる赤ちゃん動物のニュースを集約。ブログ・公式・YouTubeなどからまとめて一覧表示。">
-  <meta property="og:url" content="https://babyanimals.pages.dev/news/">
-  <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-
-  <!-- ▼ Supabase REST 設定（環境に合わせて差し替え） -->
-  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
-  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
-
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <!-- ※もし外部スクリプトが衝突する場合は下2行を一時的に外してください -->
-  <script defer src="/assets/js/app.js"></script>
-  <script defer src="/assets/js/news.js"></script>
-
-  <!-- 16:9固定サムネ & レイアウト -->
-  <style>
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
-    }
-    @media (max-width: 599px) {
-      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    }
-    @media (min-width: 600px) and (max-width: 1023px) {
-      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    @media (min-width: 1024px) {
-      .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
-      display: flex;
-      flex-direction: column;
-      transition: transform .12s ease;
-    }
-    .card:hover { transform: translateY(-2px); }
-    .card a { color: inherit; text-decoration: none; }
-
-    .thumb { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #f2f2f2; overflow: hidden; }
-    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-    .pad { padding: 10px 12px 12px; }
-    .title {
-      font-size: 14.5px; line-height: 1.5; font-weight: 600; margin: 6px 0 8px;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .meta { font-size: 12px; color: #666; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .meta .dot::before { content: "・"; margin: 0 2px; color: #aaa; }
-
-    .controls.sticky {
-      position: sticky; top: 0; background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee; z-index: 10;
-      display: grid; grid-template-columns: 1fr 160px 120px; gap: 8px;
-    }
-    @media (max-width: 599px) {
-      .controls.sticky { grid-template-columns: 1fr 1fr; }
-      .controls.sticky #sort { grid-column: span 2; }
-    }
-
-    .skeleton {
-      background: linear-gradient(90deg, #eee 25%, #f7f7f7 37%, #eee 63%);
-      animation: shimmer 1.35s infinite; background-size: 400% 100%;
-    }
-    @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
-    #error {
-      display: none; background: #fff7f7; border: 1px solid #ffdede; color: #a40000;
-      padding: 10px 12px; border-radius: 10px; margin: 14px 0; white-space: pre-line;
-    }
-
-    .more-wrap { display: flex; justify-content: center; margin: 16px 0 32px; }
-    #more { padding: 10px 16px; font-size: 14px; border-radius: 999px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
-    #more[disabled] { opacity: .6; cursor: not-allowed; }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>動物園ベビー情報 | ニュース一覧</title>
+  <meta name="description" content="日本全国の動物園にいる赤ちゃん動物のニュースを集約。公式ブログや動画からまとめてチェックできます。">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <meta property="og:title" content="ニュース一覧 | 動物園ベビー情報" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="../assets/img/og.png" />
+  <meta property="og:site_name" content="Zoo Baby Information Site" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
 </head>
-<body data-news-v2="1">
-  <div class="container hero">
-    <h1>ニュース一覧</h1>
+<body class="theme">
+  <!-- Global Header -->
+  <header class="site-header">
+    <div class="site-header__left">
+      <a class="brand" href="../index.html" aria-label="トップへ">
+        <svg class="brand__icon" aria-hidden="true">
+          <use href="../assets/icons/icons.svg#icon-logo"></use>
+        </svg>
+        <span class="brand__title">Zoo Baby Information Site</span>
+      </a>
+    </div>
+    <div class="site-header__right">
+      <button class="pill-btn like-btn" aria-label="お気に入り">
+        <svg class="icon" aria-hidden="true">
+          <use href="../assets/icons/icons.svg#icon-heart"></use>
+        </svg>
+      </button>
+    </div>
+  </header>
 
-    <!-- 検索/絞り込み/ソート（「もっと読む」は下部に配置） -->
+  <!-- Sticky Tabbar -->
+  <nav class="tabbar" aria-label="メイン">
+    <a class="tabbar__link" href="../index.html" aria-label="ホーム">
+      <svg class="tabbar__icon" aria-hidden="true">
+        <use href="../assets/icons/icons.svg#icon-home"></use>
+      </svg>
+      <span class="tabbar__text">ホーム</span>
+    </a>
+    <a class="tabbar__link is-active" href="./index.html" aria-current="page" aria-label="ニュース">
+      <svg class="tabbar__icon" aria-hidden="true">
+        <use href="../assets/icons/icons.svg#icon-news"></use>
+      </svg>
+      <span class="tabbar__text">ニュース</span>
+    </a>
+    <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん">
+      <svg class="tabbar__icon" aria-hidden="true">
+        <use href="../assets/icons/icons.svg#icon-baby"></use>
+      </svg>
+      <span class="tabbar__text">赤ちゃん</span>
+    </a>
+    <a class="tabbar__link" href="../calendar/index.html" aria-label="カレンダー">
+      <svg class="tabbar__icon" aria-hidden="true">
+        <use href="../assets/icons/icons.svg#icon-calendar"></use>
+      </svg>
+      <span class="tabbar__text">カレンダー</span>
+    </a>
+  </nav>
+
+  <main class="container" id="main">
+    <!-- Page Hero -->
+    <section class="page-hero">
+      <h1 class="page-title">ニュース一覧</h1>
+
+      <div class="segmented" role="tablist" aria-label="ページ切替（無効化中）">
+        <button class="segmented__btn" disabled="">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
+          ホーム
+        </button>
+        <button class="segmented__btn is-selected" aria-pressed="true">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-news"></use></svg>
+          ニュース
+        </button>
+        <button class="segmented__btn" disabled="">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-baby"></use></svg>
+          赤ちゃん
+        </button>
+        <button class="segmented__btn" disabled="">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
+          カレンダー
+        </button>
+      </div>
+    </section>
+
+    <!-- Controls -->
     <div class="controls sticky">
-      <input id="q" type="search" placeholder="キーワード検索（タイトル/ソース）">
-      <select id="source">
+      <input id="q" type="search" placeholder="キーワード検索（タイトル/ソース）" aria-label="ニュース検索">
+      <select id="source" aria-label="ニュースの種類で絞り込み">
         <option value="">すべてのソース</option>
         <option value="YouTube">YouTube</option>
         <option value="blog">ブログ/ニュース</option>
       </select>
-      <select id="sort">
+      <select id="sort" aria-label="並び替え">
         <option value="desc" selected>新着順</option>
         <option value="asc">古い順</option>
       </select>
     </div>
 
-    <div class="banner">（インフィード広告枠）</div>
+    <!-- News List -->
+    <section>
+      <!-- 初期スケルトン -->
+      <div id="skeleton-news" class="cards-grid" aria-hidden="true">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
 
-    <!-- スケルトン（初期表示） -->
-    <div id="skeleton-news" class="grid" aria-hidden="true">
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-    </div>
+      <!-- 実データ -->
+      <div id="list" class="cards-grid" aria-live="polite"></div>
 
-    <div id="error"></div>
+      <!-- 空状態 -->
+      <div id="empty" class="empty" style="display:none;">データがありません</div>
 
-    <!-- 実データ -->
-    <div id="list" class="grid" aria-live="polite"></div>
+      <!-- 読み込みエラー -->
+      <div id="error" class="empty" style="display:none;">読み込みエラーが発生しました</div>
 
-    <!-- 空状態 -->
-    <div id="empty" class="empty" style="display:none;">データがありません</div>
+      <!-- もっと読む -->
+      <div class="more-wrap">
+        <button id="more">もっと読む</button>
+      </div>
+    </section>
+  </main>
 
-    <!-- 下部に「もっと読む」 -->
-    <div class="more-wrap">
-      <button id="more">もっと読む</button>
-    </div>
-  </div>
+  <footer class="site-footer" aria-label="フッター">
+    <small>© Zoo Baby Information</small>
+  </footer>
 
-  <script>
-    (function () {
-      // 二重初期化防止（外部スクリプトとの競合対策）
-      if (window.__NEWS_V2_INITED) return;
-      window.__NEWS_V2_INITED = true;
-
-      // ===== パラメータ =====
-      const INITIAL_COUNT = 12;        // 初期表示件数
-      const LOAD_MORE     = 12;        // 1クリックの追加件数
-      const SERVER_PAGE   = 60;        // 取得単位（余裕を持って = 12 の倍数）
-
-      const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
-      const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-      const SUPABASE_URL = window.SUPABASE_URL || metaUrl;
-      const SUPABASE_KEY = window.SUPABASE_ANON_KEY || metaKey;
-
-      // DOM
-      const $q = document.getElementById('q');
-      const $source = document.getElementById('source');
-      const $sort = document.getElementById('sort');
-      const $list = document.getElementById('list');
-      const $empty = document.getElementById('empty');
-      const $skeleton = document.getElementById('skeleton-news');
-      const $error = document.getElementById('error');
-      const $more = document.getElementById('more');
-
-      // 状態
-      let fetched = [];        // サーバーから蓄積した生データ
-      let filtered = [];       // フィルタ/ソート後の配列
-      let renderedCount = 0;   // 現在表示している件数（絶対に勝手に減らさない）
-      let serverOffset = 0;    // サーバー側 OFFSET
-      let serverHasMore = true;
-      let serverSort = 'desc'; // 'desc' | 'asc'
-      let loading = false;
-
-      // ===== 共通 =====
-      function showError(msg) {
-        $error.style.display = 'block';
-        $error.textContent = msg;
-      }
-
-      function renderCards(slice) {
-        const frag = document.createDocumentFragment();
-        for (const it of slice) {
-          const a = document.createElement('a');
-          a.href = it.url || it.source_url || '#';
-          a.target = '_blank';
-          a.rel = 'noopener';
-
-          const card = document.createElement('div');
-          card.className = 'card';
-
-          const thumb = document.createElement('div');
-          thumb.className = 'thumb';
-          const img = document.createElement('img');
-          img.loading = 'lazy';
-          img.alt = it.title || '';
-          img.src = it.thumbnail_url || '/assets/img/noimage-16x9.png';
-          thumb.appendChild(img);
-
-          const pad = document.createElement('div');
-          pad.className = 'pad';
-
-          const title = document.createElement('div');
-          title.className = 'title';
-          title.textContent = it.title || '(無題)';
-
-          const meta = document.createElement('div');
-          meta.className = 'meta';
-          const d = it.published_at ? new Date(it.published_at) : null;
-          const dateStr = d ? d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '';
-          meta.innerHTML = `<span>${dateStr}</span><span class="dot"></span><span>${it.source_name || ''}</span>`;
-
-          pad.appendChild(title);
-          pad.appendChild(meta);
-
-          card.appendChild(thumb);
-          card.appendChild(pad);
-          a.appendChild(card);
-          frag.appendChild(a);
-        }
-        $list.innerHTML = '';
-        $list.appendChild(frag);
-      }
-
-      function recomputeFiltered() {
-        const q = ($q.value || '').trim().toLowerCase();
-        const src = ($source.value || '').trim();
-
-        // フィルタ
-        filtered = fetched.filter(it => {
-          const hitQ = !q || ((it.title || '').toLowerCase().includes(q) || (it.source_name || '').toLowerCase().includes(q));
-          const hitS = !src || (src === 'YouTube'
-            ? (it.source_name || '').toLowerCase().includes('youtube')
-            : (it.source_name || '').toLowerCase().includes('blog') || (it.source_name || '').includes('ブログ') || (it.source_name || '').includes('news') || (it.source_name || '').includes('公式'));
-          return hitQ && hitS;
-        });
-
-        // 並び（published_at → id）
-        const asc = ($sort.value === 'asc');
-        filtered.sort((a, b) => {
-          const ad = new Date(a.published_at || 0).getTime();
-          const bd = new Date(b.published_at || 0).getTime();
-          if (ad !== bd) return asc ? ad - bd : bd - ad;
-          return asc ? (a.id > b.id ? 1 : -1) : (a.id < b.id ? 1 : -1);
-        });
-      }
-
-      function applyFilterAndSort({ keepRendered = false } = {}) {
-        const prev = renderedCount;
-        recomputeFiltered();
-        if (!keepRendered) {
-          renderedCount = Math.min(INITIAL_COUNT, filtered.length);
-        } else {
-          // 既に表示している件数を維持（データが減った場合のみ縮む）
-          renderedCount = Math.min(prev, filtered.length);
-        }
-        renderCards(filtered.slice(0, renderedCount));
-        $empty.style.display = filtered.length ? 'none' : 'block';
-        toggleMoreButton();
-      }
-
-      function toggleMoreButton() {
-        const clientHasMore = renderedCount < filtered.length;
-        const shouldShow = clientHasMore || serverHasMore;
-        $more.disabled = !shouldShow;
-        $more.style.display = shouldShow ? 'inline-flex' : 'none';
-      }
-
-      // ===== イベント =====
-      function debounce(fn, ms) {
-        let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-      }
-      $q.addEventListener('input', debounce(() => applyFilterAndSort({ keepRendered: false }), 200));
-      $source.addEventListener('change', () => applyFilterAndSort({ keepRendered: false }));
-      $sort.addEventListener('change', () => {
-        serverSort = $sort.value === 'asc' ? 'asc' : 'desc';
-        applyFilterAndSort({ keepRendered: true }); // 並び替えしても現在の表示件数は維持
-      });
-
-      $more.addEventListener('click', async () => {
-        // 目標件数（今より12件増やす）
-        const target = Math.min(renderedCount + LOAD_MORE, Number.MAX_SAFE_INTEGER);
-
-        // クライアントに不足分があるか？
-        // 不足していれば、サーバーから必要分を満たすまで入荷（在庫切れまで）
-        while (filtered.length < target && serverHasMore && !loading) {
-          const got = await fetchFromServer({ append: true });
-          if (got === 0) break; // これ以上入らない
-          // 新規入荷分も含めて並び替えをし直すが、表示件数は維持
-          applyFilterAndSort({ keepRendered: true });
-        }
-
-        // 表示件数を増やして再描画（リセットしない）
-        renderedCount = Math.min(target, filtered.length);
-        renderCards(filtered.slice(0, renderedCount));
-        toggleMoreButton();
-      });
-
-      // ===== サーバー取得（PostgREST） =====
-      async function fetchFromServer({ append } = { append: false }) {
-        if (!SUPABASE_URL || !SUPABASE_KEY) {
-          showError('Supabase の URL / ANON KEY が設定されていません。');
-          return 0;
-        }
-        loading = true;
-        if (!append) $skeleton.style.display = 'grid';
-        let received = 0;
-        try {
-          const orderParam = `order=published_at.${serverSort},id.${serverSort}`;
-          const rangeFrom = serverOffset;
-          const rangeTo = serverOffset + SERVER_PAGE - 1;
-          const url = `${SUPABASE_URL}/rest/v1/news_items?select=id,title,url,published_at,source_name,source_url,thumbnail_url&${orderParam}`;
-          const resp = await fetch(url, {
-            headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
-              Range: `${rangeFrom}-${rangeTo}`,
-              'Accept-Profile': 'public',
-              'Content-Profile': 'public'
-            },
-          });
-
-          if (resp.status === 206 || resp.status === 200) {
-            const data = await resp.json();
-            if (Array.isArray(data) && data.length) {
-              received = data.length;
-              fetched = append ? fetched.concat(data) : data;
-              serverOffset += data.length;
-              if (data.length < SERVER_PAGE) serverHasMore = false;
-            } else {
-              serverHasMore = false;
-            }
-          } else if (resp.status === 401 || resp.status === 403) {
-            showError('認証エラーです。Supabase の anon key / RLS / CORS 設定をご確認ください。');
-            serverHasMore = false;
-          } else {
-            showError(`取得に失敗しました（HTTP ${resp.status}）。`);
-            serverHasMore = false;
-          }
-        } catch (e) {
-          console.error(e);
-          showError('ネットワークエラーが発生しました。');
-          serverHasMore = false;
-        } finally {
-          $skeleton.style.display = 'none';
-          loading = false;
-        }
-        return received;
-      }
-
-      // ===== 初期ロード =====
-      (async function init() {
-        await fetchFromServer({ append: false });
-        applyFilterAndSort({ keepRendered: false }); // 初期は12件
-      })();
-    })();
-  </script>
+  <script src="../assets/js/news.js" defer></script>
 </body>
 </html>
