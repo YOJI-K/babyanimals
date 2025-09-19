@@ -361,3 +361,56 @@ body {
 .site-header svg,
 .tabbar svg,
 .segmented svg { width: 1em; height: 1em; }
+/* Tabbar: テキストがSPで収まるための段階的フォールバック */
+
+/* まずは省略の保険（1行固定＋ellipsis） */
+.tabbar__text{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 340–379px：少しだけ詰める */
+@media (max-width: 379px) {
+  .tabbar{
+    gap: 8px;
+    padding: 8px;
+  }
+  .tabbar__link{
+    min-height: 40px;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .tabbar__text{
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    max-width: 18ch; /* 日本語も詰めすぎない程度で */
+  }
+  .tabbar__icon{
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
+}
+
+/* <340px：テキスト非表示＝アイコンのみ（横幅を最優先） */
+@media (max-width: 339px) {
+  .tabbar{
+    gap: 6px;
+    padding: 6px;
+  }
+  .tabbar__link{
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px;
+    gap: 0;
+  }
+  .tabbar__text{
+    display: none; /* ← アイコンのみ表示に切替 */
+  }
+  .tabbar__icon{
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+  }
+}
