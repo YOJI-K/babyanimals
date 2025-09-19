@@ -4,21 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>動物園ベビー情報 | ホーム</title>
-  <meta name="description" content="全国の動物園ベビー情報をやさしく見やすく。誕生日カレンダー、ニュース、赤ちゃんリストをチェック。">
+  <meta name="description" content="全国の動物園ベビー情報をニュース・一覧・誕生日カレンダーでチェック。">
   <link rel="icon" href="./assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <meta property="og:title" content="動物園ベビー情報" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="./assets/img/og.png" />
-  <meta property="og:site_name" content="Zoo Baby Information Site" />
-  <link rel="preload" href="./assets/icons/icons.svg" as="image" type="image/svg+xml">
+  <meta property="og:url" content="/" />
   <link rel="stylesheet" href="./assets/css/style.css" />
 </head>
 <body class="theme">
-  <!-- Global Header -->
+  <!-- Header -->
   <header class="site-header">
     <div class="site-header__left">
-      <a class="brand" href="./index.html" aria-label="トップへ">
-        <svg class="brand__icon" aria-hidden="true">
+      <a class="brand" href="./index.html" aria-label="ホームへ">
+        <svg class="brand__icon" aria-hidden="true" focusable="false">
           <use href="./assets/icons/icons.svg#icon-logo"></use>
         </svg>
         <span class="brand__title">Zoo Baby Information Site</span>
@@ -26,121 +26,121 @@
     </div>
     <div class="site-header__right">
       <button class="pill-btn like-btn" aria-label="お気に入り">
-        <svg class="icon" aria-hidden="true">
+        <svg class="icon" aria-hidden="true" focusable="false">
           <use href="./assets/icons/icons.svg#icon-heart"></use>
         </svg>
       </button>
     </div>
   </header>
 
-  <!-- Sticky Tabbar -->
+  <!-- Global Tabbar -->
   <nav class="tabbar" aria-label="メイン">
     <a class="tabbar__link is-active" href="./index.html" aria-current="page" aria-label="ホーム">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="./assets/icons/icons.svg#icon-home"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-home"></use></svg>
       <span class="tabbar__text">ホーム</span>
     </a>
     <a class="tabbar__link" href="./news/index.html" aria-label="ニュース">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="./assets/icons/icons.svg#icon-news"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-news"></use></svg>
       <span class="tabbar__text">ニュース</span>
     </a>
     <a class="tabbar__link" href="./babies/index.html" aria-label="赤ちゃん">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="./assets/icons/icons.svg#icon-baby"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-baby"></use></svg>
       <span class="tabbar__text">赤ちゃん</span>
     </a>
     <a class="tabbar__link" href="./calendar/index.html" aria-label="カレンダー">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="./assets/icons/icons.svg#icon-calendar"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-calendar"></use></svg>
       <span class="tabbar__text">カレンダー</span>
     </a>
   </nav>
 
   <main class="container" id="main">
-    <!-- Page Hero -->
+    <!-- Hero -->
     <section class="page-hero">
       <h1 class="page-title">動物園ベビー情報</h1>
+      <p class="page-subtitle">新着ニュース・赤ちゃん一覧・誕生日カレンダーで最新情報をチェック！</p>
 
-      <!-- Segmented (disabled tabs) -->
+      <!-- Segmented (disabled, just visual) -->
       <div class="segmented" role="tablist" aria-label="ページ切替（無効化中）">
         <button class="segmented__btn is-selected" aria-pressed="true">
           <svg class="icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-home"></use></svg>
           ホーム
         </button>
-        <button class="segmented__btn" disabled="">
+        <button class="segmented__btn" disabled>
           <svg class="icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-news"></use></svg>
           ニュース
         </button>
-        <button class="segmented__btn" disabled="">
+        <button class="segmented__btn" disabled>
           <svg class="icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-baby"></use></svg>
           赤ちゃん
         </button>
-        <button class="segmented__btn" disabled="">
+        <button class="segmented__btn" disabled>
           <svg class="icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-calendar"></use></svg>
           カレンダー
         </button>
       </div>
     </section>
 
-    <!-- Quick Nav Cards -->
-    <section class="quick-nav">
-      <a class="chip chip--nav" href="./news/index.html">
-        <svg class="chip__icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-news"></use></svg>
-        <span>ニュース</span>
-      </a>
-      <a class="chip chip--nav" href="./babies/index.html">
-        <svg class="chip__icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-baby"></use></svg>
-        <span>赤ちゃん</span>
-      </a>
-      <a class="chip chip--nav" href="./calendar/index.html">
-        <svg class="chip__icon" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-calendar"></use></svg>
-        <span>カレンダー</span>
-      </a>
+    <!-- Quick Links -->
+    <section class="card-grid">
+      <article class="card card--link">
+        <header class="panel-head">
+          <div class="panel-icon" aria-hidden="true">📰</div>
+          <div>
+            <h2 class="panel-title">ニュース</h2>
+            <p class="panel-desc">赤ちゃん誕生・話題のニュース</p>
+          </div>
+        </header>
+        <div class="card__body">
+          <p>国内外の赤ちゃん動物ニュースをサクッとチェック。</p>
+        </div>
+        <footer class="card__footer">
+          <a class="btn btn--primary" href="./news/index.html" aria-label="ニュースへ">ニュースを見る</a>
+        </footer>
+      </article>
+
+      <article class="card card--link">
+        <header class="panel-head">
+          <div class="panel-icon" aria-hidden="true">🍼</div>
+          <div>
+            <h2 class="panel-title">赤ちゃん一覧</h2>
+            <p class="panel-desc">いま会える＆話題の赤ちゃん</p>
+          </div>
+        </header>
+        <div class="card__body">
+          <p>種別や動物園で絞り込んでお気に入りを見つけよう。</p>
+        </div>
+        <footer class="card__footer">
+          <a class="btn btn--primary" href="./babies/index.html" aria-label="赤ちゃん一覧へ">赤ちゃんを見る</a>
+        </footer>
+      </article>
+
+      <article class="card card--link">
+        <header class="panel-head">
+          <div class="panel-icon" aria-hidden="true">🎂</div>
+          <div>
+            <h2 class="panel-title">誕生日カレンダー</h2>
+            <p class="panel-desc">みんなでお祝いしよう</p>
+          </div>
+        </header>
+        <div class="card__body">
+          <p>月ごとのお誕生日をチェックして、推しの記念日を逃さない。</p>
+        </div>
+        <footer class="card__footer">
+          <a class="btn btn--primary" href="./calendar/index.html" aria-label="カレンダーへ">カレンダーを見る</a>
+        </footer>
+      </article>
     </section>
 
-    <!-- News Digest -->
-    <section class="card card--panel">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">📰</div>
-        <h2 class="panel-title">最新ニュース</h2>
-      </header>
-      <ul class="list list--news" id="js-newsDigest" aria-live="polite">
-        <!-- assets/js/app.js が3件ほど埋め込みます／なければ空状態を表示 -->
-      </ul>
-      <div class="card__footer">
-        <a class="btn btn--ghost" href="./news/index.html">すべて見る</a>
-      </div>
-    </section>
-
-    <!-- Babies Digest -->
-    <section class="card card--panel">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">🍼</div>
-        <h2 class="panel-title">最近登録の赤ちゃん</h2>
-      </header>
-      <div class="cards-grid" id="js-babiesDigest" aria-live="polite">
-        <!-- assets/js/app.js が数件ダイジェストを描画 -->
-      </div>
-      <div class="card__footer">
-        <a class="btn btn--ghost" href="./babies/index.html">一覧へ</a>
-      </div>
-    </section>
-
-    <!-- CTA -->
+    <!-- CTA / Message -->
     <section class="card card--message">
       <div class="message-head">
-        <svg class="icon-heart" aria-hidden="true"><use href="./assets/icons/icons.svg#icon-heart"></use></svg>
-        <h3>赤ちゃんのお祝い、していこう</h3>
+        <span class="icon-heart" aria-hidden="true">💗</span>
+        <h3>応援・お祝いしよう！</h3>
       </div>
-      <p>誕生日カレンダーでスケジュールをチェックし、ニュースで近況もキャッチ。気になる子はお気に入りに追加して応援しよう！</p>
-      <div class="cta-row">
-        <a class="btn" href="./calendar/index.html">誕生日カレンダーを見る</a>
-      </div>
+      <p>
+        誕生日や成長のニュースをシェアして、赤ちゃん動物と飼育員さんを一緒に応援しましょう。
+        お気に入り登録やSNSでの共有も準備中です。
+      </p>
     </section>
   </main>
 
