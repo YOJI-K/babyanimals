@@ -1,48 +1,104 @@
-const Site = {
-  mountShell(){
-    const header = document.createElement('header');
-    header.className='header';
-    header.innerHTML=`<div class="container nav">
-      <a class="logo" href="/">🐣 Baby Animals</a>
-      <nav class="links">
-        <a href="/news/">ニュース</a>
-        <a href="/babies/">赤ちゃん一覧</a>
-        <a href="/calendar/">カレンダー</a>
-      </nav>
-    </div>`;
-    document.body.prepend(header);
+// assets/js/app.js
+// Global enhancements shared across pages (home / news / babies / calendar)
 
-    const footer = document.createElement('footer');
-    const y = new Date().getFullYear();
-    footer.innerHTML=`<div class="container flex">
-      <div class="small">© ${y} Baby Animals</div>
-      <div class="small"><a href="#">プライバシー</a>・<a href="#">免責事項</a></div>
-    </div>`;
-    document.body.append(footer);
-  },
-  // 既存の fmtDate を置き換え
-fmtDate(iso){
-  if(!iso) return '';
-  try{
-    const d = new Date(iso);
-    // 例: 2025/09/10
-    return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
-  }catch{ return ''; }
-},
-// 追加：月のラベル（例: 2025年9月）
-fmtMonthYM(d){
-  try{
-    return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long'}).format(d);
-  }catch{ return ''; }
-},
-  domain(u){ try{ return new URL(u).host.replace(/^www\./,''); }catch{ return ''; } }
-};
-document.addEventListener('DOMContentLoaded', Site.mountShell);
+(() => {
+  const $ = (sel, ctx = document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
-// === Supabase public config (anon) ===
-// 後で値を置き換えてください
-window.SUPABASE = {
-  URL: "https://hvhpfrksyytthupboaeo.supabase.co",
-  ANON: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY" // anon public key
-};
+  document.addEventListener('DOMContentLoaded', () => {
+    setActiveTabbarLink();
+    headerOnScrollCompact();
+    improveExternalUseHref();
+    a11yTouchFocus();
+    reduceMotionGuard();
+    autoSetTabbarTitles();
+  });
 
+  /**
+   * Highlight active tabbar link based on current path.
+   * Works for nested pages: /news/, /babies/, /calendar/
+   */
+  function setActiveTabbarLink() {
+    const path = location.pathname.replace(/\/+$/, ''); // trim trailing slash
+    const map = [
+      { href: /\/(index\.html)?$/, key: 'home' },
+      { href: /\/news(\/|\/index\.html)?$/, key: 'news' },
+      { href: /\/babies(\/|\/index\.html)?$/, key: 'babies' },
+      { href: /\/calendar(\/|\/index\.html)?$/, key: 'calendar' }
+    ];
+
+    const current = map.find(m => m.href.test(path));
+    if (!current) return;
+
+    $$('.tabbar__link').forEach(a => a.classList.remove('is-active'));
+    // Prefer exact match; fall back to includes
+    const found =
+      $(`.tabbar a[href*="${current.key}"]`) ||
+      (current.key === 'home' ? $('.tabbar a[href$="index.html"]') : null);
+    if (found) {
+      found.classList.add('is-active');
+      found.setAttribute('aria-current', 'page');
+    }
+  }
+
+  /**
+   * Compact header when scrolling down a bit (mobile-friendly).
+   */
+  function headerOnScrollCompact() {
+    const header = $('.site-header');
+    if (!header) return;
+
+    const onScroll = () => {
+      const scrolled = window.scrollY > 6;
+      header.classList.toggle('is-scrolled', scrolled);
+      document.body.classList.toggle('header-scrolled', scrolled);
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /**
+   * A11y: add focus styles on touch (iOS Safari sometimes drops :focus-visible)
+   */
+  function a11yTouchFocus() {
+    document.addEventListener('touchstart', e => {
+      const btn = e.target.closest('button, a, [tabindex]');
+      if (!btn) return;
+      btn.classList.add('had-touch');
+    }, { passive: true });
+  }
+
+  /**
+   * Respect prefers-reduced-motion: avoid JS smooth-scroll if any is used later
+   */
+  function reduceMotionGuard() {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (media.matches) {
+      document.documentElement.style.scrollBehavior = 'auto';
+    }
+  }
+
+  /**
+   * External SVG <use> robustness:
+   * Ensures `href` is set (not just xlink:href) and re-assigns to trigger Safari repaint.
+   */
+  function improveExternalUseHref() {
+    $$('use').forEach(u => {
+      const href = u.getAttribute('href') || u.getAttribute('xlink:href');
+      if (href) {
+        u.setAttribute('href', href);
+      }
+    });
+  }
+
+  /**
+   * Tabbar labels: set title attr so truncated text shows full on long-press/hover.
+   */
+  function autoSetTabbarTitles() {
+    $$('.tabbar__link').forEach(link => {
+      const label = $('.tabbar__text', link);
+      if (label && !link.title) link.title = label.textContent.trim();
+    });
+  }
+})();
