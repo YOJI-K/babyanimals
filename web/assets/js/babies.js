@@ -1,3 +1,4 @@
+// assets/js/babies.js
 // babies.js (refined for UX & mobile)
 
 let BABIES = [];
@@ -76,7 +77,7 @@ function render(){
   log('render:', slice.length, '/', data.length);
 }
 
-// ===== Supabase REST（metaタグ fallback 追加） =====
+// ===== Supabase REST（metaタグ fallback 追加 / ベースURL連結の不具合修正） =====
 async function fetchJSON(u){
   const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
   const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
@@ -84,8 +85,18 @@ async function fetchJSON(u){
   const ANON     = window.SUPABASE?.ANON || metaKey;
   if(!SUPA_URL || !ANON) throw new Error('Supabase config missing (URL/ANON)');
 
-  const url = new window.URL(`${SUPA_URL}${u}`);
-  const res = await fetch(url, { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` }, cache:'no-store' });
+  // ✅ 相対パスを Supabase ベースURLに正しく結合
+  const url = new URL(u, SUPA_URL);
+
+  const res = await fetch(url.toString(), {
+    headers:{
+      apikey: ANON,
+      Authorization: `Bearer ${ANON}`,
+      'Accept-Profile': 'public',
+      'Content-Profile': 'public'
+    },
+    cache:'no-store'
+  });
   if(!res.ok){
     const t = await res.text().catch(()=> '');
     throw new Error(`Fetch failed ${res.status}: ${t}`);
