@@ -135,6 +135,22 @@ body {
 }
 .panel-head :where(svg,img){ width: var(--icon-lg); height: var(--icon-lg); }
 
+/* === Card thumbnail fix (news / babies 共通) ====================== */
+.card .thumb{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #f2f2f2;
+}
+.card .thumb > img{
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  max-height: none !important;   /* アイコン用 max-height を打ち消す */
+}
+
 /* ------------------------------------------------------------------ */
 /* Calendar Head                                                      */
 /* ------------------------------------------------------------------ */
@@ -242,6 +258,7 @@ body {
 
 /* ※カード内部で意図的に大きな画像を使う場合は data-allow-big を付けて回避 */
 .card :where(svg,img):not([data-allow-big]){ max-height: 40px; }
+/* ↑ ただし thumbnail は上の .card .thumb > img で必ず上書き（max-height:none!important） */
 
 /* ------------------------------------------------------------------ */
 /* Desktop enhancements                                               */
@@ -254,6 +271,7 @@ body {
   .bday-card__avatar{ width:56px; height:56px; }
   .tabbar{ margin-inline: auto; width:min(980px, 100%); }
 }
+
 /* =========================
   Hotfix: header/tabbar/segmented (SP)
   2025-09-19
@@ -361,6 +379,7 @@ body {
 .site-header svg,
 .tabbar svg,
 .segmented svg { width: 1em; height: 1em; }
+
 /* Tabbar: テキストがSPで収まるための段階的フォールバック */
 
 /* まずは省略の保険（1行固定＋ellipsis） */
