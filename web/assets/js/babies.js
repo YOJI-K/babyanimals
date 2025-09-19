@@ -5,7 +5,14 @@ let BABIES = [];
 let ZOOS = [];
 let PAGE = 1;
 const PAGE_SIZE = 12;
-
+// --- Siteユーティリティのフォールバック ---
+const Site = window.Site || {};
+Site.fmtDate = Site.fmtDate || function (iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+};
 function log(){ /* silent */ }
 function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
