@@ -3,44 +3,78 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ニュース一覧 | Baby Animals</title>
+  <title>ニュース一覧 | Zoo Baby Information Site</title>
 
   <!-- SEO / OGP -->
-  <meta name="description" content="日本の動物園にいる赤ちゃん動物のニュースを集約。ブログ・公式サイト・YouTubeなどからまとめて一覧表示。">
+  <meta name="description" content="日本の動物園の赤ちゃん動物ニュースを一覧でチェック。公式サイト・ブログ・YouTube などをまとめて表示します。">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="ニュース一覧 | Baby Animals">
-  <meta property="og:description" content="日本の動物園にいる赤ちゃん動物のニュースを集約。ブログ・公式・YouTubeなどからまとめて一覧表示。">
+  <meta property="og:title" content="ニュース一覧 | Zoo Baby Information Site">
+  <meta property="og:description" content="日本の動物園の赤ちゃん動物ニュースを一覧でチェック。公式サイト・ブログ・YouTube などをまとめて表示します。">
   <meta property="og:url" content="https://babyanimals.pages.dev/news/">
   <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 
-  <!-- Supabase REST 設定（環境に合わせて差し替え可） -->
+  <!-- Supabase（メタ経由フォールバック用。値は既存のものを維持） -->
   <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
   <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
-  <!-- Global styles & scripts -->
-  <link rel="stylesheet" href="../assets/css/style.css" />
-  <script defer src="../assets/js/app.js"></script>
-  <!-- このページ専用の取得/描画ロジックは news.js に分離 -->
-  <script defer src="../assets/js/news.js"></script>
+  <!-- Global styles / scripts -->
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <script defer src="/assets/js/app.js"></script>
+  <script defer src="/assets/js/news.js"></script>
+
+  <!-- ページ固有：最低限の補助だけ（共通CSSでほぼ整います） -->
+  <style>
+    .grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    @media (min-width:600px){ .grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (min-width:1024px){ .grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+
+    .card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; }
+    .card:hover{ transform:translateY(-2px); }
+    .card .thumb{ position:relative; width:100%; aspect-ratio:16/9; background:#f2f2f2; overflow:hidden; }
+    .card .thumb > img{ width:100%; height:100%; object-fit:cover; max-height:none !important; display:block; }
+    .pad{ padding:10px 12px 12px; }
+    .title{ font-size:14.5px; line-height:1.5; font-weight:700; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .meta{ font-size:12px; color:#666; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .meta .dot::before{ content:"・"; color:#aaa; }
+
+    .controls.sticky{
+      position:sticky; top:0; z-index:10; background:#fff;
+      border-bottom:1px solid var(--border); padding:8px 12px;
+      display:grid; grid-template-columns:1fr 160px 120px; gap:8px;
+    }
+    .controls.sticky > *{ min-width:0; }
+    .controls.sticky input[type="search"],
+    .controls.sticky select{
+      width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff;
+    }
+    @media (max-width:599px){
+      .controls.sticky{ grid-template-columns:1fr 1fr; }
+      .controls.sticky #sort{ grid-column:1 / -1; }
+    }
+
+    .skeleton{ background:linear-gradient(90deg,#eee 25%,#f7f7f7 37%,#eee 63%); background-size:400% 100%; animation:shimmer 1.35s infinite; }
+    @keyframes shimmer{ 0%{background-position:100% 0} 100%{background-position:0 0} }
+
+    #error{ display:none; background:#fff7f7; border:1px solid #ffdede; color:#a40000; padding:10px 12px; border-radius:10px; margin:14px 0; white-space:pre-line; }
+    .more-wrap{ display:flex; justify-content:center; margin:16px 0 32px; }
+    #more{ padding:10px 16px; font-size:14px; border-radius:999px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+    #more[disabled]{ opacity:.6; cursor:not-allowed; }
+  </style>
 </head>
-<body class="theme" data-news-v2="1">
+<body data-news-v2="1">
   <!-- Global Header -->
-  <header class="site-header">
+  <header class="site-header" role="banner">
     <div class="site-header__left">
-      <a class="brand" href="../index.html">
-        <svg class="brand__icon" aria-hidden="true">
-          <use href="../assets/icons/icons.svg#icon-logo"></use>
-        </svg>
+      <a class="brand" href="../index.html" aria-label="トップへ">
+        <svg class="brand__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-logo"></use></svg>
         <span class="brand__title">Zoo Baby Information Site</span>
       </a>
     </div>
     <div class="site-header__right">
       <button class="pill-btn like-btn" aria-label="お気に入り">
-        <svg class="icon" aria-hidden="true">
-          <use href="../assets/icons/icons.svg#icon-heart"></use>
-        </svg>
+        <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg>
       </button>
     </div>
   </header>
@@ -48,117 +82,67 @@
   <!-- Sticky Tabbar -->
   <nav class="tabbar" aria-label="メイン">
     <a class="tabbar__link" href="../index.html" aria-label="ホーム">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-home"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
       <span class="tabbar__text">ホーム</span>
     </a>
     <a class="tabbar__link is-active" href="./index.html" aria-current="page" aria-label="ニュース">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-news"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-news"></use></svg>
       <span class="tabbar__text">ニュース</span>
     </a>
     <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-baby"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-baby"></use></svg>
       <span class="tabbar__text">赤ちゃん</span>
     </a>
     <a class="tabbar__link" href="../calendar/index.html" aria-label="カレンダー">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-calendar"></use>
-      </svg>
+      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
       <span class="tabbar__text">カレンダー</span>
     </a>
   </nav>
 
-  <main class="container" id="main">
-    <!-- Page Title -->
-    <section class="page-hero">
-      <h1 class="page-title">ニュース一覧</h1>
-      <div class="segmented" role="tablist" aria-label="ページ切替（無効化中）">
-        <button class="segmented__btn" disabled>
-          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
-          ホーム
-        </button>
-        <button class="segmented__btn is-selected" aria-pressed="true">
-          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-news"></use></svg>
-          ニュース
-        </button>
-        <button class="segmented__btn" disabled>
-          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-baby"></use></svg>
-          赤ちゃん
-        </button>
-        <button class="segmented__btn" disabled>
-          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
-          カレンダー
-        </button>
-      </div>
-    </section>
+  <div class="container hero">
+    <h1>ニュース一覧</h1>
 
-    <!-- Filters / Sort -->
-    <section class="card card--panel">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">📰</div>
-        <div>
-          <h2 class="panel-title">ニュースを探す</h2>
-          <p class="panel-desc">キーワード・ソースで絞り込み、並び順を変更できます</p>
-        </div>
-      </header>
+    <!-- 検索/絞り込み/並び順 -->
+    <div class="controls sticky" role="region" aria-label="検索と絞り込み">
+      <input id="q" type="search" placeholder="タイトル / ソース名で検索">
+      <select id="source">
+        <option value="">すべてのソース</option>
+        <option value="YouTube">YouTube</option>
+        <option value="blog">ブログ/ニュース</option>
+      </select>
+      <select id="sort">
+        <option value="desc" selected>新着順</option>
+        <option value="asc">古い順</option>
+      </select>
+    </div>
 
-      <div class="filters" id="js-filters">
-        <label class="field">
-          <span class="field__label">キーワード</span>
-          <input id="q" class="input" type="search" placeholder="タイトル / ソース名で検索">
-        </label>
-        <label class="field">
-          <span class="field__label">ソース</span>
-          <select id="source" class="select">
-            <option value="">すべてのソース</option>
-            <option value="YouTube">YouTube</option>
-            <option value="blog">ブログ/ニュース</option>
-          </select>
-        </label>
-        <label class="field">
-          <span class="field__label">並び順</span>
-          <select id="sort" class="select">
-            <option value="desc" selected>新着順</option>
-            <option value="asc">古い順</option>
-          </select>
-        </label>
-      </div>
-    </section>
+    <div class="banner">（インフィード広告枠）</div>
 
-    <!-- (広告などインフィードを置く場合) -->
-    <div class="banner" aria-hidden="true">（インフィード広告枠）</div>
+    <!-- 初期スケルトン -->
+    <div id="skeleton-news" class="grid" aria-hidden="true">
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+    </div>
 
-    <!-- Skeleton -->
-    <section aria-label="読み込み中" id="skeleton-news" class="grid grid--cards" aria-hidden="true">
-      <!-- 8枚分のスケルトン -->
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-      <div class="s-card"><div class="s-thumb"></div><div class="s-lines"></div></div>
-    </section>
+    <div id="error" role="alert"></div>
 
-    <div id="error" class="alert" role="status" style="display:none;"></div>
+    <!-- 実データ -->
+    <div id="list" class="grid" aria-live="polite"></div>
 
-    <!-- Actual list -->
-    <section aria-label="ニュース一覧" id="list" class="grid grid--cards" aria-live="polite"></section>
-
-    <!-- Empty -->
+    <!-- 空状態 -->
     <div id="empty" class="empty" style="display:none;">データがありません</div>
 
-    <!-- Load more -->
+    <!-- もっと読む -->
     <div class="more-wrap">
-      <button id="more" class="pill-btn">もっと読む</button>
+      <button id="more" type="button">もっと読む</button>
     </div>
-  </main>
+  </div>
 
   <footer class="site-footer" aria-label="フッター">
     <small>© Zoo Baby Information</small>

@@ -1,135 +1,165 @@
 // assets/js/news.js
+// News list v2 — SP最適化・Supabase/メタタグ両対応・簡易ページング
+
 (() => {
-  let page = 1;
+  // ===== 小さなユーティリティ =====
+  const fmtDate = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  };
+  const domain = (u) => {
+    try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; }
+  };
+  const qs = (id) => document.getElementById(id);
+
+  const $q        = qs('q');
+  const $source   = qs('source');
+  const $sort     = qs('sort');
+  const $list     = qs('list');
+  const $empty    = qs('empty');
+  const $skeleton = qs('skeleton-news');
+  const $error    = qs('error');
+  const $more     = qs('more');
+
+  // ===== 状態 =====
   const PAGE_SIZE = 12;
-  let all = [];
+  let PAGE = 1;
+  let all = [];       // サーバーから受けた配列
+  let filtered = [];  // 絞り込み後
 
-  async function loadMock() {
-    try {
-      const res = await fetch("../assets/mock/news.json");
-      return res.json();
-    } catch (e) {
-      console.error("Mock load failed", e);
-      return [];
-    }
-  }
+  // ===== データ取得 =====
+  async function fetchFromSupabase() {
+    // window.SUPABASE（既存） or <meta> フォールバック
+    const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+    const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+    const SUPA_URL = (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL)) || metaUrl;
+    const ANON     = (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY)) || metaKey;
 
-  async function loadSupabase() {
-    const { URL, ANON } = window.SUPABASE || {};
-    if (!URL || !ANON) throw new Error("Supabase config missing");
+    if (!SUPA_URL || !ANON) throw new Error('Supabase の URL / ANON KEY が設定されていません。');
 
-    const q = new URL(`${URL}/rest/v1/news_items`);
-    q.searchParams.set(
-      "select",
-      "title,url,published_at,source_name,thumbnail_url,source_url"
-    );
-    q.searchParams.set("order", "published_at.desc,id.desc");
-    q.searchParams.set("limit", "200");
+    const url = new URL(`${SUPA_URL}/rest/v1/news_items`);
+    url.searchParams.set('select', 'id,title,url,published_at,source_name,source_url,thumbnail_url');
+    url.searchParams.set('order', 'published_at.desc,id.desc');
+    url.searchParams.set('limit', '200'); // 初期は200件をクライアントでページング
 
-    const res = await fetch(q.toString(), {
+    const res = await fetch(url.toString(), {
       headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+      cache: 'no-store'
     });
     if (!res.ok) throw new Error(`Supabase fetch failed: ${res.status}`);
     return res.json();
   }
 
-  function filterAndSort() {
-    const q = (document.getElementById("q").value || "").toLowerCase();
-    const source = document.getElementById("source").value;
-    const sort = document.getElementById("sort").value;
+  async function fetchMock() {
+    const res = await fetch('/assets/mock/news.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('mock load failed');
+    return res.json();
+  }
 
-    let data = [...all];
-    if (q) {
-      data = data.filter(
-        (x) =>
-          (x.title || "").toLowerCase().includes(q) ||
-          (x.source_name || "").toLowerCase().includes(q)
-      );
-    }
+  // ===== 描画 =====
+  function cardHTML(item) {
+    const img = item.thumbnail_url || 'https://placehold.co/640x360?text=No+Image';
+    const dateStr = fmtDate(item.published_at);
+    const host = item.source_name || domain(item.url) || '';
+    const title = item.title || '(無題)';
+    const href = item.url || item.source_url || '#';
 
-    if (source === "YouTube") {
-      data = data.filter((x) =>
-        (x.source_name || "").toLowerCase().includes("youtube")
-      );
-    } else if (source === "blog") {
-      data = data.filter(
-        (x) => !(x.source_name || "").toLowerCase().includes("youtube")
-      );
-    }
+    return `
+      <a href="${href}" class="card" target="_blank" rel="noopener">
+        <div class="thumb">
+          <img src="${img}" loading="lazy" alt="${title.replace(/"/g, '&quot;')}">
+        </div>
+        <div class="pad">
+          <div class="title">${title}</div>
+          <div class="meta">
+            <span>${dateStr}</span><span class="dot"></span><span>${host}</span>
+          </div>
+        </div>
+      </a>
+    `;
+  }
 
-    data.sort((a, b) =>
-      sort === "desc"
-        ? new Date(b.published_at) - new Date(a.published_at)
-        : new Date(a.published_at) - new Date(b.published_at)
-    );
+  function applyFilter() {
+    const q = ($q?.value || '').trim().toLowerCase();
+    const src = ($source?.value || '').trim();
 
-    return data;
+    filtered = all.filter(it => {
+      const hitQ = !q || (it.title || '').toLowerCase().includes(q) || (it.source_name || '').toLowerCase().includes(q);
+      let hitS = true;
+      if (src === 'YouTube') {
+        hitS = /youtube/i.test(it.source_name || '');
+      } else if (src === 'blog') {
+        hitS = !/youtube/i.test(it.source_name || '');
+      }
+      return hitQ && hitS;
+    });
+
+    const asc = $sort?.value === 'asc';
+    filtered.sort((a, b) => {
+      const ad = new Date(a.published_at || 0).getTime();
+      const bd = new Date(b.published_at || 0).getTime();
+      if (ad !== bd) return asc ? ad - bd : bd - ad;
+      return asc ? (a.id > b.id ? 1 : -1) : (a.id < b.id ? 1 : -1);
+    });
   }
 
   function render() {
-    const sk = document.getElementById("skeleton-news");
-    const el = document.getElementById("list");
-    const empty = document.getElementById("empty");
+    applyFilter();
 
-    if (!el) return;
+    const end = PAGE * PAGE_SIZE;
+    const slice = filtered.slice(0, end);
 
-    const data = filterAndSort();
-    const slice = data.slice(0, page * PAGE_SIZE);
+    $list.innerHTML = slice.map(cardHTML).join('');
+    $empty.style.display = slice.length ? 'none' : 'block';
 
-    // --- 描画 ---
-    el.innerHTML = slice
-      .map((x) => {
-        const href = x.url || x.source_url || "#";
-        const thumb = x.thumbnail_url || "../assets/img/noimage-16x9.png";
-        const alt = x.title || x.source_name || "ニュース";
-        const dateStr = Site.fmtDate(x.published_at);
+    const hasMore = slice.length < filtered.length;
+    $more.style.display = hasMore ? 'inline-flex' : 'none';
+    $more.disabled = !hasMore;
 
-        return `
-        <a class="card" href="${href}" target="_blank" rel="noopener">
-          <div class="thumb"><img src="${thumb}" loading="lazy" alt="${alt}"></div>
-          <div class="pad">
-            <h3 class="clamp-2">${x.title || "(no title)"}</h3>
-            <div class="meta">${dateStr} ・ <strong>${Site.domain(href)}</strong></div>
-            <div class="badge src">${x.source_name || ""}</div>
-          </div>
-        </a>`;
-      })
-      .join("");
-
-    // --- UI状態更新 ---
-    if (sk) sk.style.display = "none"; // 初期ロード終了後は非表示
-    if (empty) empty.style.display = slice.length ? "none" : "block";
+    // スケルトンOFF
+    $skeleton.style.display = 'none';
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    const sk = document.getElementById("skeleton-news");
-    if (sk) sk.style.display = "grid"; // 初回のみ表示
+  function showError(msg) {
+    $error.style.display = 'block';
+    $error.textContent = msg;
+  }
+
+  // ===== イベント =====
+  function debounce(fn, ms) {
+    let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  }
+
+  $q?.addEventListener('input', debounce(() => { PAGE = 1; render(); }, 200));
+  $source?.addEventListener('change', () => { PAGE = 1; render(); });
+  $sort?.addEventListener('change', () => { PAGE = 1; render(); });
+  $more?.addEventListener('click', () => { PAGE += 1; render(); });
+
+  // ===== 初期化 =====
+  (async function init() {
+    // 二重初期化防止
+    if (window.__NEWS_V2_INITED) return;
+    window.__NEWS_V2_INITED = true;
 
     try {
-      all = await loadSupabase();
+      $skeleton.style.display = 'grid';
+      $error.style.display = 'none';
+
+      try {
+        all = await fetchFromSupabase();
+      } catch (e) {
+        console.warn('[news] supabase error, try mock:', e);
+        all = await fetchMock();
+      }
+
+      PAGE = 1;
+      render();
     } catch (e) {
-      console.warn(e);
-      all = await loadMock();
+      console.error(e);
+      $skeleton.style.display = 'none';
+      showError('データの読み込みに失敗しました。時間をおいて再度お試しください。');
     }
-
-    render();
-
-    // --- イベント登録 ---
-    document.getElementById("q").addEventListener("input", () => {
-      page = 1;
-      render();
-    });
-    document.getElementById("source").addEventListener("change", () => {
-      page = 1;
-      render();
-    });
-    document.getElementById("sort").addEventListener("change", () => {
-      page = 1;
-      render();
-    });
-    document.getElementById("more").addEventListener("click", () => {
-      page++;
-      render();
-    });
-  });
+  })();
 })();
