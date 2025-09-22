@@ -4,9 +4,9 @@
 // 目的:
 //  1) 収集結果はまず "イベント(baby_events)" として保存し、babies は解決ジョブでのみ新規/更新
 //  2) YouTube は観察イベントとして保存しつつ、条件次第で新規作成も許可
-//  3) 公式サイト（sources.kind='site'）の一覧から最新記事を抽出してイベント化
+//  3) 公式サイト（sources.kind='site'）の一覧から最新記事を抽出してイベント化（出生系見出しを事前フィルタ）
 //  4) マッチキーは (zoo_id, species, birthday±k日) を中核
-//  5) babies 作成時はタイトル/ドメインから zoo_id を推定して補完
+//  5) babies 作成時はソース（ドメイン/タイトル）から zoo_id を推定して補完
 
 export interface Env {
   SUPABASE_URL: string;                // 例: https://xxxxx.supabase.co
@@ -18,14 +18,25 @@ export interface Env {
 // 小さな共通ユーティリティ
 // -------------------------------
 const JP_TZ = 'Asia/Tokyo';
-const MAX_SOURCES_PER_RUN = 25;   // news/site 抽出の1回当たり処理ソース上限
-const MAX_EVENTS_PER_SOURCE = 30; // 1ソースから抽出する最大イベント数
+
+// news/site 抽出の1回当たり処理ソース上限
+const MAX_SOURCES_PER_RUN = 25;      // (news 用)
+
+// 1ソースから抽出する最大イベント数（主にRSS用の上限）
+const MAX_EVENTS_PER_SOURCE = 30;
+
+// 一括書き込みチャンク
 const MAX_UPSERT_CHUNK = 500;
 
 // resolve のサブリクエスト抑制用
 const RESOLVE_BATCH_LIMIT = 20;   // 1回に処理する未処理イベント数
 const PATCH_CHUNK = 200;          // processed_at 更新の id チャンク
 const LINKS_CHUNK = 500;          // baby_links 一括 POST のチャンク
+
+// 公式サイト収集ジョブの上限（サブリクエスト抑制）
+const MAX_SITE_SOURCES_PER_RUN = 5;          // 1回で回す site ソース数（控えめ）
+const SITE_DETAIL_FETCH_LIMIT   = 8;          // 1サイトから記事詳細を掘る最大件数
+const BIRTH_KW = /(誕生|出産|赤ちゃん|赤仔|ベビー|命名|生まれ)/; // 一覧テキストの事前フィルタ
 
 function nowIso() { return new Date().toISOString(); }
 
@@ -258,10 +269,10 @@ const SPECIES_MAP = new Map<string, string>([
 ]);
 
 const NAME_PATTERNS: RegExp[] = [
-  /命名[「『\"](?<name>[^」』\"\s]{1,12})[」』\"]/,
-  /名前[は：:\s]*[「『\"]?(?<name>[^」』\"\s]{1,12})[」』\"]?/,
-  /[「『\"](?<name>[^」』\"\s]{1,12})[」』\"][にへ]?決定/,
-  /赤ちゃん[「『\"](?<name>[^」』\"\s]{1,12})[」』\"]/,
+  /命名[「『"](?!\s)(?<name>[^」』"\s]{1,12})[」』"]/,
+  /名前[は：:\s]*[「『"]?(?<name>[^」』"\s]{1,12})[」』"]?/,
+  /[「『"](?!\s)(?<name>[^」』"\s]{1,12})[」』"][にへ]?決定/,
+  /赤ちゃん[「『"](?!\s)(?<name>[^」』"\s]{1,12})[」』"]/,
   /['"“”‘’](?<name>[^'"“”‘’\s]{1,12})['"“”‘’]/,
   /(?<![ぁ-んァ-ヴーa-zA-Z0-9])(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(ちゃん|くん)(?![ぁ-んァ-ヴーA-Za-z0-9])/,
 ];
@@ -333,7 +344,7 @@ async function loadZooIndex(env: Env): Promise<ZooIndex> {
   // 1) zoos から id, name, website
   const zoos = await sbGet(env, `/rest/v1/zoos?select=id,name,website`);
   // 2) sources(kind='site' かつ zoo_idあり) からドメイン→zoo_id
-  const srcs = await sbGet(env, `/rest/v1/sources?select=url,zoo_id&kind=eq.site&zoo_id=not.is.null`);
+  const srcs = await sbGet(env, `/rest/v1/sources?select=url,zoo_id&kind=eq.site&zoo_id=is.not.null`);
 
   const byHost = new Map<string, string>();
   const names: Array<{ id: string; variants: string[] }> = [];
@@ -464,30 +475,39 @@ async function runNewsJob(env: Env) {
 }
 
 // -------------------------------
-// SITE ジョブ: 公式サイトの一覧ページ → 記事 → イベント化
+// SITE ジョブ: 公式サイトの一覧ページ → 記事 → イベント化（出生系事前フィルタ）
 // -------------------------------
-function extractLinksFromListing(html: string, baseUrl: string): string[] {
-  const out: string[] = [];
-  const re = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi;
+function extractLinksFromListingWithText(html: string, baseUrl: string): Array<{ href: string; text: string }> {
+  const out: Array<{ href: string; text: string }> = [];
+  const re = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html))) {
-    let href = m[1];
-    if (!href) continue;
-    try {
-      const abs = new URL(href, baseUrl).toString();
-      out.push(abs);
-    } catch { /* ignore */ }
+    const hrefRaw = m[1];
+    if (!hrefRaw) continue;
+    let abs: string | null = null;
+    try { abs = new URL(hrefRaw, baseUrl).toString(); } catch { abs = null; }
+    if (!abs) continue;
+    const text = (m[2] || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    out.push({ href: abs, text });
   }
-  // 同一ドメインに限定
+  // 同一ドメインに限定 & hrefで重複除去
   const baseHost = domain(baseUrl);
-  return Array.from(new Set(out)).filter(u => domain(u) === baseHost).slice(0, MAX_EVENTS_PER_SOURCE);
+  const seen = new Set<string>();
+  const filtered: Array<{ href: string; text: string }> = [];
+  for (const a of out) {
+    if (domain(a.href) !== baseHost) continue;
+    if (seen.has(a.href)) continue;
+    seen.add(a.href);
+    filtered.push(a);
+  }
+  return filtered;
 }
 
 async function runSiteNewsJob(env: Env) {
   const started = new Date();
   const sources = await sbGet(
     env,
-    `/rest/v1/sources?select=*&enabled=eq.true&kind=eq.site&order=last_checked.asc.nullsfirst&limit=${MAX_SOURCES_PER_RUN}`
+    `/rest/v1/sources?select=*&enabled=eq.true&kind=eq.site&order=last_checked.asc.nullsfirst&limit=${MAX_SITE_SOURCES_PER_RUN}`
   );
 
   const events: BabyEventRow[] = [];
@@ -499,20 +519,33 @@ async function runSiteNewsJob(env: Env) {
       if (s?.id) processedIds.push(s.id);
       const res = await fetch(s.url, { headers: { 'Accept': 'text/html' }, cf: { cacheTtl: 0 } });
       if (!res.ok) throw new Error(`fetch listing ${s.url} -> ${res.status}`);
-      const listing = await res.text();
-      const links = extractLinksFromListing(listing, s.url);
+      const listingHtml = await res.text();
 
-      for (const link of links) {
+      // a[href] + 表示テキスト抽出
+      const links = extractLinksFromListingWithText(listingHtml, s.url);
+
+      // 出生系キーワードで事前フィルタ → 多すぎる場合は cap
+      let pick = links.filter(a => BIRTH_KW.test(a.text || ''));
+      if (pick.length === 0) {
+        // 0件のときは上から少数だけ拾う（サイト構造が特殊な園対策）
+        pick = links.slice(0, Math.min(3, SITE_DETAIL_FETCH_LIMIT));
+      } else {
+        pick = pick.slice(0, SITE_DETAIL_FETCH_LIMIT);
+      }
+
+      // 記事詳細から OGP 等を抽出してイベント化
+      for (const a of pick) {
         try {
-          const art = await fetch(link, { headers: { 'Accept': 'text/html' }, cf: { cacheTtl: 0 } });
+          const art = await fetch(a.href, { headers: { 'Accept': 'text/html' }, cf: { cacheTtl: 0 } });
           if (!art.ok) continue;
           const html = await art.text();
-          const item = parseSiteOG(html, link);
+          const item = parseSiteOG(html, a.href);
           total++;
+
           const url = normUrl(item.url);
           if (!url) continue;
 
-          const title = item.title || '';
+          const title = item.title || a.text || '';
           const { species, alias } = extractSpeciesAlias(title);
           const givenName = extractBabyName(title);
           const ageMatch = title.match(/(\d{1,3})日齢/);
@@ -523,16 +556,16 @@ async function runSiteNewsJob(env: Env) {
             title,
             published_at: item.published_at ? toUtcIso(item.published_at) : null,
             thumbnail_url: item.thumbnail_url || null,
-            zoo_id: s.zoo_id || null,
+            zoo_id: s.zoo_id || null,            // 公式サイトならsourcesに登録済みのことが多い
             species: species || alias || null,
             source_id: s.id || null,
             source_kind: s.kind || 'site',
-            signal_birth: BABY_KEYWORDS.test(title),
+            signal_birth: BIRTH_KW.test(title),
             signal_name: givenName || null,
             signal_age_days
           });
         } catch (e) {
-          console.warn('site article fetch failed', link, e);
+          console.warn('site article fetch failed', a.href, e);
         }
       }
     } catch (e) {
@@ -550,9 +583,11 @@ async function runSiteNewsJob(env: Env) {
     console.error('site upsert failed', e);
   }
 
-  console.log('SITE->EVENTS STATS', { total, events: events.length, skipped, sources: (sources as any[]).length });
+  console.log('SITE->EVENTS STATS (filtered)', {
+    total, events: events.length, skipped, sources: (sources as any[]).length, perSiteLimit: SITE_DETAIL_FETCH_LIMIT
+  });
   await logJob(env, {
-    job: 'site->events', ok: true, started_at: started, finished_at: new Date(),
+    job: 'site->events(filtered)', ok: true, started_at: started, finished_at: new Date(),
     total, events: events.length, skipped
   });
 }
@@ -782,10 +817,10 @@ export default {
 
     const started = new Date();
     try {
-      if (job === 'news')        await runNewsJob(env);
-      else if (job === 'site')   await runSiteNewsJob(env);
-      else if (job === 'zoos')   await runZoosJob(env);
-      else if (job === 'resolve')await resolveBabyEntitiesJob(env);
+      if (job === 'news')         await runNewsJob(env);
+      else if (job === 'site')    await runSiteNewsJob(env);
+      else if (job === 'zoos')    await runZoosJob(env);
+      else if (job === 'resolve') await resolveBabyEntitiesJob(env);
       else return new Response(JSON.stringify({ ok:false, error:'bad job', job }), { status:400, headers:{'content-type':'application/json'} });
 
       await logJob(env, { job, ok: true, started_at: started, finished_at: new Date() });
