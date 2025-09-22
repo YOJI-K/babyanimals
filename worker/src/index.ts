@@ -6,6 +6,7 @@
 //  2) YouTube は観察イベントとして保存しつつ、条件次第で新規作成も許可
 //  3) 公式サイト（sources.kind='site'）の一覧から最新記事を抽出してイベント化
 //  4) マッチキーは (zoo_id, species, birthday±k日) を中核
+//  5) babies 作成時はタイトル/ドメインから zoo_id を推定して補完
 
 export interface Env {
   SUPABASE_URL: string;                // 例: https://xxxxx.supabase.co
@@ -233,7 +234,7 @@ function parseSiteOG(html: string, fallbackUrl: string): FeedItem {
 }
 
 // -------------------------------
-// イベント抽出のためのルール（既存を再利用）
+// イベント抽出ルール
 // -------------------------------
 const BABY_KEYWORDS = /(誕生|出産|赤ちゃん|赤仔|ベビー|生まれ|命名|名前に決定)/;
 
@@ -300,6 +301,74 @@ function ensureBabyName(givenName?: string | null, hint?: string | null) {
   if (givenName && givenName.trim()) return givenName.trim().slice(0, 100);
   if (hint) return `赤ちゃん（${hint}）`;
   return '赤ちゃん';
+}
+
+// -------------------------------
+// zoo_id 推定（一覧をロード → タイトル/ドメインで推定）
+// -------------------------------
+type ZooIndex = {
+  byHost: Map<string, string>; // hostname -> zoo_id
+  names: Array<{ id: string; variants: string[] }>;
+};
+
+function stripParensAll(s: string) {
+  // () / （） / [] / ［］ の括弧内を削除
+  return s.replace(/[（(［\[][^）)\]］]*[）)\]］]/g, '').trim();
+}
+function normalizeForMatch(s: string) {
+  // 空白・主要括弧・記号を除去（簡易）
+  return (s || '')
+    .replace(/\s+/g, '')
+    .replace(/[【】「」『』\[\]\(\)（）・、，,．。!！?？：:；;]/g, '')
+    .toLowerCase();
+}
+function buildZooNameVariants(name: string): string[] {
+  const v1 = normalizeForMatch(name);
+  const v2 = normalizeForMatch(stripParensAll(name));
+  const set = new Set([v1, v2]);
+  return Array.from(set).filter(v => v.length >= 4);
+}
+
+async function loadZooIndex(env: Env): Promise<ZooIndex> {
+  // 1) zoos から id, name, website
+  const zoos = await sbGet(env, `/rest/v1/zoos?select=id,name,website`);
+  // 2) sources(kind='site' かつ zoo_idあり) からドメイン→zoo_id
+  const srcs = await sbGet(env, `/rest/v1/sources?select=url,zoo_id&kind=eq.site&zoo_id=is.not.null`);
+
+  const byHost = new Map<string, string>();
+  const names: Array<{ id: string; variants: string[] }> = [];
+
+  for (const s of (srcs as any[] || [])) {
+    const h = domain(s.url || '');
+    if (h && s.zoo_id) byHost.set(h, s.zoo_id);
+  }
+  for (const z of (zoos as any[] || [])) {
+    const h = domain(z.website || '');
+    if (h && z.id) byHost.set(h, z.id); // 公式サイトのドメインもヒントに
+    if (z?.name && z?.id) names.push({ id: z.id, variants: buildZooNameVariants(z.name) });
+  }
+  return { byHost, names };
+}
+
+function guessZooIdFromTitle(title: string, index: ZooIndex): string | null {
+  const t = normalizeForMatch(title);
+  let best: { id: string; score: number } | null = null;
+  for (const entry of index.names) {
+    for (const v of entry.variants) {
+      if (!v) continue;
+      if (t.includes(v)) {
+        const score = v.length; // 長い一致ほど強い
+        if (!best || score > best.score) best = { id: entry.id, score };
+      }
+    }
+  }
+  return best?.id || null;
+}
+
+function guessZooId(title: string, url: string, index: ZooIndex): string | null {
+  const h = domain(url || '');
+  if (h && index.byHost.has(h)) return index.byHost.get(h)!;
+  return guessZooIdFromTitle(title || '', index);
 }
 
 // -------------------------------
@@ -489,7 +558,7 @@ async function runSiteNewsJob(env: Env) {
 }
 
 // -------------------------------
-// RESOLVE ジョブ: イベント → babies 確定/更新（バッチ化）
+// RESOLVE ジョブ: イベント → babies 確定/更新（バッチ化 + zoo_id 推定）
 // -------------------------------
 const MATCH_DAYS = 10;          // birthday ±k日
 const CREATE_THRESHOLD = 3;     // babies新規作成の最小スコア
@@ -546,6 +615,9 @@ async function resolveBabyEntitiesJob(env: Env) {
     return;
   }
 
+  // ここで一度だけ zoo インデックスを読み込む（SELECT×2回）
+  const zooIndex = await loadZooIndex(env);
+
   let linked = 0, created = 0, processed = 0;
 
   const processedIds: string[] = [];         // 後でまとめて processed_at を付ける
@@ -556,14 +628,22 @@ async function resolveBabyEntitiesJob(env: Env) {
     processedIds.push(ev.id);
 
     const bday = inferBirthday(ev);
+
+    // ev.zoo_id が無ければ title/url から推定
+    const guessedZooId = (!ev.zoo_id)
+      ? guessZooId(ev.title || '', ev.url || '', zooIndex)
+      : null;
+    const zooIdForEvent = ev.zoo_id || guessedZooId || null;
+
+    // 既存 babies へ一致探索（zoo_id, species, birthday±k日）
     let targetBabyId: string | null = null;
 
-    if (ev.zoo_id && ev.species && bday) {
+    if (zooIdForEvent && ev.species && bday) {
       const min = new Date(bday); min.setDate(min.getDate() - MATCH_DAYS);
       const max = new Date(bday); max.setDate(max.getDate() + MATCH_DAYS);
       const q =
         `/rest/v1/babies?select=id` +
-        `&zoo_id=eq.${ev.zoo_id}` +
+        `&zoo_id=eq.${zooIdForEvent}` +
         `&species=eq.${encodeURIComponent(ev.species)}` +
         `&birthday=gte.${min.toISOString().slice(0,10)}` +
         `&birthday=lte.${max.toISOString().slice(0,10)}` +
@@ -589,7 +669,7 @@ async function resolveBabyEntitiesJob(env: Env) {
         species: ev.species,
         birthday: bday,
         thumbnail_url: ev.thumbnail_url,
-        zoo_id: ev.zoo_id || null,
+        zoo_id: zooIdForEvent, // ← 推定結果を使用（null あり得る）
       };
       const res = await sbPost(env, '/rest/v1/babies', [row], { 'Prefer': 'return=representation' });
       const createdRows = await res.json().catch(()=>[]) as any[];
