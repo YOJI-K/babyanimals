@@ -333,7 +333,7 @@ async function loadZooIndex(env: Env): Promise<ZooIndex> {
   // 1) zoos から id, name, website
   const zoos = await sbGet(env, `/rest/v1/zoos?select=id,name,website`);
   // 2) sources(kind='site' かつ zoo_idあり) からドメイン→zoo_id
-  const srcs = await sbGet(env, `/rest/v1/sources?select=url,zoo_id&kind=eq.site&zoo_id=is.not.null`);
+  const srcs = await sbGet(env, `/rest/v1/sources?select=url,zoo_id&kind=eq.site&zoo_id=not.is.null`);
 
   const byHost = new Map<string, string>();
   const names: Array<{ id: string; variants: string[] }> = [];
