@@ -3,9 +3,9 @@
 // ランタイム: Cloudflare Workers (Service bindings: SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 // 目的:
 //  1) 収集結果はまず "イベント(baby_events)" として保存し、babies は解決ジョブでのみ新規/更新
-//  2) YouTube は観察イベントとして保存しつつ、新規作成も条件付きで許可
+//  2) YouTube は観察イベントとして保存しつつ、条件次第で新規作成も許可
 //  3) 公式サイト（sources.kind='site'）の一覧から最新記事を抽出してイベント化
-//  4) マッチキーは (zoo_id, species, birthday±k日) を中核に段階的強化
+//  4) マッチキーは (zoo_id, species, birthday±k日) を中核
 
 export interface Env {
   SUPABASE_URL: string;                // 例: https://xxxxx.supabase.co
@@ -17,9 +17,14 @@ export interface Env {
 // 小さな共通ユーティリティ
 // -------------------------------
 const JP_TZ = 'Asia/Tokyo';
-const MAX_SOURCES_PER_RUN = 25;  // news/site 抽出の1回当たり処理ソース上限
-const MAX_EVENTS_PER_SOURCE = 30; // 1ソースから抽出する最大イベント数（安全枠）
+const MAX_SOURCES_PER_RUN = 25;   // news/site 抽出の1回当たり処理ソース上限
+const MAX_EVENTS_PER_SOURCE = 30; // 1ソースから抽出する最大イベント数
 const MAX_UPSERT_CHUNK = 500;
+
+// resolve のサブリクエスト抑制用
+const RESOLVE_BATCH_LIMIT = 20;   // 1回に処理する未処理イベント数
+const PATCH_CHUNK = 200;          // processed_at 更新の id チャンク
+const LINKS_CHUNK = 500;          // baby_links 一括 POST のチャンク
 
 function nowIso() { return new Date().toISOString(); }
 
@@ -113,7 +118,7 @@ async function sbPost(env: Env, path: string, body: unknown, extra?: Record<stri
     body: JSON.stringify(body)
   });
   let res = await tryOnce();
-  if (res.status >= 500 || res.status === 429) { // 簡易リトライ
+  if (res.status >= 500 || res.status === 429) {
     await new Promise(r => setTimeout(r, 300));
     res = await tryOnce();
   }
@@ -322,7 +327,7 @@ async function upsertBabyEvents(env: Env, rows: BabyEventRow[]) {
 }
 
 // -------------------------------
-// NEWS ジョブ: RSS/Atom/GoogleNews をイベント化
+// NEWS ジョブ: RSS/Atom/GoogleNews → イベント化
 // -------------------------------
 async function runNewsJob(env: Env) {
   const started = new Date();
@@ -350,8 +355,6 @@ async function runNewsJob(env: Env) {
         const title = it.title || '';
         const { species, alias } = extractSpeciesAlias(title || '');
         const givenName = extractBabyName(title || '');
-        const bdayByAge = decideBirthdayByAge(title || '', it.published_at || null);
-        const signal_birth = BABY_KEYWORDS.test(title);
         const ageMatch = title.match(/(\d{1,3})日齢/);
         const signal_age_days = ageMatch ? Number(ageMatch[1]) : null;
 
@@ -364,7 +367,7 @@ async function runNewsJob(env: Env) {
           species: species || alias || null,
           source_id: s.id || null,
           source_kind: s.kind || null,
-          signal_birth,
+          signal_birth: BABY_KEYWORDS.test(title),
           signal_name: givenName || null,
           signal_age_days
         });
@@ -392,7 +395,7 @@ async function runNewsJob(env: Env) {
 }
 
 // -------------------------------
-// SITE ジョブ: 公式サイトの一覧ページ→記事→イベント化
+// SITE ジョブ: 公式サイトの一覧ページ → 記事 → イベント化
 // -------------------------------
 function extractLinksFromListing(html: string, baseUrl: string): string[] {
   const out: string[] = [];
@@ -406,7 +409,7 @@ function extractLinksFromListing(html: string, baseUrl: string): string[] {
       out.push(abs);
     } catch { /* ignore */ }
   }
-  // 同一ドメインのみに限定（他サイトへの誘導を避ける）
+  // 同一ドメインに限定
   const baseHost = domain(baseUrl);
   return Array.from(new Set(out)).filter(u => domain(u) === baseHost).slice(0, MAX_EVENTS_PER_SOURCE);
 }
@@ -425,20 +428,14 @@ async function runSiteNewsJob(env: Env) {
   for (const s of sources as any[]) {
     try {
       if (s?.id) processedIds.push(s.id);
-      const res = await fetch(s.url, {
-        headers: { 'Accept': 'text/html' },
-        cf: { cacheTtl: 0 }
-      });
+      const res = await fetch(s.url, { headers: { 'Accept': 'text/html' }, cf: { cacheTtl: 0 } });
       if (!res.ok) throw new Error(`fetch listing ${s.url} -> ${res.status}`);
       const listing = await res.text();
       const links = extractLinksFromListing(listing, s.url);
 
       for (const link of links) {
         try {
-          const art = await fetch(link, {
-            headers: { 'Accept': 'text/html' },
-            cf: { cacheTtl: 0 }
-          });
+          const art = await fetch(link, { headers: { 'Accept': 'text/html' }, cf: { cacheTtl: 0 } });
           if (!art.ok) continue;
           const html = await art.text();
           const item = parseSiteOG(html, link);
@@ -492,7 +489,7 @@ async function runSiteNewsJob(env: Env) {
 }
 
 // -------------------------------
-// RESOLVE ジョブ: イベント → babies 確定/更新
+// RESOLVE ジョブ: イベント → babies 確定/更新（バッチ化）
 // -------------------------------
 const MATCH_DAYS = 10;          // birthday ±k日
 const CREATE_THRESHOLD = 3;     // babies新規作成の最小スコア
@@ -513,14 +510,10 @@ type EventForResolve = {
 
 function scoreForCreate(ev: EventForResolve): number {
   let score = 0;
-  // ソース重み
   if (ev.source_kind === 'site' || ev.source_kind === 'press') score += 2;
   else if (ev.source_kind === 'youtube') score += 1;
-  // 出生シグナル
   if (ev.signal_birth) score += 2;
-  // 園の確度
   if (ev.zoo_id) score += 1;
-  // 誕生日の確度
   if (ev.signal_age_days !== null) score += 1;
   else if (parseDateToISODateOnly(ev.title || '')) score += 1;
   return score;
@@ -537,42 +530,58 @@ function inferBirthday(ev: EventForResolve): string | null {
 
 async function resolveBabyEntitiesJob(env: Env) {
   const started = new Date();
-  // 未処理イベントを取得（直近7日・processed_at is null など運用に合わせて）
+
+  // 未処理イベントを少量だけ取得（件数制限）
   const events: EventForResolve[] = await sbGet(
     env,
-    `/rest/v1/baby_events?select=id,url,title,published_at,thumbnail_url,zoo_id,species,source_kind,signal_birth,signal_name,signal_age_days&processed_at=is.null&order=published_at.desc.nullslast&limit=1000`
+    `/rest/v1/baby_events` +
+    `?select=id,url,title,published_at,thumbnail_url,zoo_id,species,source_kind,signal_birth,signal_name,signal_age_days` +
+    `&processed_at=is.null` +
+    `&order=published_at.desc.nullslast` +
+    `&limit=${RESOLVE_BATCH_LIMIT}`
   );
+
+  if (!Array.isArray(events) || events.length === 0) {
+    await logJob(env, { job: 'resolve_babies', ok: true, started_at: started, finished_at: new Date(), processed: 0, linked: 0, created: 0 });
+    return;
+  }
 
   let linked = 0, created = 0, processed = 0;
 
+  const processedIds: string[] = [];         // 後でまとめて processed_at を付ける
+  const linkRows: Array<{baby_id: string, event_id: string}> = []; // 後でまとめて POST
+
   for (const ev of events) {
     processed++;
+    processedIds.push(ev.id);
 
     const bday = inferBirthday(ev);
-    // 既存 babies へ一致探索（zoo_id, species, birthday±k日）
     let targetBabyId: string | null = null;
 
     if (ev.zoo_id && ev.species && bday) {
       const min = new Date(bday); min.setDate(min.getDate() - MATCH_DAYS);
       const max = new Date(bday); max.setDate(max.getDate() + MATCH_DAYS);
-      const q = `/rest/v1/babies?select=id,name,birthday,species,zoo_id&zoo_id=eq.${ev.zoo_id}&species=eq.${encodeURIComponent(ev.species)}&birthday=gte.${min.toISOString().slice(0,10)}&birthday=lte.${max.toISOString().slice(0,10)}&limit=1`;
+      const q =
+        `/rest/v1/babies?select=id` +
+        `&zoo_id=eq.${ev.zoo_id}` +
+        `&species=eq.${encodeURIComponent(ev.species)}` +
+        `&birthday=gte.${min.toISOString().slice(0,10)}` +
+        `&birthday=lte.${max.toISOString().slice(0,10)}` +
+        `&limit=1`;
       const hit = await sbGet(env, q);
-      if (Array.isArray(hit) && hit.length) targetBabyId = hit[0].id;
+      if (Array.isArray(hit) && hit.length) targetBabyId = hit[0].id as string;
     }
 
     const canCreate = scoreForCreate(ev) >= CREATE_THRESHOLD;
 
     if (targetBabyId) {
-      // 既存 babies にリンク＋不足項目を補完
-      const patch: any = {};
-      if (ev.thumbnail_url) patch.thumbnail_url = ev.thumbnail_url;
-      if (Object.keys(patch).length) {
-        await sbPatch(env, `/rest/v1/babies?id=eq.${targetBabyId}`, patch);
-      }
-      await sbPost(env, '/rest/v1/baby_links', [{ baby_id: targetBabyId, event_id: ev.id }]);
+      linkRows.push({ baby_id: targetBabyId, event_id: ev.id });
       linked++;
-    } else if (canCreate) {
-      // 新規 babies 作成（YouTube でも閾値到達なら可）
+      continue;
+    }
+
+    if (canCreate) {
+      // babies 新規作成（個体IDが必要なのでここは単発 POST）
       const nameHint = ev.species || '';
       const displayName = ensureBabyName(ev.signal_name, nameHint);
       const row = {
@@ -584,18 +593,28 @@ async function resolveBabyEntitiesJob(env: Env) {
       };
       const res = await sbPost(env, '/rest/v1/babies', [row], { 'Prefer': 'return=representation' });
       const createdRows = await res.json().catch(()=>[]) as any[];
-      const newId = createdRows?.[0]?.id;
+      const newId = createdRows?.[0]?.id as string | undefined;
       if (newId) {
-        await sbPost(env, '/rest/v1/baby_links', [{ baby_id: newId, event_id: ev.id }]);
+        linkRows.push({ baby_id: newId, event_id: ev.id });
         created++;
       }
     }
-
-    // processed フラグ
-    await sbPatch(env, `/rest/v1/baby_events?id=eq.${ev.id}`, { processed_at: nowIso() });
+    // 一致せず閾値未満: 何もしない（候補は将来拡張）
   }
 
-  console.log('RESOLVE STATS', { processed, linked, created });
+  // まとめてリンク upsert
+  for (const part of chunk(linkRows, LINKS_CHUNK)) {
+    if (part.length) await sbPost(env, '/rest/v1/baby_links', part);
+  }
+
+  // まとめて processed_at を付与
+  const now = nowIso();
+  for (const part of chunk(processedIds, PATCH_CHUNK)) {
+    const inList = part.join(',');
+    await sbPatch(env, `/rest/v1/baby_events?id=in.(${inList})`, { processed_at: now });
+  }
+
+  console.log('RESOLVE STATS (batched)', { processed, linked, created });
   await logJob(env, {
     job: 'resolve_babies', ok: true, started_at: started, finished_at: new Date(),
     processed, linked, created
@@ -674,20 +693,26 @@ export default {
   // 手動実行: /run?job=news|site|zoos|resolve&token=XXXX
   async fetch(req: Request, env: Env) {
     const { searchParams, pathname } = new URL(req.url);
-    if (pathname === '/run') {
-      const token = searchParams.get('token') || '';
-      const job = (searchParams.get('job') || '').toLowerCase();
-      const ok = Boolean(token && env.RUN_TOKEN && token === env.RUN_TOKEN);
-      if (!ok) return new Response('forbidden', { status: 403 });
+    if (pathname !== '/run') return new Response('ok');
 
-      if (job === 'news')       await runNewsJob(env);
-      else if (job === 'site')  await runSiteNewsJob(env);
-      else if (job === 'zoos')  await runZoosJob(env);
-      else if (job === 'resolve') await resolveBabyEntitiesJob(env);
-      else return new Response('bad job', { status: 400 });
+    const token = searchParams.get('token') || '';
+    const job = (searchParams.get('job') || '').toLowerCase();
+    const ok = Boolean(token && env.RUN_TOKEN && token === env.RUN_TOKEN);
+    if (!ok) return new Response('forbidden', { status: 403 });
 
+    const started = new Date();
+    try {
+      if (job === 'news')        await runNewsJob(env);
+      else if (job === 'site')   await runSiteNewsJob(env);
+      else if (job === 'zoos')   await runZoosJob(env);
+      else if (job === 'resolve')await resolveBabyEntitiesJob(env);
+      else return new Response(JSON.stringify({ ok:false, error:'bad job', job }), { status:400, headers:{'content-type':'application/json'} });
+
+      await logJob(env, { job, ok: true, started_at: started, finished_at: new Date() });
       return new Response(JSON.stringify({ ok: true, job }), { headers: { 'content-type': 'application/json' } });
+    } catch (e) {
+      await logJob(env, { job, ok: false, error: String(e), started_at: started, finished_at: new Date() });
+      return new Response(JSON.stringify({ ok: false, job, error: String(e) }), { status: 500, headers: { 'content-type': 'application/json' } });
     }
-    return new Response('ok');
   }
 };
