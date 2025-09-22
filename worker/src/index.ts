@@ -1,6 +1,11 @@
 // worker/src/index.ts
-// Baby Animals - Auto Crawl Worker (news hourly / zoos daily / babies daily)
+// Baby Animals - Crawler/Resolver Worker
 // ランタイム: Cloudflare Workers (Service bindings: SUPABASE_URL, SUPABASE_SERVICE_ROLE)
+// 目的:
+//  1) 収集結果はまず "イベント(baby_events)" として保存し、babies は解決ジョブでのみ新規/更新
+//  2) YouTube は観察イベントとして保存しつつ、新規作成も条件付きで許可
+//  3) 公式サイト（sources.kind='site'）の一覧から最新記事を抽出してイベント化
+//  4) マッチキーは (zoo_id, species, birthday±k日) を中核に段階的強化
 
 export interface Env {
   SUPABASE_URL: string;                // 例: https://xxxxx.supabase.co
@@ -12,16 +17,11 @@ export interface Env {
 // 小さな共通ユーティリティ
 // -------------------------------
 const JP_TZ = 'Asia/Tokyo';
-// 1回の実行で処理する news ソース最大数（Cloudflare Workers の subrequests 制限対策）
-const MAX_SOURCES_PER_RUN = 25;
-// 1回の実行で処理する babies ソース最大数（Cloudflare Workers の subrequests 制限対策）
-const MAX_BABY_SOURCES_PER_RUN = 25;
-// zoos upsert のチャンクサイズ（安全のため分割して書き込む）
-const MAX_ZOOS_UPSERT_CHUNK = 500;
+const MAX_SOURCES_PER_RUN = 25;  // news/site 抽出の1回当たり処理ソース上限
+const MAX_EVENTS_PER_SOURCE = 30; // 1ソースから抽出する最大イベント数（安全枠）
+const MAX_UPSERT_CHUNK = 500;
 
-function nowIso() {
-  return new Date().toISOString();
-}
+function nowIso() { return new Date().toISOString(); }
 
 async function sha256hex(s: string) {
   const b = new TextEncoder().encode(s);
@@ -33,8 +33,22 @@ function normUrl(u: string | null | undefined): string | null {
   if (!u) return null;
   try {
     const url = new URL(u);
+    // youtu.be → youtube 正規化
+    if (url.hostname === 'youtu.be') {
+      const vid = url.pathname.replace('/', '');
+      if (vid) return `https://www.youtube.com/watch?v=${vid}`;
+    }
+    // m.youtube.com → www.youtube.com
+    if (url.hostname === 'm.youtube.com') url.hostname = 'www.youtube.com';
+    // Google News の元記事アンラップ
+    if (url.hostname.endsWith('news.google.com')) {
+      const orig = url.searchParams.get('url');
+      if (orig) return normUrl(orig);
+    }
+    // AMP → 本体（単純除去）
+    url.pathname = url.pathname.replace(/\/amp\/?$/, '/');
+    // トラッキング系削除
     url.hash = '';
-    // 追跡系クエリを削除（重複抑止）
     const drop = ['utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid'];
     drop.forEach(k => url.searchParams.delete(k));
     return url.toString();
@@ -46,29 +60,12 @@ function normUrl(u: string | null | undefined): string | null {
 function domain(u: string) {
   try { return new URL(u).hostname.replace(/^www\./,''); } catch { return ''; }
 }
-// Google News のリンクから元記事URLを取り出す
-function unwrapGoogleNews(u: string | null | undefined): string | null {
-  if (!u) return null;
-  try {
-    const url = new URL(u);
-    if (url.hostname.endsWith('news.google.com')) {
-      // 多くの場合、元記事URLは ?url= に入っている
-      const orig = url.searchParams.get('url');
-      if (orig) return normUrl(orig);
-    }
-    return normUrl(u);
-  } catch {
-    return normUrl(u || '');
-  }
-}
-// YYYY-MM-DD を返す（日本語日付にも対応）
-function parseDateToISO(input?: string | null): string | null {
+
+function parseDateToISODateOnly(input?: string | null): string | null {
+  // YYYY-MM-DD を返す（JST起点の曖昧な日付も拾う）
   if (!input) return null;
-  // ISO っぽい
   const iso = input.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
-
-  // 2025年9月3日
   const jp = input.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?/);
   if (jp) {
     const y = Number(jp[1]);
@@ -76,17 +73,6 @@ function parseDateToISO(input?: string | null): string | null {
     const d = String(Number(jp[3])).padStart(2,'0');
     return `${y}-${m}-${d}`;
   }
-
-  // 9月3日（年省略は今年とみなす）
-  const jp2 = input.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*日?/);
-  if (jp2) {
-    const y = new Date().getFullYear();
-    const m = String(Number(jp2[1])).padStart(2,'0');
-    const d = String(Number(jp2[2])).padStart(2,'0');
-    return `${y}-${m}-${d}`;
-  }
-
-  // pubDateっぽい文字列
   const t = Date.parse(input);
   if (!Number.isNaN(t)) {
     const d = new Date(t);
@@ -97,26 +83,25 @@ function parseDateToISO(input?: string | null): string | null {
   return null;
 }
 
-// CDATA/エンティティ処理（RSSの堅牢化）
-function stripCDATA(s: string) {
-  return s.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').trim();
+function toUtcIso(dt: string | Date): string {
+  const d = (dt instanceof Date) ? dt : new Date(dt);
+  return d.toISOString();
 }
-function decodeEntities(s: string) {
-  // URLで致命になりやすい &amp; のみ最低限
-  return s.replace(/&amp;/g, '&');
-}
-// 配列ユーティリティ：チャンク分割
+
+function stripCDATA(s: string) { return s.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').trim(); }
+function decodeEntities(s: string) { return s.replace(/&amp;/g, '&'); }
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
 }
+
 // -------------------------------
 // Supabase REST
 // -------------------------------
 async function sbPost(env: Env, path: string, body: unknown, extra?: Record<string,string>) {
   const url = `${env.SUPABASE_URL}${path}`;
-  const res = await fetch(url, {
+  const tryOnce = async () => fetch(url, {
     method: 'POST',
     headers: {
       'apikey': env.SUPABASE_SERVICE_ROLE,
@@ -127,6 +112,11 @@ async function sbPost(env: Env, path: string, body: unknown, extra?: Record<stri
     },
     body: JSON.stringify(body)
   });
+  let res = await tryOnce();
+  if (res.status >= 500 || res.status === 429) { // 簡易リトライ
+    await new Promise(r => setTimeout(r, 300));
+    res = await tryOnce();
+  }
   if (!res.ok) {
     const t = await res.text().catch(()=> '');
     throw new Error(`Supabase POST ${path} -> ${res.status}: ${t}`);
@@ -169,23 +159,21 @@ async function sbPatch(env: Env, path: string, body: unknown) {
 }
 
 async function logJob(env: Env, row: any) {
-  try {
-    await sbPost(env, '/rest/v1/crawl_logs', [row]);
-  } catch (e) {
-    console.error('logJob failed', e);
-  }
+  try { await sbPost(env, '/rest/v1/crawl_logs', [row]); }
+  catch (e) { console.error('logJob failed', e); }
 }
 
 // -------------------------------
-/** RSS/Atom/YouTube/GoogleNews 最小パーサ
- * 依存を増やさないために簡易実装（高精度は将来差し替え可）
- */
+// 解析ヘルパ
+// -------------------------------
 type FeedItem = {
   title: string;
   url: string;
-  published_at?: string | null;
+  published_at?: string | null; // ISO8601(UTC)
   thumbnail_url?: string | null;
   source_name?: string | null;
+  zoo_id?: string | null;
+  species?: string | null;
 };
 
 function textBetween(xml: string, tag: string) {
@@ -200,231 +188,47 @@ function attrValue(xml: string, tag: string, attr: string) {
 }
 
 function parseRSS(xml: string): FeedItem[] {
-  // item または entry を抽出（雑に）
   const blocks = xml.match(/<item[\s\S]*?<\/item>|<entry[\s\S]*?<\/entry>/gi) || [];
   const out: FeedItem[] = [];
-
   for (const b of blocks) {
-    // title
-    let title = textBetween(b, 'title') || '';
-    title = stripCDATA(title);
-
-    // link: Atomの <link href="..."> を優先 → 無ければ <link>…</link> → <guid>
-    let link = attrValue(b, 'link', 'href') || textBetween(b, 'link') || textBetween(b, 'guid') || '';
-    link = decodeEntities(stripCDATA(link));
-
-    // pubDate / updated / published を順に評価（YouTube Atomは <published>）
-    const pubRaw = textBetween(b, 'pubDate') || textBetween(b, 'updated') || textBetween(b, 'published') || '';
-    const published_at = parseDateToISO(stripCDATA(pubRaw)) || null;
-
-    // media:thumbnail / enclosure
-    const thumb = attrValue(b, 'media:thumbnail', 'url') ||
-                  attrValue(b, 'enclosure', 'url') ||
-                  null;
-
-    // Google News の場合は元記事URLを優先（?url= が無い型もあるため最後に正規化）
-    const finalUrl = unwrapGoogleNews(link || '');
-    const norm = normUrl(finalUrl || '');
-
-    if (norm) {
-      out.push({
-        title,
-        url: norm,
-        published_at,
-        thumbnail_url: thumb,
-        source_name: domain(norm)
-      });
-    }
+    let title = stripCDATA(textBetween(b, 'title') || '');
+    let link = decodeEntities(stripCDATA(attrValue(b, 'link', 'href') || textBetween(b, 'link') || textBetween(b, 'guid') || ''));
+    const pubRaw = stripCDATA(textBetween(b, 'pubDate') || textBetween(b, 'updated') || textBetween(b, 'published') || '');
+    const published_at = (pubRaw ? toUtcIso(pubRaw) : null);
+    const thumb = attrValue(b, 'media:thumbnail', 'url') || attrValue(b, 'enclosure', 'url') || null;
+    const finalUrl = normUrl(link || '');
+    if (!finalUrl) continue;
+    out.push({
+      title,
+      url: finalUrl,
+      published_at,
+      thumbnail_url: thumb,
+      source_name: domain(finalUrl)
+    });
   }
   return out;
 }
 
-// -------------------------------
-// 収集ジョブ: ニュース（毎時）
-// -------------------------------
-async function runNewsJob(env: Env) {
-  const started = new Date();
-  let counters = { total: 0, inserted: 0, updated: 0, skipped: 0 };
-
-  // 有効なソースを last_checked 昇順で最大 N 件だけ取得（上限回避）
-  const sources = await sbGet(
-    env,
-    `/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,googlenews)&order=last_checked.asc.nullsfirst&limit=${MAX_SOURCES_PER_RUN}`
-  );
-
-  // 一括書き込み用のバッファ
-  const fpSet = new Set<string>();     // fingerprints（重複除去）
-  const newsRows: any[] = [];          // news_items
-  const processedIds: string[] = [];   // 今回処理した source.id
-
-  for (const s of sources as any[]) {
-    try {
-      if (s?.id) processedIds.push(s.id); // ローテーション対象として記録
-
-      const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
-      if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
-
-      const xml = await res.text();
-      const items = parseRSS(xml);
-      counters.total += items.length;
-
-      // ここでは貯めるだけ（Supabase へは後で一括送信）
-      for (const it of items) {
-        const u = normUrl(it.url);
-        if (!u) continue;
-        const fp = await sha256hex(u);
-        fpSet.add(fp);
-
-        newsRows.push({
-          title: it.title?.slice(0, 300) || null,
-          url: u,
-          published_at: it.published_at,
-          thumbnail_url: it.thumbnail_url,
-          source_name: it.source_name,
-          source_url: s.url,
-          source_id: s.id
-        });
-      }
-    } catch (e) {
-      console.error('news source failed', s.url, e);
-      counters.skipped++;
-    }
-  }
-
-  // ---- ここから一括書き込み ----
-  try {
-    // 1) fingerprints をチャンクで upsert
-    const fpRows = Array.from(fpSet).map(fp => ({ fp, kind: 'news' }));
-    for (const part of chunk(fpRows, 1000)) {
-      if (part.length) await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', part);
-    }
-
-    // 2) news_items(url unique) をチャンクで upsert
-    for (const part of chunk(newsRows, 500)) {
-      if (part.length) await sbPost(env, '/rest/v1/news_items?on_conflict=url', part);
-      counters.inserted += part.length; // 重複はignoreされるため概算
-    }
-
-    // 3) 今回処理した source のみ last_checked を一括更新（1回）
-    if (processedIds.length) {
-      const inList = processedIds.join(',');
-      await sbPatch(env, `/rest/v1/sources?id=in.(${inList})`, { last_checked: nowIso() });
-    }
-  } catch (e) {
-    console.error('bulk upsert failed', e);
-    // 失敗してもログは残す
-  }
-
-  // 観測用の軽量ログ
-  console.log('NEWS JOB STATS', {
-    total: counters.total,
-    newsRows: newsRows.length,
-    fpSize: fpSet.size,
-    sources: Array.isArray(sources) ? (sources as any[]).length : 0
-  });
-
-  await logJob(env, {
-    job: 'news', ok: true, started_at: started, finished_at: new Date(),
-    total: counters.total, inserted: counters.inserted, updated: counters.updated, skipped: counters.skipped
-  });
+// サイトHTMLのOGP抽出（タイトル・URL・og:image）
+function parseSiteOG(html: string, fallbackUrl: string): FeedItem {
+  const ogt = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)?.[1] || '';
+  const ogu = html.match(/<meta\s+property=["']og:url["']\s+content=["']([^"']+)["']/i)?.[1] || fallbackUrl;
+  const ogi = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i)?.[1] || '';
+  const pub1 = html.match(/<meta\s+property=["']article:published_time["']\s+content=["']([^"']+)["']/i)?.[1] || '';
+  const pub2 = html.match(/<time[^>]*datetime=["']([^"']+)["']/i)?.[1] || '';
+  const pub = pub1 || pub2;
+  const nurl = normUrl(ogu || fallbackUrl)!;
+  return {
+    title: (ogt || '').trim(),
+    url: nurl,
+    published_at: pub ? toUtcIso(pub) : null,
+    thumbnail_url: ogi || null,
+    source_name: domain(nurl)
+  };
 }
 
-
 // -------------------------------
-// 収集ジョブ: 動物園（毎日）
-// Wikipedia カテゴリから名称を取得 → zoos に upsert（name だけ）
-// -------------------------------
-async function runZoosJob(env: Env) {
-  const started = new Date();
-  let counters = { total: 0, inserted: 0, updated: 0, skipped: 0 };
-
-  try {
-    const api = 'https://ja.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:%E6%97%A5%E6%9C%AC%E3%81%AE%E5%8B%95%E7%89%A9%E5%9C%92&cmlimit=500&format=json&origin=*';
-    // Wikipedia API は明示的な User-Agent が必須（APIエチケット）
-    const res = await fetch(api, {
-      headers: {
-        // 連絡先を含むわかりやすいUAにしてください（サイトURLやメールなど）
-        'User-Agent': 'BabyAnimalsCrawler/1.0 (+https://babyanimals.pages; contact: co.az.mu@gmail.com)',
-        'Accept': 'application/json'
-        },
-        cf: { cacheTtl: 3600 }
-       });
-      if (res.status === 403) {
-  console.warn('Wikipedia 403 received. Retrying once with same UA...');
-  // 短い待機（200ms）
-  await new Promise(r => setTimeout(r, 200));
-  const res2 = await fetch(api, {
-    headers: {
-      'User-Agent': 'BabyAnimalsCrawler/1.0 (+https://your-site.example; contact: you@example.com)',
-      'Accept': 'application/json'
-    },
-    cf: { cacheTtl: 3600 }
-  });
-  if (!res2.ok) {
-    const body = await res2.text().catch(() => '');
-    throw new Error(`wikipedia -> ${res2.status} ${body ? `(body: ${body.slice(0,200)}...)` : ''}`);
-  }
-  // 成功したら res を入れ替え
-  var resJson = await res2.json();
-  const json = resJson;
-  const members: any[] = json?.query?.categorymembers || [];
-  counters.total = members.length;
-  // 以降は現行の処理（nameSet～rows～一括upsert）に続ける
-  // 既存の json 取得ロジックが下にある場合は、そこをこの json を使うように調整してください
-} else {
-  // 403でなければ従来どおり
-  const json = await res.json();
-  const members: any[] = json?.query?.categorymembers || [];
-  counters.total = members.length;
-  // 以降は現行処理
-}
-
-    if (!res.ok) throw new Error(`wikipedia -> ${res.status}`);
-
-    const json = await res.json();
-    const members: any[] = json?.query?.categorymembers || [];
-    counters.total = members.length;
-
-    // タイトル整形と重複除去
-    const nameSet = new Set<string>();
-    for (const m of members) {
-      const clean = (m?.title || '').replace(/\s*\(.*?\)\s*/g, '').trim();
-      if (clean) nameSet.add(clean);
-    }
-
-    const rows = Array.from(nameSet).map(name => ({ name }));
-
-    // まとめて一括 upsert（チャンク分割）
-    for (const part of chunk(rows, MAX_ZOOS_UPSERT_CHUNK)) {
-      if (part.length) await sbPost(env, '/rest/v1/zoos?on_conflict=name', part);
-      counters.inserted += part.length; // 重複はignoreのため概算でOK
-    }
-
-    // 観測用の軽量ログ
-    console.log('ZOOS JOB STATS', {
-      total: counters.total,
-      uniqueRows: rows.length,
-      chunk: MAX_ZOOS_UPSERT_CHUNK
-    });
-
-    await logJob(env, {
-      job: 'zoos', ok: true, started_at: started, finished_at: new Date(),
-      total: counters.total, inserted: counters.inserted, updated: counters.updated, skipped: counters.skipped
-    });
-  } catch (e) {
-    await logJob(env, { job: 'zoos', ok: false, started_at: started, finished_at: new Date(), error: String(e) });
-    throw e;
-  }
-}
-
-
-// -------------------------------
-// 収集ジョブ: 赤ちゃん（毎日）
-// タイトル/説明から誕生を推定し babies に upsert（改良版）
-// - 個体名抽出（name をできるだけ赤ちゃん本人の名前に）
-// - 誕生日の逆算（「○月○日（NN日齢）」→基準日-日齢）
-// - サイトの og:image をサムネ候補に
-// - fingerprints を事前照会して重複を挿入しない
+// イベント抽出のためのルール（既存を再利用）
 // -------------------------------
 const BABY_KEYWORDS = /(誕生|出産|赤ちゃん|赤仔|ベビー|生まれ|命名|名前に決定)/;
 
@@ -432,7 +236,7 @@ const SPECIES_MAP = new Map<string, string>([
   ["ジャイアントパンダ", "ジャイアントパンダ"],
   ["レッサーパンダ", "レッサーパンダ"],
   ["ホッキョクグマ", "ホッキョクグマ"],
-  ["シロクマ", "ホッキョクグマ"], // 同義
+  ["シロクマ", "ホッキョクグマ"],
   ["トラ", "トラ"],
   ["ライオン", "ライオン"],
   ["ゴリラ", "ゴリラ"],
@@ -447,7 +251,6 @@ const SPECIES_MAP = new Map<string, string>([
   ["フラミンゴ", "フラミンゴ"],
 ]);
 
-// --- 個体名抽出（できるだけ短い実用実装） ---
 const NAME_PATTERNS: RegExp[] = [
   /命名[「『\"](?<name>[^」』\"\s]{1,12})[」』\"]/,
   /名前[は：:\s]*[「『\"]?(?<name>[^」』\"\s]{1,12})[」』\"]?/,
@@ -463,9 +266,7 @@ function extractBabyName(text: string): string | null {
     const m = t.match(re);
     const name = m?.groups?.name;
     if (!name) continue;
-    // よくある一般語を除外
     if (/赤ちゃん|命名|動画|shorts|まとめ|観察|様子/.test(name)) continue;
-    // 文字種・長さの簡易チェック
     if (/^[一-龯ぁ-んァ-ヴーA-Za-z]{1,12}$/.test(name)) return name;
   }
   return null;
@@ -478,191 +279,389 @@ function extractSpeciesAlias(title: string): { species?: string; alias?: string 
   return {};
 }
 
-// 「○月○日（NN日齢）」→ 誕生日を逆算（ISO yyyy-mm-dd）
 function decideBirthdayByAge(title: string, fallbackISO?: string | null): string | null {
   const m = title.match(/(?<m>\d{1,2})月(?<d>\d{1,2})日（(?<age>\d{1,3})日齢）/);
   if (!m?.groups) return null;
   const pub = fallbackISO ? new Date(fallbackISO) : null;
   const nowY = new Date().getFullYear();
-  // 参照日は「タイトルの月日@今年」。ただし公開日がある場合で不整合になりそうなら公開日ベースに
   const refY = pub ? pub.getFullYear() : nowY;
   const ref = new Date(refY, Number(m.groups.m) - 1, Number(m.groups.d));
-  // 未来日になる等の不整合は公開日にフォールバック
-  const refDate = pub && ref.getTime() > pub.getTime() ? pub : ref;
+  const refDate = (pub && ref.getTime() > pub.getTime()) ? pub : ref;
   refDate.setDate(refDate.getDate() - Number(m.groups.age));
   return refDate.toISOString().slice(0, 10);
 }
 
-// name のフォールバックを一本化
 function ensureBabyName(givenName?: string | null, hint?: string | null) {
   if (givenName && givenName.trim()) return givenName.trim().slice(0, 100);
   if (hint) return `赤ちゃん（${hint}）`;
   return '赤ちゃん';
 }
 
-// サイト HTML から OGP を取り出し（og:image も見る）
-function parseSiteOG(html: string, fallbackUrl: string) {
-  const ogt = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)?.[1] || '';
-  const ogd = html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i)?.[1] || '';
-  const ogu = html.match(/<meta\s+property=["']og:url["']\s+content=["']([^"']+)["']/i)?.[1] || fallbackUrl;
-  const ogi = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i)?.[1] || '';
-  return {
-    title: (ogt || '').trim(),
-    url: normUrl(ogu || fallbackUrl)!,
-    published_at: parseDateToISO(ogd) || null, // 説明に日付があれば
-    thumbnail_url: ogi || null,
-    source_name: domain(ogu || fallbackUrl)
-  } as FeedItem;
+// -------------------------------
+// イベント保存（baby_events）
+// -------------------------------
+type BabyEventRow = {
+  url: string;
+  title: string | null;
+  published_at: string | null; // ISO8601(UTC)
+  thumbnail_url: string | null;
+  zoo_id: string | null;
+  species: string | null;
+  source_id: string | null;
+  source_kind: string | null; // 'site'|'press'|'rss'|'youtube'|'googlenews'|...
+  signal_birth: boolean;
+  signal_name: string | null;
+  signal_age_days: number | null;
+};
+
+async function upsertBabyEvents(env: Env, rows: BabyEventRow[]) {
+  if (!rows.length) return;
+  for (const part of chunk(rows, MAX_UPSERT_CHUNK)) {
+    await sbPost(env, '/rest/v1/baby_events?on_conflict=url', part);
+  }
 }
 
-async function runBabiesJob(env: Env) {
+// -------------------------------
+// NEWS ジョブ: RSS/Atom/GoogleNews をイベント化
+// -------------------------------
+async function runNewsJob(env: Env) {
   const started = new Date();
-  let counters = { total: 0, inserted: 0, updated: 0, skipped: 0 };
+  const sources = await sbGet(
+    env,
+    `/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,googlenews)&order=last_checked.asc.nullsfirst&limit=${MAX_SOURCES_PER_RUN}`
+  );
 
-  try {
-    // 有効なソースを last_checked 昇順で最大 N 件だけ取得（上限回避）
-    const sources = await sbGet(
-      env,
-      `/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,site)&order=last_checked.asc.nullsfirst&limit=${MAX_BABY_SOURCES_PER_RUN}`
-    );
+  const events: BabyEventRow[] = [];
+  const processedIds: string[] = [];
+  let total = 0, skipped = 0;
 
-    // 一括書き込み用バッファ
-    const processedIds: string[] = [];   // 今回処理した source.id（last_checked 更新用）
-    type PendingRow = { fp: string; row: any };
-    const pending: PendingRow[] = [];    // babies upsert 用（指紋付き）
-    const fpSet = new Set<string>();     // 事前照会用
-
-    for (const s of sources as any[]) {
-      try {
-        if (s?.id) processedIds.push(s.id); // ローテーション対象として記録
-
-        const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
-        if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
-
-        let candidates: FeedItem[] = [];
-        if (s.kind === 'site') {
-          const html = await res.text();
-          candidates = [parseSiteOG(html, s.url)]; // og:image も拾う
-        } else {
-          const xml = await res.text();
-          candidates = parseRSS(xml); // YouTube/Atom も OK（published 対応済み）
-        }
-
-        counters.total += candidates.length;
-
-        // ルール判定
-        const approve = candidates.filter(it => BABY_KEYWORDS.test(`${it.title || ''}`));
-        if (!approve.length) {
-          counters.skipped++;
-          continue;
-        }
-
-        for (const it of approve) {
-          const u = normUrl(it.url);
-          if (!u) continue;
-
-          const fp = await sha256hex(u);
-          fpSet.add(fp);
-
-          // 種ヒント（表示用は alias、保存は canonical）
-          const { species, alias } = extractSpeciesAlias(it.title || "");
-
-          // 個体名（できるだけ本人の名前に）
-          const givenName = extractBabyName(it.title || "");
-
-          // 誕生日：日齢→逆算＞タイトル日付＞published_at
-          const bdayByAge = decideBirthdayByAge(it.title || "", it.published_at || null);
-          const bday =
-            bdayByAge ||
-            parseDateToISO(it.title || "") ||
-            it.published_at ||
-            null;
-
-          // babies 行（既存スキーマに合わせる）
-          const row = {
-            name: ensureBabyName(givenName, alias || species || null),
-            species: species || alias || null,
-            birthday: bday,
-            thumbnail_url: it.thumbnail_url || null, // site のときは og:image が入っている可能性あり
-            zoo_id: s.zoo_id || null,
-          };
-
-          pending.push({ fp, row });
-        }
-      } catch (e) {
-        console.error('babies source failed', s?.url, e);
-        counters.skipped++;
-      }
-    }
-
-    // ---- ここから一括書き込み ----
+  for (const s of sources as any[]) {
     try {
-      // 0) fingerprints 既存照会 → すでに登録済みの URL は babies へ入れない
-      const allFps = Array.from(fpSet);
-      const known = new Set<string>();
-      for (const part of chunk(allFps, 1000)) {
-        if (!part.length) continue;
-        const q = `/rest/v1/fingerprints?select=fp&kind=eq.baby&fp=in.(${part.join(',')})`;
-        const hits = await sbGet(env, q);
-        for (const r of (hits as any[] || [])) known.add(r.fp);
-      }
+      if (s?.id) processedIds.push(s.id);
+      const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
+      if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
+      const xml = await res.text();
+      const items = parseRSS(xml).slice(0, MAX_EVENTS_PER_SOURCE);
+      total += items.length;
 
-      // 1) fingerprints（kind='baby'）をチャンクで upsert（新規分を作る）
-      const fpRows = allFps.map(fp => ({ fp, kind: 'baby' }));
-      for (const part of chunk(fpRows, 1000)) {
-        if (part.length) await sbPost(env, '/rest/v1/fingerprints?on_conflict=fp', part);
-      }
+      for (const it of items) {
+        const url = normUrl(it.url);
+        if (!url) continue;
+        const title = it.title || '';
+        const { species, alias } = extractSpeciesAlias(title || '');
+        const givenName = extractBabyName(title || '');
+        const bdayByAge = decideBirthdayByAge(title || '', it.published_at || null);
+        const signal_birth = BABY_KEYWORDS.test(title);
+        const ageMatch = title.match(/(\d{1,3})日齢/);
+        const signal_age_days = ageMatch ? Number(ageMatch[1]) : null;
 
-      // 2) babies をチャンクで upsert（known にある指紋はスキップ）
-      const toInsert = pending
-        .filter(p => !known.has(p.fp))
-        .map(p => p.row);
-
-      for (const part of chunk(toInsert, 500)) {
-        if (part.length) await sbPost(env, '/rest/v1/babies', part);
-        counters.inserted += part.length; // 概算
-      }
-
-      // 3) 今回処理した source のみ last_checked を一括更新（1回）
-      if (processedIds.length) {
-        const inList = processedIds.join(',');
-        await sbPatch(env, `/rest/v1/sources?id=in.(${inList})`, { last_checked: nowIso() });
+        events.push({
+          url,
+          title,
+          published_at: it.published_at ? toUtcIso(it.published_at) : null,
+          thumbnail_url: it.thumbnail_url || null,
+          zoo_id: s.zoo_id || null,
+          species: species || alias || null,
+          source_id: s.id || null,
+          source_kind: s.kind || null,
+          signal_birth,
+          signal_name: givenName || null,
+          signal_age_days
+        });
       }
     } catch (e) {
-      console.error('babies bulk upsert failed', e);
-      // 失敗しても logJob は残す
+      console.error('news source failed', s?.url, e);
+      skipped++;
+    }
+  }
+
+  try {
+    await upsertBabyEvents(env, events);
+    if (processedIds.length) {
+      await sbPatch(env, `/rest/v1/sources?id=in.(${processedIds.join(',')})`, { last_checked: nowIso() });
+    }
+  } catch (e) {
+    console.error('news upsert failed', e);
+  }
+
+  console.log('NEWS->EVENTS STATS', { total, events: events.length, skipped, sources: (sources as any[]).length });
+  await logJob(env, {
+    job: 'news->events', ok: true, started_at: started, finished_at: new Date(),
+    total, events: events.length, skipped
+  });
+}
+
+// -------------------------------
+// SITE ジョブ: 公式サイトの一覧ページ→記事→イベント化
+// -------------------------------
+function extractLinksFromListing(html: string, baseUrl: string): string[] {
+  const out: string[] = [];
+  const re = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) {
+    let href = m[1];
+    if (!href) continue;
+    try {
+      const abs = new URL(href, baseUrl).toString();
+      out.push(abs);
+    } catch { /* ignore */ }
+  }
+  // 同一ドメインのみに限定（他サイトへの誘導を避ける）
+  const baseHost = domain(baseUrl);
+  return Array.from(new Set(out)).filter(u => domain(u) === baseHost).slice(0, MAX_EVENTS_PER_SOURCE);
+}
+
+async function runSiteNewsJob(env: Env) {
+  const started = new Date();
+  const sources = await sbGet(
+    env,
+    `/rest/v1/sources?select=*&enabled=eq.true&kind=eq.site&order=last_checked.asc.nullsfirst&limit=${MAX_SOURCES_PER_RUN}`
+  );
+
+  const events: BabyEventRow[] = [];
+  const processedIds: string[] = [];
+  let total = 0, skipped = 0;
+
+  for (const s of sources as any[]) {
+    try {
+      if (s?.id) processedIds.push(s.id);
+      const res = await fetch(s.url, {
+        headers: { 'Accept': 'text/html' },
+        cf: { cacheTtl: 0 }
+      });
+      if (!res.ok) throw new Error(`fetch listing ${s.url} -> ${res.status}`);
+      const listing = await res.text();
+      const links = extractLinksFromListing(listing, s.url);
+
+      for (const link of links) {
+        try {
+          const art = await fetch(link, {
+            headers: { 'Accept': 'text/html' },
+            cf: { cacheTtl: 0 }
+          });
+          if (!art.ok) continue;
+          const html = await art.text();
+          const item = parseSiteOG(html, link);
+          total++;
+          const url = normUrl(item.url);
+          if (!url) continue;
+
+          const title = item.title || '';
+          const { species, alias } = extractSpeciesAlias(title);
+          const givenName = extractBabyName(title);
+          const ageMatch = title.match(/(\d{1,3})日齢/);
+          const signal_age_days = ageMatch ? Number(ageMatch[1]) : null;
+
+          events.push({
+            url,
+            title,
+            published_at: item.published_at ? toUtcIso(item.published_at) : null,
+            thumbnail_url: item.thumbnail_url || null,
+            zoo_id: s.zoo_id || null,
+            species: species || alias || null,
+            source_id: s.id || null,
+            source_kind: s.kind || 'site',
+            signal_birth: BABY_KEYWORDS.test(title),
+            signal_name: givenName || null,
+            signal_age_days
+          });
+        } catch (e) {
+          console.warn('site article fetch failed', link, e);
+        }
+      }
+    } catch (e) {
+      console.error('site listing failed', s?.url, e);
+      skipped++;
+    }
+  }
+
+  try {
+    await upsertBabyEvents(env, events);
+    if (processedIds.length) {
+      await sbPatch(env, `/rest/v1/sources?id=in.(${processedIds.join(',')})`, { last_checked: nowIso() });
+    }
+  } catch (e) {
+    console.error('site upsert failed', e);
+  }
+
+  console.log('SITE->EVENTS STATS', { total, events: events.length, skipped, sources: (sources as any[]).length });
+  await logJob(env, {
+    job: 'site->events', ok: true, started_at: started, finished_at: new Date(),
+    total, events: events.length, skipped
+  });
+}
+
+// -------------------------------
+// RESOLVE ジョブ: イベント → babies 確定/更新
+// -------------------------------
+const MATCH_DAYS = 10;          // birthday ±k日
+const CREATE_THRESHOLD = 3;     // babies新規作成の最小スコア
+
+type EventForResolve = {
+  id: string;
+  url: string;
+  title: string | null;
+  published_at: string | null;
+  thumbnail_url: string | null;
+  zoo_id: string | null;
+  species: string | null;
+  source_kind: string | null;
+  signal_birth: boolean;
+  signal_name: string | null;
+  signal_age_days: number | null;
+};
+
+function scoreForCreate(ev: EventForResolve): number {
+  let score = 0;
+  // ソース重み
+  if (ev.source_kind === 'site' || ev.source_kind === 'press') score += 2;
+  else if (ev.source_kind === 'youtube') score += 1;
+  // 出生シグナル
+  if (ev.signal_birth) score += 2;
+  // 園の確度
+  if (ev.zoo_id) score += 1;
+  // 誕生日の確度
+  if (ev.signal_age_days !== null) score += 1;
+  else if (parseDateToISODateOnly(ev.title || '')) score += 1;
+  return score;
+}
+
+function inferBirthday(ev: EventForResolve): string | null {
+  const byAge = ev.title ? decideBirthdayByAge(ev.title, ev.published_at || null) : null;
+  const byTitle = ev.title ? parseDateToISODateOnly(ev.title) : null;
+  if (byAge) return byAge;
+  if (byTitle) return byTitle;
+  if (ev.published_at) return (ev.published_at || '').slice(0, 10);
+  return null;
+}
+
+async function resolveBabyEntitiesJob(env: Env) {
+  const started = new Date();
+  // 未処理イベントを取得（直近7日・processed_at is null など運用に合わせて）
+  const events: EventForResolve[] = await sbGet(
+    env,
+    `/rest/v1/baby_events?select=id,url,title,published_at,thumbnail_url,zoo_id,species,source_kind,signal_birth,signal_name,signal_age_days&processed_at=is.null&order=published_at.desc.nullslast&limit=1000`
+  );
+
+  let linked = 0, created = 0, processed = 0;
+
+  for (const ev of events) {
+    processed++;
+
+    const bday = inferBirthday(ev);
+    // 既存 babies へ一致探索（zoo_id, species, birthday±k日）
+    let targetBabyId: string | null = null;
+
+    if (ev.zoo_id && ev.species && bday) {
+      const min = new Date(bday); min.setDate(min.getDate() - MATCH_DAYS);
+      const max = new Date(bday); max.setDate(max.getDate() + MATCH_DAYS);
+      const q = `/rest/v1/babies?select=id,name,birthday,species,zoo_id&zoo_id=eq.${ev.zoo_id}&species=eq.${encodeURIComponent(ev.species)}&birthday=gte.${min.toISOString().slice(0,10)}&birthday=lte.${max.toISOString().slice(0,10)}&limit=1`;
+      const hit = await sbGet(env, q);
+      if (Array.isArray(hit) && hit.length) targetBabyId = hit[0].id;
     }
 
-    // 観測用の軽量ログ
-    console.log('BABIES JOB STATS', {
-      total: counters.total,
-      preparedRows: pending.length,
-      inserted: counters.inserted,
-      sources: Array.isArray(sources) ? (sources as any[]).length : 0
-    });
+    const canCreate = scoreForCreate(ev) >= CREATE_THRESHOLD;
 
-    await logJob(env, {
-      job: 'babies', ok: true, started_at: started, finished_at: new Date(),
-      total: counters.total, inserted: counters.inserted, updated: counters.updated, skipped: counters.skipped
-    });
+    if (targetBabyId) {
+      // 既存 babies にリンク＋不足項目を補完
+      const patch: any = {};
+      if (ev.thumbnail_url) patch.thumbnail_url = ev.thumbnail_url;
+      if (Object.keys(patch).length) {
+        await sbPatch(env, `/rest/v1/babies?id=eq.${targetBabyId}`, patch);
+      }
+      await sbPost(env, '/rest/v1/baby_links', [{ baby_id: targetBabyId, event_id: ev.id }]);
+      linked++;
+    } else if (canCreate) {
+      // 新規 babies 作成（YouTube でも閾値到達なら可）
+      const nameHint = ev.species || '';
+      const displayName = ensureBabyName(ev.signal_name, nameHint);
+      const row = {
+        name: displayName,
+        species: ev.species,
+        birthday: bday,
+        thumbnail_url: ev.thumbnail_url,
+        zoo_id: ev.zoo_id || null,
+      };
+      const res = await sbPost(env, '/rest/v1/babies', [row], { 'Prefer': 'return=representation' });
+      const createdRows = await res.json().catch(()=>[]) as any[];
+      const newId = createdRows?.[0]?.id;
+      if (newId) {
+        await sbPost(env, '/rest/v1/baby_links', [{ baby_id: newId, event_id: ev.id }]);
+        created++;
+      }
+    }
 
+    // processed フラグ
+    await sbPatch(env, `/rest/v1/baby_events?id=eq.${ev.id}`, { processed_at: nowIso() });
+  }
+
+  console.log('RESOLVE STATS', { processed, linked, created });
+  await logJob(env, {
+    job: 'resolve_babies', ok: true, started_at: started, finished_at: new Date(),
+    processed, linked, created
+  });
+}
+
+// -------------------------------
+// 収集ジョブ: 動物園（Wikipedia）※現行維持
+// -------------------------------
+async function runZoosJob(env: Env) {
+  const started = new Date();
+  let total = 0, inserted = 0, skipped = 0;
+
+  try {
+    const api = 'https://ja.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:%E6%97%A5%E6%9C%AC%E3%81%AE%E5%8B%95%E7%89%A9%E5%9C%92&cmlimit=500&format=json&origin=*';
+    const res = await fetch(api, {
+      headers: {
+        'User-Agent': 'BabyAnimalsCrawler/1.0 (+https://babyanimals.pages; contact: co.az.mu@gmail.com)',
+        'Accept': 'application/json'
+      },
+      cf: { cacheTtl: 3600 }
+    });
+    if (!res.ok) throw new Error(`wikipedia -> ${res.status}`);
+    const json = await res.json();
+    const members: any[] = json?.query?.categorymembers || [];
+    total = members.length;
+
+    const nameSet = new Set<string>();
+    for (const m of members) {
+      const clean = (m?.title || '').replace(/\s*\(.*?\)\s*/g, '').trim();
+      if (clean) nameSet.add(clean);
+    }
+
+    const rows = Array.from(nameSet).map(name => ({ name }));
+    for (const part of chunk(rows, 500)) {
+      if (part.length) await sbPost(env, '/rest/v1/zoos?on_conflict=name', part);
+      inserted += part.length;
+    }
+
+    console.log('ZOOS JOB STATS', { total, uniqueRows: rows.length });
+    await logJob(env, { job: 'zoos', ok: true, started_at: started, finished_at: new Date(), total, inserted, skipped });
   } catch (e) {
-    await logJob(env, { job: 'babies', ok: false, started_at: started, finished_at: new Date(), error: String(e) });
+    await logJob(env, { job: 'zoos', ok: false, started_at: started, finished_at: new Date(), error: String(e) });
     throw e;
   }
 }
+
 // -------------------------------
 // スケジュール・エントリポイント
 // -------------------------------
 export default {
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+  async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
     try {
+      // 例:
+      //  0 * * * *    -> ニュース/RSS/YouTube/GoogleNews → イベント化
+      //  5 * * * *    -> 公式サイト一覧 → 記事抽出 → イベント化
+      //  30 18 * * *  -> 動物園一覧
+      //  10 * * * *   -> イベント解決（babies確定/更新）
       if (event.cron === '0 * * * *') {
         await runNewsJob(env);
-      } else if (event.cron === '15 18 * * *') {
-        await runZoosJob(env);
+      } else if (event.cron === '5 * * * *') {
+        await runSiteNewsJob(env);
       } else if (event.cron === '30 18 * * *') {
-        await runBabiesJob(env);
+        await runZoosJob(env);
+      } else if (event.cron === '10 * * * *') {
+        await resolveBabyEntitiesJob(env);
       } else {
         console.log('unknown cron', event.cron);
       }
@@ -672,19 +671,19 @@ export default {
     }
   },
 
-  // ★ 追加：GET /run?job=news|zoos|babies&token=XXXX で手動実行
+  // 手動実行: /run?job=news|site|zoos|resolve&token=XXXX
   async fetch(req: Request, env: Env) {
     const { searchParams, pathname } = new URL(req.url);
     if (pathname === '/run') {
       const token = searchParams.get('token') || '';
       const job = (searchParams.get('job') || '').toLowerCase();
-      // Secret で保護（wrangler secret put RUN_TOKEN で設定）
       const ok = Boolean(token && env.RUN_TOKEN && token === env.RUN_TOKEN);
       if (!ok) return new Response('forbidden', { status: 403 });
 
-      if (job === 'news')      { await runNewsJob(env); }
-      else if (job === 'zoos') { await runZoosJob(env); }
-      else if (job === 'babies'){ await runBabiesJob(env); }
+      if (job === 'news')       await runNewsJob(env);
+      else if (job === 'site')  await runSiteNewsJob(env);
+      else if (job === 'zoos')  await runZoosJob(env);
+      else if (job === 'resolve') await resolveBabyEntitiesJob(env);
       else return new Response('bad job', { status: 400 });
 
       return new Response(JSON.stringify({ ok: true, job }), { headers: { 'content-type': 'application/json' } });
