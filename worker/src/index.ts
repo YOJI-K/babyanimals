@@ -407,7 +407,7 @@ async function upsertBabyEvents(env: Env, rows: BabyEventRow[]) {
 }
 
 // -------------------------------
-// NEWS ジョブ: RSS/Atom/GoogleNews → イベント化
+// NEWS ジョブ: RSS/Atom/GoogleNews → イベント化 + news_items へも保存
 // -------------------------------
 async function runNewsJob(env: Env) {
   const started = new Date();
@@ -417,12 +417,15 @@ async function runNewsJob(env: Env) {
   );
 
   const events: BabyEventRow[] = [];
+  const newsRows: any[] = [];              // ← 追加: news_items の一括 upsert 用
   const processedIds: string[] = [];
+
   let total = 0, skipped = 0;
 
   for (const s of sources as any[]) {
     try {
       if (s?.id) processedIds.push(s.id);
+
       const res = await fetch(s.url, { cf: { cacheTtl: 0 } });
       if (!res.ok) throw new Error(`fetch ${s.url} -> ${res.status}`);
       const xml = await res.text();
@@ -432,12 +435,14 @@ async function runNewsJob(env: Env) {
       for (const it of items) {
         const url = normUrl(it.url);
         if (!url) continue;
+
         const title = it.title || '';
         const { species, alias } = extractSpeciesAlias(title || '');
         const givenName = extractBabyName(title || '');
         const ageMatch = title.match(/(\d{1,3})日齢/);
         const signal_age_days = ageMatch ? Number(ageMatch[1]) : null;
 
+        // 1) baby_events（従来どおり）
         events.push({
           url,
           title,
@@ -451,6 +456,18 @@ async function runNewsJob(env: Env) {
           signal_name: givenName || null,
           signal_age_days
         });
+
+        // 2) news_items（復活）
+        newsRows.push({
+          title: title?.slice(0, 300) || null,
+          url,
+          published_at: it.published_at ? toUtcIso(it.published_at) : null,
+          source_name: it.source_name || domain(url) || null,
+          source_url: s.url || null,
+          thumbnail_url: it.thumbnail_url || null,
+          baby_id: null,
+          zoo_id: s.zoo_id || null,
+        });
       }
     } catch (e) {
       console.error('news source failed', s?.url, e);
@@ -459,7 +476,22 @@ async function runNewsJob(env: Env) {
   }
 
   try {
+    // events を upsert
     await upsertBabyEvents(env, events);
+
+    // news_items を upsert（URL一意）。重複はマージで上書き許容
+    for (const part of chunk(newsRows, 500)) {
+      if (part.length) {
+        await sbPost(
+          env,
+          '/rest/v1/news_items?on_conflict=url',
+          part,
+          { 'Prefer': 'resolution=merge-duplicates' }
+        );
+      }
+    }
+
+    // last_checked をまとめて更新
     if (processedIds.length) {
       await sbPatch(env, `/rest/v1/sources?id=in.(${processedIds.join(',')})`, { last_checked: nowIso() });
     }
@@ -467,10 +499,14 @@ async function runNewsJob(env: Env) {
     console.error('news upsert failed', e);
   }
 
-  console.log('NEWS->EVENTS STATS', { total, events: events.length, skipped, sources: (sources as any[]).length });
+  console.log('NEWS->(EVENTS & NEWS_ITEMS) STATS', {
+    total, events: events.length, newsRows: newsRows.length, skipped,
+    sources: Array.isArray(sources) ? (sources as any[]).length : 0
+  });
+
   await logJob(env, {
-    job: 'news->events', ok: true, started_at: started, finished_at: new Date(),
-    total, events: events.length, skipped
+    job: 'news->events+news_items', ok: true, started_at: started, finished_at: new Date(),
+    total, events: events.length, newsRows: newsRows.length, skipped
   });
 }
 
