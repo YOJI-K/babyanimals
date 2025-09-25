@@ -198,7 +198,7 @@
     const heroTitle = $('#hero-title');
     if (heroTitle) heroTitle.textContent = '今月お誕生日の赤ちゃん';
     const heroDesc = document.querySelector('.hero__head .panel-desc');
-    if (heroDesc) heroDesc.textContent = '0〜3歳までの今月生まれを表示します';
+    if (heroDesc) heroDesc.textContent = '0〜3歳までの赤ちゃんを表示します';
 
     const now = new Date();
     const Y = now.getFullYear();
