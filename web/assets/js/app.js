@@ -422,7 +422,8 @@
     if (text.includes('キリン') || text.includes('giraffe'))return '🦒';
     if (text.includes('シロクマ')|| text.includes('ホッキョクグマ')|| text.includes('polar')) return '🐻‍❄️';
     if (text.includes('コアラ') || text.includes('koala')) return '🐨';
-    if (text.includes('オカピ') || text.includes('okapi')) return '🦓';
+    if (text.includes('オカピ') || text.includes('okapi')) return '🦓';    
+    if (text.includes('ゾウ') || text.includes('elephant')) return '🐘';
     return '🐾';
   }
 
