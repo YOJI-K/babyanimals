@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>動物園ベビー情報 | 誕生日カレンダー</title>
+  <title>どうベビ | 誕生日カレンダー</title>
+  <meta name="description" content="どうベビ（動物園ベビー情報）— 0〜3歳の誕生日を年齢バッジで表示するカレンダー。" />
 
   <!-- Main CSS -->
   <link rel="stylesheet" href="../assets/css/style.css" />
@@ -13,49 +14,48 @@
   <meta property="og:image" content="../assets/img/og.png">
 </head>
 <body class="theme">
-  <!-- Global Header -->
-  <header class="site-header">
+  <!-- Header -->
+  <header class="site-header site-header--candy">
     <div class="site-header__left">
-      <a class="brand" href="../index.html">
-        <svg class="brand__icon" aria-hidden="true">
+      <a class="brand" href="../index.html" aria-label="ホームへ">
+        <span class="brand__emoji" aria-hidden="true">🐾</span>
+        <!-- SVGロゴはフェールセーフとして残す（CSSで非表示） -->
+        <svg class="brand__icon" aria-hidden="true" focusable="false">
           <use href="../assets/icons/icons.svg#icon-logo"></use>
         </svg>
-        <span class="brand__title">Zoo Baby Information Site</span>
+        <span class="brand__title" title="動物園ベビー情報">どうベビ</span>
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り">
-        <svg class="icon" aria-hidden="true">
-          <use href="../assets/icons/icons.svg#icon-heart"></use>
-        </svg>
+      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録">
+        <span class="emoji-icon" aria-hidden="true">💗</span>
+      </button>
+      <button class="pill-btn search-btn" aria-label="検索" title="検索">
+        <span class="emoji-icon" aria-hidden="true">🔍</span>
+      </button>
+      <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ">
+        <span class="emoji-icon" aria-hidden="true">🔔</span>
+        <span class="badge" aria-hidden="true">!</span>
       </button>
     </div>
   </header>
 
-  <!-- Sticky Tabbar -->
-  <nav class="tabbar" aria-label="メイン">
-    <a class="tabbar__link" href="../index.html" aria-label="ホーム">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-home"></use>
-      </svg>
+  <!-- Global Tabbar（SP/PCともスタック＋絵文字） -->
+  <nav class="tabbar tabbar--stack" aria-label="メイン">
+    <a class="tabbar__link" href="../index.html" aria-label="ホーム" title="ホーム">
+      <span class="tab-emoji" aria-hidden="true">🏠</span>
       <span class="tabbar__text">ホーム</span>
     </a>
-    <a class="tabbar__link" href="../news/index.html" aria-label="ニュース">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-news"></use>
-      </svg>
+    <a class="tabbar__link" href="../news/index.html" aria-label="ニュース" title="ニュース">
+      <span class="tab-emoji" aria-hidden="true">📰</span>
       <span class="tabbar__text">ニュース</span>
     </a>
-    <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-baby"></use>
-      </svg>
+    <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
+      <span class="tab-emoji" aria-hidden="true">🍼</span>
       <span class="tabbar__text">赤ちゃん</span>
     </a>
-    <a class="tabbar__link is-active" href="./index.html" aria-current="page" aria-label="カレンダー">
-      <svg class="tabbar__icon" aria-hidden="true">
-        <use href="../assets/icons/icons.svg#icon-calendar"></use>
-      </svg>
+    <a class="tabbar__link is-active" href="./index.html" aria-label="カレンダー" aria-current="page" title="カレンダー">
+      <span class="tab-emoji" aria-hidden="true">📅</span>
       <span class="tabbar__text">カレンダー</span>
     </a>
   </nav>
@@ -63,74 +63,39 @@
   <main class="container" id="main">
     <!-- Page Title -->
     <section class="page-hero">
-      <h1 class="page-title">動物園ベビー情報</h1>
+      <h1 class="page-title">誕生日カレンダー</h1>
     </section>
 
     <!-- Birthday Calendar -->
-    <section class="card card--panel">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">
-          <svg class="icon-lg"><use href="../assets/icons/icons.svg#icon-cake"></use></svg>
-        </div>
-        <div>
-          <h2 class="panel-title">誕生日カレンダー</h2>
-          <p class="panel-desc">みんなでお祝いしよう！ 赤ちゃん動物の誕生日</p>
-        </div>
-      </header>
-
-      <!-- Month Switcher -->
+    <section id="calendar" class="card calendar" aria-labelledby="cal-title">
       <div class="calendar-head">
-        <div class="calendar-head__left">
-          <div class="chip chip--calendar">
-            <svg class="chip__icon" aria-hidden="true">
-              <use href="../assets/icons/icons.svg#icon-calendar"></use>
-            </svg>
-            <span id="js-monthLabel">—</span>
-          </div>
-        </div>
-        <div class="calendar-head__right">
-          <button class="nav-icon" id="js-prevMonth" aria-label="前の月">
-            <svg class="icon"><use href="../assets/icons/icons.svg#icon-chevron-left"></use></svg>
-          </button>
-          <button class="nav-icon" id="js-nextMonth" aria-label="次の月">
-            <svg class="icon"><use href="../assets/icons/icons.svg#icon-chevron-right"></use></svg>
-          </button>
+        <h2 id="cal-title" class="panel-title">yyyy年m月の誕生日カレンダー</h2>
+        <div class="calendar-nav" role="group" aria-label="月移動">
+          <button class="nav-icon" id="prev-month" aria-label="前の月へ">‹</button>
+          <button class="nav-icon" id="today-month" aria-label="今月へ">今</button>
+          <button class="nav-icon" id="next-month" aria-label="次の月へ">›</button>
         </div>
       </div>
-
-      <!-- Grid Calendar -->
-      <div class="calendar" role="grid" aria-labelledby="js-monthLabel">
-        <div class="calendar__weekday" role="row">
-          <div class="calendar__cell calendar__cell--wk" role="columnheader">日</div>
-          <div class="calendar__cell calendar__cell--wk" role="columnheader">月</div>
-          <div class="calendar__cell calendar__cell--wk" role="columnheader">火</div>
-          <div class="calendar__cell calendar__cell--wk" role="columnheader">水</div>
-          <div class="calendar__cell calendar__cell--wk" role="columnheader">木</div>
-          <div class="calendar__cell calendar__cell--wk" role="columnheader">金</div>
-          <div class="calendar__cell calendar__cell--wk" role="columnheader">土</div>
-        </div>
-        <div class="calendar__grid" id="js-calendarGrid" role="rowgroup">
-          <!-- JS が日付セルを描画 -->
-        </div>
-        <div class="legend">
-          <span class="dot dot--future" aria-hidden="true"></span><span> 誕生日予定</span>
-          <span class="dot dot--past" aria-hidden="true"></span><span> 誕生日終了</span>
-        </div>
+      <div class="calendar__weekday" aria-hidden="true">
+        <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+      </div>
+      <div id="cal-grid" class="calendar__grid" role="grid" aria-readonly="true"></div>
+      <div class="legend" aria-hidden="true">
+        <span><span class="dot dot--future"></span>今後の誕生日</span>
+        <span><span class="dot dot--past"></span>過ぎた誕生日</span>
+        <span>● バッジ数字＝その年齢（0〜3）</span>
       </div>
     </section>
 
     <!-- Monthly Birthdays List -->
     <section class="card card--panel">
       <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">
-          <svg class="icon-lg"><use href="../assets/icons/icons.svg#icon-gift"></use></svg>
-        </div>
+        <div class="panel-icon" aria-hidden="true">🎁</div>
         <div>
-          <h2 class="panel-title"><span id="js-monthLabelList">—</span> の誕生日</h2>
+          <h2 class="panel-title"><span id="month-label-list">—</span> の誕生日（0〜3歳）</h2>
         </div>
       </header>
-
-      <div id="js-birthdayList" class="bday-list" aria-live="polite">
+      <div id="js-birthdayList" class="bday-list" role="list" aria-live="polite">
         <!-- JS がカードを描画 -->
       </div>
     </section>
@@ -138,23 +103,21 @@
     <!-- Celebration Message -->
     <section class="card card--message">
       <div class="message-head">
-        <svg class="icon-heart" aria-hidden="true">
-          <use href="../assets/icons/icons.svg#icon-heart"></use>
-        </svg>
+        <span class="icon-heart" aria-hidden="true">💗</span>
         <h3>お祝いメッセージ</h3>
       </div>
       <p>
-        誕生日の赤ちゃん動物たちにお祝いメッセージを送ろう！<br />
-        各動物園では特別なイベントやプレゼント企画も予定されています。
+        月ナビ（‹ / 今 / ›）で移動し、誕生日のある日をタップすると当日の子を一覧できます。<br>
+        0〜3歳の子だけがカレンダーに表示されます。
       </p>
     </section>
   </main>
 
   <footer class="site-footer" aria-label="フッター">
-    <small>© Zoo Baby Information</small>
+    <small>© どうベビ（動物園ベビー情報）</small>
   </footer>
 
-  <!-- Page JS -->
-  <script src="../assets/js/calendar.js" defer></script>
+  <!-- Page JS（calendar.js は不要。app.js に統合） -->
+  <script src="../assets/js/app.js" defer></script>
 </body>
 </html>

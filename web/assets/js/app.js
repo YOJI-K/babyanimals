@@ -2,8 +2,9 @@
 // Supabase連携版：ヒーロー/カレンダーともに「表示中の年・月に誕生日を迎える 0〜3歳」を表示
 // - ヒーロー：当月の0〜3歳（最大6件）※見出しを「今月お誕生日の赤ちゃん」に更新
 // - カレンダー：当月の0〜3歳を日付セルに年齢バッジで表示（複数いる日は最大2つ＋“+N”）
-// - zoo_id を用いて /zoos から name 等を取得し添付（メモリキャッシュ）
-// - ヘッダー：検索/お知らせ（バッジ消去）の軽い連携、既存likeボタンはローカルストレージで保持
+// - 月別リスト：当月0〜3歳をカードで列挙（#js-birthdayList がある場合）
+// - zoo_id を用いて /zoos から name を取得し添付（メモリキャッシュ）
+// - ヘッダー：検索/お知らせの軽い連携、likeボタンはローカルストレージで保持（UIだけ）
 // 依存なし（バニラJS）
 
 (() => {
@@ -84,11 +85,11 @@
     const enriched = withZoo.map(b => {
       const bd = new Date(b.birthday);
       const age = Y - bd.getFullYear();
-      return { ...b, age };
+      return { ...b, age, day: bd.getDate(), month: bd.getMonth()+1 };
     }).filter(b => b.age >= 0 && b.age <= 3);
 
-    // 同日が混在しても扱えるよう、日付で安定ソート
-    enriched.sort((a,b) => new Date(a.birthday) - new Date(b.birthday));
+    // 日付→名前で安定ソート
+    enriched.sort((a,b) => a.day - b.day || (a.name || '').localeCompare(b.name || '', 'ja'));
     return enriched;
   }
 
@@ -106,7 +107,7 @@
     // ヒーロー：今月0〜3歳
     await mountHeroThisMonth();
 
-    // カレンダー（今月）：0〜3歳の年齢バッジ
+    // カレンダー（今月）：0〜3歳の年齢バッジ & 月別リスト
     await mountCalendar(new Date());
 
     bindMonthNav();
@@ -198,7 +199,7 @@
     const heroTitle = $('#hero-title');
     if (heroTitle) heroTitle.textContent = '今月お誕生日の赤ちゃん';
     const heroDesc = document.querySelector('.hero__head .panel-desc');
-    if (heroDesc) heroDesc.textContent = '0〜3歳までの赤ちゃんを表示します';
+    if (heroDesc) heroDesc.textContent = '0〜3歳までの今月生まれを表示します';
 
     const now = new Date();
     const Y = now.getFullYear();
@@ -239,7 +240,7 @@
   }
 
   /* =========================
-   * カレンダー（0〜3歳の年齢バッジ）
+   * カレンダー（0〜3歳の年齢バッジ & 月別リスト）
    * ========================= */
   let currentMonth = new Date();
 
@@ -287,10 +288,7 @@
       cell.innerHTML = `<span class="cal-day__date">${day}</span>`;
 
       // 当月のその日に誕生日を迎える 0..3歳
-      const hits = monthly.filter(b => {
-        const d = new Date(b.birthday);
-        return d.getMonth() === (M-1) && d.getDate() === day;
-      });
+      const hits = monthly.filter(b => b.day === day);
 
       if (hits.length){
         // 年齢バッジ（最大2つ＋+N）
@@ -321,8 +319,7 @@
         };
 
         const isPast = stripTime(cellDate) < today;
-        const show = hits.slice(0,2);
-        show.forEach(h => badgeWrap.appendChild(makeBadge(h.age, isPast)));
+        hits.slice(0,2).forEach(h => badgeWrap.appendChild(makeBadge(h.age, isPast)));
         if (hits.length > 2){
           const more = document.createElement('span');
           more.textContent = `+${hits.length - 2}`;
@@ -348,17 +345,8 @@
       grid.appendChild(cell);
     }
 
-    // 当月に該当が無い場合の案内
-    const old = document.getElementById('cal-empty-note');
-    if (old) old.remove();
-    if (monthly.length === 0){
-      const p = document.createElement('p');
-      p.id = 'cal-empty-note';
-      p.style.color = '#7a6d72';
-      p.style.fontSize = '13px';
-      p.textContent = 'この月のお誕生日は登録がありません（0〜3歳）。';
-      grid.parentNode.appendChild(p);
-    }
+    // 月別リストも更新
+    renderMonthlyList(Y, M, monthly);
   }
 
   function openDay(hits, dateObj, Y, M, D){
@@ -370,8 +358,40 @@
     alert(`${Y}年${M}月${D}日の誕生日（0〜3歳）\n\n${list}`);
   }
 
+  function renderMonthlyList(Y, M, items){
+    const wrap = $('#js-birthdayList');
+    if (!wrap) return;
+
+    // 見出しの月ラベル更新
+    const monthLabel = $('#month-label-list');
+    if (monthLabel) monthLabel.textContent = `${Y}年${M}月`;
+
+    wrap.innerHTML = '';
+    if (!items.length){
+      wrap.insertAdjacentHTML('beforeend', `<p style="color:#6b6b6b;font-size:13px">この月のお誕生日は登録がありません（0〜3歳）。</p>`);
+      return;
+    }
+
+    items.forEach(b => {
+      const ageText = b.age === 0 ? '今年で0歳（はじめての誕生日）' : `今年で${b.age}歳`;
+      const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
+      const card = document.createElement('div');
+      card.className = 'bday-card';
+      card.setAttribute('role','listitem');
+      card.innerHTML = `
+        <div class="bday-card__avatar" aria-hidden="true">${pickEmoji(b)}</div>
+        <div>
+          <p class="bday-card__title">${esc(b.name)}（${esc(b.species)}）</p>
+          <p class="bday-card__meta">誕生日 ${esc(b.birthday)}${zooLabel}</p>
+        </div>
+        <span class="bday-chip">${b.age}歳</span>
+      `;
+      wrap.appendChild(card);
+    });
+  }
+
   function bindMonthNav(){
-    const prev = $('#prev-month'), next = $('#next-month');
+    const prev = $('#prev-month'), next = $('#next-month'), todayBtn = $('#today-month');
     if(prev) prev.addEventListener('click', async ()=> {
       const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth()-1, 1);
       await mountCalendar(d);
@@ -379,6 +399,10 @@
     if(next) next.addEventListener('click', async ()=> {
       const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 1);
       await mountCalendar(d);
+    });
+    if(todayBtn) todayBtn.addEventListener('click', async ()=> {
+      const now = new Date();
+      await mountCalendar(new Date(now.getFullYear(), now.getMonth(), 1));
     });
   }
 
