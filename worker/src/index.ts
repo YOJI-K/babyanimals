@@ -176,8 +176,21 @@ async function sbPatch(env: Env, path: string, body: unknown) {
 }
 
 async function logJob(env: Env, row: any) {
-  try { await sbPost(env, '/rest/v1/crawl_logs', [row]); }
-  catch (e) { console.error('logJob failed', e); }
+  try {
+    // crawl_logs に存在する安全な列だけを送る（必要に応じて増減）
+    const allow = new Set([
+      'job','ok','started_at','finished_at',
+      'error','total','inserted','updated','skipped',
+      'processed','linked','created'
+    ]);
+    const safe: Record<string, any> = {};
+    for (const k of Object.keys(row || {})) {
+      if (allow.has(k) && row[k] !== undefined) safe[k] = row[k];
+    }
+    await sbPost(env, '/rest/v1/crawl_logs', [safe]);
+  } catch (e) {
+    console.error('logJob failed', e);
+  }
 }
 
 // -------------------------------
@@ -401,7 +414,16 @@ type BabyEventRow = {
 
 async function upsertBabyEvents(env: Env, rows: BabyEventRow[]) {
   if (!rows.length) return;
-  for (const part of chunk(rows, MAX_UPSERT_CHUNK)) {
+  // 同一URLを1リクエスト内で重複投入しない
+  const byUrl = new Map<string, BabyEventRow>();
+  for (const r of rows) {
+    const u = normUrl(r.url);
+    if (!u) continue;
+    if (!byUrl.has(u)) byUrl.set(u, { ...r, url: u });
+    // 2回目以降はマージしたければここで統合ロジックを入れる（今回は先勝ち）
+  }
+  const uniq = Array.from(byUrl.values());
+  for (const part of chunk(uniq, MAX_UPSERT_CHUNK)) {
     await sbPost(env, '/rest/v1/baby_events?on_conflict=url', part);
   }
 }
@@ -417,8 +439,9 @@ async function runNewsJob(env: Env) {
   );
 
   const events: BabyEventRow[] = [];
-  const newsRows: any[] = [];              // ← 追加: news_items の一括 upsert 用
   const processedIds: string[] = [];
+  // URL -> news_row（同一URLは1つに）
+  const newsMap = new Map<string, any>();
 
   let total = 0, skipped = 0;
 
@@ -442,7 +465,7 @@ async function runNewsJob(env: Env) {
         const ageMatch = title.match(/(\d{1,3})日齢/);
         const signal_age_days = ageMatch ? Number(ageMatch[1]) : null;
 
-        // 1) baby_events（従来どおり）
+        // 1) baby_events（URL重複は upsert側でも弾くが、ここではそのまま貯める）
         events.push({
           url,
           title,
@@ -457,8 +480,8 @@ async function runNewsJob(env: Env) {
           signal_age_days
         });
 
-        // 2) news_items（復活）
-        newsRows.push({
+        // 2) news_items（URLで Map 去重）
+        const candidate = {
           title: title?.slice(0, 300) || null,
           url,
           published_at: it.published_at ? toUtcIso(it.published_at) : null,
@@ -467,7 +490,22 @@ async function runNewsJob(env: Env) {
           thumbnail_url: it.thumbnail_url || null,
           baby_id: null,
           zoo_id: s.zoo_id || null,
-        });
+        };
+        if (!newsMap.has(url)) {
+          newsMap.set(url, candidate);
+        } else {
+          // 既存とマージ（null を埋める程度の軽い統合）
+          const prev = newsMap.get(url);
+          newsMap.set(url, {
+            ...prev,
+            title: prev.title || candidate.title,
+            published_at: prev.published_at || candidate.published_at,
+            source_name: prev.source_name || candidate.source_name,
+            source_url: prev.source_url || candidate.source_url,
+            thumbnail_url: prev.thumbnail_url || candidate.thumbnail_url,
+            zoo_id: prev.zoo_id || candidate.zoo_id,
+          });
+        }
       }
     } catch (e) {
       console.error('news source failed', s?.url, e);
@@ -476,10 +514,11 @@ async function runNewsJob(env: Env) {
   }
 
   try {
-    // events を upsert
+    // events を upsert（関数内でURL去重済み）
     await upsertBabyEvents(env, events);
 
-    // news_items を upsert（URL一意）。重複はマージで上書き許容
+    // news_items を upsert（URL去重済み）
+    const newsRows = Array.from(newsMap.values());
     for (const part of chunk(newsRows, 500)) {
       if (part.length) {
         await sbPost(
@@ -500,13 +539,16 @@ async function runNewsJob(env: Env) {
   }
 
   console.log('NEWS->(EVENTS & NEWS_ITEMS) STATS', {
-    total, events: events.length, newsRows: newsRows.length, skipped,
+    scanned: total, events_saved: events.length, news_saved: newsMap.size, skipped,
     sources: Array.isArray(sources) ? (sources as any[]).length : 0
   });
 
+  // ★ ログは安全な列のみ
   await logJob(env, {
     job: 'news->events+news_items', ok: true, started_at: started, finished_at: new Date(),
-    total, events: events.length, newsRows: newsRows.length, skipped
+    total,
+    inserted: newsMap.size,  // 参考値（crawl_logs に inserted があれば入る）
+    skipped
   });
 }
 
