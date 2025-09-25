@@ -62,39 +62,56 @@
 </head>
 <body>
   <!-- Header -->
-  <header class="site-header">
-    <div class="site-header__left">
-      <a class="brand" href="/index.html">
-        <svg class="brand__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-logo"></use></svg>
-        <span class="brand__title">Zoo Baby Information Site</span>
-      </a>
-    </div>
-    <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り">
-        <svg class="icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-heart"></use></svg>
-      </button>
-    </div>
-  </header>
+<header class="site-header site-header--candy">
+  <div class="site-header__left">
+    <a class="brand" href="./index.html" aria-label="ホームへ">
+      <!-- 絵文字ロゴ（SPで表示） -->
+      <span class="brand__emoji" aria-hidden="true">🐾</span>
+      <!-- 既存SVGロゴ（PCで表示のまま） -->
+      <svg class="brand__icon" aria-hidden="true" focusable="false">
+        <use href="./assets/icons/icons.svg#icon-logo"></use>
+      </svg>
+      <!-- 日本語ブランド名 -->
+      <span class="brand__title" title="動物園ベビー情報">どうベビ</span>
+    </a>
+  </div>
 
-  <!-- Tabbar -->
-  <nav class="tabbar" aria-label="メイン">
-    <a class="tabbar__link" href="/index.html" aria-label="ホーム">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-home"></use></svg>
-      <span class="tabbar__text">ホーム</span>
-    </a>
-    <a class="tabbar__link" href="/news/index.html" aria-label="ニュース">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-news"></use></svg>
-      <span class="tabbar__text">ニュース</span>
-    </a>
-    <a class="tabbar__link is-active" href="/babies/index.html" aria-current="page" aria-label="赤ちゃん">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-baby"></use></svg>
-      <span class="tabbar__text">赤ちゃん</span>
-    </a>
-    <a class="tabbar__link" href="/calendar/index.html" aria-label="カレンダー">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-calendar"></use></svg>
-      <span class="tabbar__text">カレンダー</span>
-    </a>
-  </nav>
+  <div class="site-header__right">
+    <!-- お気に入り（既存） -->
+    <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録">
+      <span class="emoji-icon" aria-hidden="true">💗</span>
+    </button>
+    <!-- 検索（新規） -->
+    <button class="pill-btn search-btn" aria-label="検索" title="検索">
+      <span class="emoji-icon" aria-hidden="true">🔍</span>
+    </button>
+    <!-- お知らせ（新規） -->
+    <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ">
+      <span class="emoji-icon" aria-hidden="true">🔔</span>
+      <span class="badge" aria-hidden="true">!</span>
+    </button>
+  </div>
+</header>
+
+ <!-- Global Tabbar（SP/PCともスタック型＋絵文字） -->
+<nav class="tabbar tabbar--stack" aria-label="メイン">
+  <a class="tabbar__link" href="./index.html" aria-label="ホーム" aria-current="page" title="ホーム">
+    <span class="tab-emoji" aria-hidden="true">🏠</span>
+    <span class="tabbar__text">ホーム</span>
+  </a>
+  <a class="tabbar__link" href="./news/index.html" aria-label="ニュース" title="ニュース">
+    <span class="tab-emoji" aria-hidden="true">📰</span>
+    <span class="tabbar__text">ニュース</span>
+  </a>
+  <a class="tabbar__link is-active" href="./babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
+    <span class="tab-emoji" aria-hidden="true">🍼</span>
+    <span class="tabbar__text">赤ちゃん</span>
+  </a>
+  <a class="tabbar__link" href="./calendar/index.html" aria-label="カレンダー" title="カレンダー">
+    <span class="tab-emoji" aria-hidden="true">📅</span>
+    <span class="tabbar__text">カレンダー</span>
+  </a>
+</nav>
 
   <div class="container hero">
     <h1 class="page-title">赤ちゃん一覧</h1>
