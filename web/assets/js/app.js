@@ -1,20 +1,140 @@
 // assets/js/app.js
-// Global enhancements shared across pages (home / news / babies / calendar)
+// Global enhancements + Supabase連携（home / news / babies / calendar）
+// babies.zoo_id を用いて zoos.name を解決
 
 (() => {
+  /* =========================
+   * 基本ユーティリティ
+   * ========================= */
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const ymd  = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  const stripTime = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const endOfDay  = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999);
 
-  // ===== Demo data (replace with real source later) =====
-  // birthday: "YYYY-MM-DD"
-  const BABIES = [
-    { id:'panda-01', name:'シャオシャオ', species:'ジャイアントパンダ', zoo:'上野動物園',        emoji:'🐼', birthday:'2025-09-27' },
-    { id:'hippo-02', name:'モモ',        species:'コビトカバ',        zoo:'いしかわ動物園',    emoji:'🦛', birthday:'2025-09-28' },
-    { id:'redp-03', name:'ココ',        species:'レッサーパンダ',    zoo:'市川市動植物園',    emoji:'🦊', birthday:'2025-10-03' },
-    { id:'peng-04', name:'ピコ',        species:'フンボルトペンギン', zoo:'名古屋港水族館',    emoji:'🐧', birthday:'2025-09-07' }, // 過去
-  ];
+  /* =========================
+   * Supabase REST 設定
+   * ========================= */
+  const SUPABASE_URL = "https://hvhpfrksyytthupboaeo.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY";
 
-  document.addEventListener('DOMContentLoaded', () => {
+  async function sbFetch(path){
+    const url = `${SUPABASE_URL}${path}`;
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        Prefer: "count=none"
+      },
+      method: "GET",
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(()=> "");
+      throw new Error(`Supabase fetch failed (${res.status}): ${text || url}`);
+    }
+    return res.json();
+  }
+
+  /* =========================
+   * データ取得：babies / zoos
+   * ========================= */
+
+  // メモリキャッシュ：zoo_id -> {id,name,prefecture,city,website}
+  const zooCache = new Map();
+
+  /**
+   * 必要なzoo_idだけを /zoos からまとめて取得してキャッシュする
+   * @param {string[]} ids
+   * @returns {Promise<void>}
+   */
+  async function ensureZoos(ids){
+    const needed = ids.filter(id => id && !zooCache.has(id));
+    if (needed.length === 0) return;
+
+    // `id=in.(id1,id2,...)` を作成（URLエンコード必要）
+    const inList = `(${needed.map(encodeURIComponent).join(',')})`;
+    const path = `/rest/v1/zoos?select=id,name,prefecture,city,website&id=in.${encodeURIComponent(inList)}`;
+
+    const rows = await sbFetch(path);
+    for (const z of rows) {
+      zooCache.set(z.id, z);
+    }
+
+    // 取得できなかったIDも空で埋めておく（無限リトライ防止）
+    needed.forEach(id => { if (!zooCache.has(id)) zooCache.set(id, null); });
+  }
+
+  /**
+   * babiesレコード配列に zoo 情報を付与（zoo: {name,...}）
+   */
+  async function attachZooInfo(babies){
+    const ids = Array.from(new Set(babies.map(b => b.zoo_id).filter(Boolean)));
+    await ensureZoos(ids);
+    return babies.map(b => ({
+      ...b,
+      zoo: b.zoo_id ? zooCache.get(b.zoo_id) || null : null
+    }));
+  }
+
+  /**
+   * 指定年月（1-12）の誕生日を取得（昇順）
+   */
+  async function loadBabiesByMonth(year, month1to12){
+    const start = `${year}-${pad2(month1to12)}-01`;
+    const endDate = new Date(year, month1to12, 1); // 翌月1日
+    const end   = `${endDate.getFullYear()}-${pad2(endDate.getMonth()+1)}-01`;
+
+    const query = `/rest/v1/babies` +
+      `?select=id,name,species,birthday,thumbnail_url,zoo_id` +
+      `&birthday=gte.${encodeURIComponent(start)}` +
+      `&birthday=lt.${encodeURIComponent(end)}` +
+      `&order=birthday.asc` +
+      `&limit=1000`;
+
+    const rows = await sbFetch(query);
+    return attachZooInfo(rows);
+  }
+
+  /**
+   * 週末（今週の土〜日）の誕生日を取得。無ければ今日以降の直近2件。
+   */
+  async function loadWeekendOrSoonest(){
+    const now = new Date();
+    const day = now.getDay(); // 0=日
+    const sat = new Date(now); sat.setDate(now.getDate() + ((6 - day + 7) % 7));
+    const sun = new Date(sat); sun.setDate(sat.getDate() + 1);
+
+    const satStr = ymd(stripTime(sat));
+    const sunNext = new Date(sun); sunNext.setDate(sunNext.getDate() + 1); // exclusive
+    const sunNextStr = ymd(stripTime(sunNext));
+
+    const weekendQ = `/rest/v1/babies` +
+      `?select=id,name,species,birthday,thumbnail_url,zoo_id` +
+      `&birthday=gte.${encodeURIComponent(satStr)}` +
+      `&birthday=lt.${encodeURIComponent(sunNextStr)}` +
+      `&order=birthday.asc` +
+      `&limit=10`;
+
+    let rows = await sbFetch(weekendQ);
+    if (!rows || rows.length === 0) {
+      const todayStr = ymd(stripTime(now));
+      const soonQ = `/rest/v1/babies` +
+        `?select=id,name,species,birthday,thumbnail_url,zoo_id` +
+        `&birthday=gte.${encodeURIComponent(todayStr)}` +
+        `&order=birthday.asc` +
+        `&limit=2`;
+      rows = await sbFetch(soonQ);
+    }
+    return attachZooInfo(rows || []);
+  }
+
+  /* =========================
+   * 初期化
+   * ========================= */
+  document.addEventListener('DOMContentLoaded', async () => {
     setActiveTabbarLink();
     headerOnScrollCompact();
     improveExternalUseHref();
@@ -22,33 +142,25 @@
     reduceMotionGuard();
     autoSetTabbarTitles();
 
-    // Home-only widgets (guarded by element existence)
-    mountHeroWeekend();
-    mountCalendar(new Date());
+    // Home-only widgets
+    await mountHeroWeekend();       // 週末 or 直近
+    await mountCalendar(new Date()); // 今月
     bindMonthNav();
     bindLike();
   });
 
-  /**
-   * Normalize path:
-   * - Resolve relative href to absolute URL
-   * - Trim trailing slash and resolve to /index.html
-   * - Collapse multiple slashes
-   */
+  /* =========================
+   * ナビ／A11y関連
+   * ========================= */
+
   function normalizePath(inputHref) {
     try {
       const abs = new URL(inputHref, location.href);
       let p = abs.pathname;
-
-      // collapse duplicate slashes
       p = p.replace(/\/{2,}/g, '/');
-
-      // if ends with '/', treat as '/index.html'
       if (p.endsWith('/')) p += 'index.html';
-
       return p;
     } catch {
-      // fallback: best-effort string ops
       let p = String(inputHref || '');
       p = p.replace(/\/{2,}/g, '/');
       if (/\/$/.test(p)) p += 'index.html';
@@ -56,71 +168,45 @@
     }
   }
 
-  /**
-   * Highlight active tabbar link based on current normalized path.
-   * No page-specific hacks; works with ../ relative hrefs as well.
-   */
   function setActiveTabbarLink() {
     const current = normalizePath(location.pathname);
-
     const links = $$('.tabbar .tabbar__link');
     if (!links.length) return;
-
-    // clear all first
     links.forEach(a => {
       a.classList.remove('is-active');
       a.removeAttribute('aria-current');
     });
-
-    // find exact match by normalized path
     let matched = null;
     for (const a of links) {
       const href = a.getAttribute('href');
       if (!href) continue;
       const target = normalizePath(href);
-      if (target === current) {
-        matched = a;
-        break;
-      }
+      if (target === current) { matched = a; break; }
     }
-
-    // if nothing matched, try a loose fallback for home
     if (!matched) {
       for (const a of links) {
         const href = a.getAttribute('href') || '';
-        if (/(\.|\/)index\.html$/.test(href) && /\/index\.html$/.test(current)) {
-          matched = a;
-          break;
-        }
+        if (/(\.|\/)index\.html$/.test(href) && /\/index\.html$/.test(current)) { matched = a; break; }
       }
     }
-
     if (matched) {
       matched.classList.add('is-active');
       matched.setAttribute('aria-current', 'page');
     }
   }
 
-  /**
-   * Compact header when scrolling down a bit (mobile-friendly).
-   */
   function headerOnScrollCompact() {
     const header = $('.site-header');
     if (!header) return;
-
     const onScroll = () => {
       const scrolled = window.scrollY > 6;
       header.classList.toggle('is-scrolled', scrolled);
       document.body.classList.toggle('header-scrolled', scrolled);
     };
-
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  /**
-   * A11y: add focus styles on touch (iOS Safari sometimes drops :focus-visible)
-   */
   function a11yTouchFocus() {
     document.addEventListener(
       'touchstart',
@@ -133,9 +219,6 @@
     );
   }
 
-  /**
-   * Respect prefers-reduced-motion: avoid JS smooth-scroll if any is used later
-   */
   function reduceMotionGuard() {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (media.matches) {
@@ -143,10 +226,6 @@
     }
   }
 
-  /**
-   * External SVG <use> robustness:
-   * Ensures `href` is set (not just xlink:href) and re-assigns to trigger Safari repaint.
-   */
   function improveExternalUseHref() {
     $$('use').forEach((u) => {
       const href = u.getAttribute('href') || u.getAttribute('xlink:href');
@@ -154,9 +233,6 @@
     });
   }
 
-  /**
-   * Tabbar labels: set title attr so truncated text shows full on long-press/hover.
-   */
   function autoSetTabbarTitles() {
     $$('.tabbar__link').forEach((link) => {
       const label = $('.tabbar__text', link);
@@ -164,66 +240,77 @@
     });
   }
 
-  /* ====== 週末誕生日：ヒーロー ====== */
-  function isWithinThisWeekend(date){
-    const now = new Date(); // ローカル
-    const day = now.getDay(); // 0=日
-    const sat = new Date(now); sat.setDate(now.getDate() + ((6 - day + 7) % 7));
-    const sun = new Date(sat); sun.setDate(sat.getDate() + 1);
-    return date >= stripTime(sat) && date <= endOfDay(sun);
-  }
-  function stripTime(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
-  function endOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999); }
+  /* =========================
+   * ヒーロー（今週末 or 直近）
+   * ========================= */
 
-  function mountHeroWeekend(){
+  async function mountHeroWeekend(){
     const wrap = $('#hero-list'); if(!wrap) return;
     wrap.innerHTML = '';
-    const items = BABIES.filter(b => isWithinThisWeekend(new Date(b.birthday)));
-    if(items.length === 0){
-      // 週末該当が無ければ、直近の1〜2件を案内
-      const soon = BABIES
-        .map(b => ({...b, d:new Date(b.birthday)}))
-        .filter(x => x.d >= stripTime(new Date()))
-        .sort((a,b)=>a.d-b.d)
-        .slice(0,2);
-      wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">今週末のお誕生日はありません。直近の赤ちゃんをご紹介します。</p>`);
-      soon.forEach(addHeroCard);
-    }else{
-      items.slice(0,2).forEach(addHeroCard);
+    let items = [];
+    try {
+      items = await loadWeekendOrSoonest();
+    } catch(e){
+      console.error(e);
+      wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">データの読み込みに失敗しました。</p>`);
+      return;
     }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">今週末・直近のお誕生日データが見つかりませんでした。</p>`);
+      return;
+    }
+
+    items.slice(0,2).forEach(addHeroCard);
   }
+
   function addHeroCard(b){
-    const daysLeft = Math.ceil((stripTime(new Date(b.birthday)) - stripTime(new Date())) / 86400000);
-    const meta = daysLeft===0 ? '今日お誕生日！' : (daysLeft>0 ? `あと${daysLeft}日` : 'お誕生日は過ぎました');
+    const today = stripTime(new Date());
+    const bd = stripTime(new Date(b.birthday));
+    const diff = Math.ceil((bd - today) / 86400000);
+    const meta = diff===0 ? '今日お誕生日！' : (diff>0 ? `あと${diff}日` : 'お誕生日は過ぎました');
+    const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
     const el = document.createElement('div');
     el.className = 'hero-card';
     el.setAttribute('role','listitem');
     el.innerHTML = `
-      <div class="hero-card__avatar" aria-hidden="true">${b.emoji}</div>
+      <div class="hero-card__avatar" aria-hidden="true">${pickEmoji(b)}</div>
       <div>
-        <p class="hero-card__title">${b.name}（${b.species}）</p>
-        <p class="hero-card__meta">${b.zoo} ｜ 誕生日 ${b.birthday} ｜ ${meta}</p>
+        <p class="hero-card__title">${esc(b.name)}（${esc(b.species)}）</p>
+        <p class="hero-card__meta">誕生日 ${esc(b.birthday)}${zooLabel} ｜ ${meta}</p>
       </div>
-      <button class="hero-card__cta" type="button" aria-label="${b.name}の詳細を見る">見る</button>
+      <button class="hero-card__cta" type="button" aria-label="${esc(b.name)}の詳細を見る">見る</button>
     `;
     $('#hero-list').appendChild(el);
   }
 
-  /* ====== カレンダー ====== */
+  /* =========================
+   * カレンダー
+   * ========================= */
   let currentMonth = new Date();
-  function mountCalendar(date){
-    const grid = $('#cal-grid'); if(!grid) return;
 
+  async function mountCalendar(date){
+    const grid = $('#cal-grid'); if(!grid) return;
     currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     grid.innerHTML = '';
 
     const y = currentMonth.getFullYear();
-    const m = currentMonth.getMonth();
+    const m = currentMonth.getMonth(); // 0-11
+
+    // 当月分をAPIで読み込み（zoo情報を同時解決）
+    let monthly = [];
+    try{
+      monthly = await loadBabiesByMonth(y, m+1);
+    }catch(e){
+      console.error(e);
+      monthly = [];
+    }
+
+    // 週の開始インデックス・最終日
     const first = new Date(y,m,1);
     const startIdx = first.getDay();
     const lastDate = new Date(y, m + 1, 0).getDate();
 
-    // 過去/未来の判定用
     const today = stripTime(new Date());
 
     // 空白（前月分）
@@ -242,17 +329,21 @@
       cell.setAttribute('role','gridcell');
       cell.innerHTML = `<span class="cal-day__date">${day}</span>`;
 
-      // 誕生日がある日
-      const hits = BABIES.filter(b => {
+      // 誕生日がある日（当月データのみでOK）
+      const hits = monthly.filter(b => {
         const d = new Date(b.birthday);
         return d.getFullYear()===y && d.getMonth()===m && d.getDate()===day;
       });
+
       if(hits.length){
         const dot = document.createElement('span');
         dot.className = 'cal-day__dot';
         if(stripTime(cellDate) < today) dot.classList.add('cal-day__dot--past');
         cell.appendChild(dot);
-        cell.title = hits.map(h=>`${h.name}（${h.species}）`).join(' / ');
+        cell.title = hits.map(h=>{
+          const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
+          return `${h.name}（${h.species}${zoo}）`;
+        }).join(' / ');
         cell.style.cursor = 'pointer';
         cell.addEventListener('click', () => openDay(hits, cellDate));
         cell.setAttribute('aria-label', `${y}年${m+1}月${day}日、${hits.length}件の誕生日`);
@@ -265,25 +356,44 @@
     // タイトル更新
     const calTitle = $('#cal-title');
     if (calTitle) calTitle.textContent = `${y}年${m+1}月の誕生日カレンダー`;
+
+    // 当月に該当が無い場合の案内
+    const old = document.getElementById('cal-empty-note');
+    if (old) old.remove();
+    if (monthly.length === 0){
+      const p = document.createElement('p');
+      p.id = 'cal-empty-note';
+      p.style.color = '#7a6d72';
+      p.style.fontSize = '13px';
+      p.textContent = 'この月のお誕生日は登録がありません。';
+      grid.parentNode.appendChild(p);
+    }
   }
+
   function openDay(hits, dateObj){
     const yyyy = dateObj.getFullYear(), mm = dateObj.getMonth()+1, dd = dateObj.getDate();
-    const list = hits.map(h=>`・${h.name}（${h.species} / ${h.zoo}）`).join('\n');
+    const list = hits.map(h=>{
+      const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
+      return `・${h.name}（${h.species}${zoo}）`;
+    }).join('\n');
     alert(`${yyyy}年${mm}月${dd}日の誕生日\n\n${list}`);
   }
+
   function bindMonthNav(){
     const prev = $('#prev-month'), next = $('#next-month');
-    if(prev) prev.addEventListener('click', ()=> {
+    if(prev) prev.addEventListener('click', async ()=> {
       const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth()-1, 1);
-      mountCalendar(d);
+      await mountCalendar(d);
     });
-    if(next) next.addEventListener('click', ()=> {
+    if(next) next.addEventListener('click', async ()=> {
       const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 1);
-      mountCalendar(d);
+      await mountCalendar(d);
     });
   }
 
-  /* ====== お気に入り（トップ保存） ====== */
+  /* =========================
+   * お気に入り（トップ保存）
+   * ========================= */
   function bindLike(){
     const btn = document.querySelector('.like-btn');
     if (!btn) return;
@@ -298,11 +408,52 @@
       const on = !(localStorage.getItem(KEY)==='1');
       localStorage.setItem(KEY, on ? '1':'0');
       set(on);
-      // 小さなアニメ（reduced-motionはCSS側で抑制）
       btn.animate(
         [{transform:'scale(1)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],
         {duration:240,easing:'ease-out'}
       );
     }, {passive:false});
   }
+
+  /* =========================
+   * 表示補助（emoji選定/エスケープ）
+   * ========================= */
+  function pickEmoji(baby){
+    const m = (baby.species || '').toLowerCase();
+    if (m.includes('パンダ') || m.includes('panda')) return '🐼';
+    if (m.includes('カバ')   || m.includes('hippo')) return '🦛';
+    if (m.includes('ペンギン')|| m.includes('peng')) return '🐧';
+    if (m.includes('トラ')   || m.includes('tiger')) return '🐯';
+    if (m.includes('ライオン')|| m.includes('lion'))  return '🦁';
+    if (m.includes('キリン') || m.includes('giraffe'))return '🦒';
+    if (m.includes('シロクマ')|| m.includes('ホッキョクグマ')|| m.includes('polar')) return '🐻‍❄️';
+    if (m.includes('レッサーパンダ')|| m.includes('red panda')) return '🦊';
+    if (m.includes('コアラ')|| m.includes('koala')) return '🐨';
+    if (m.includes('オカピ')|| m.includes('okapi')) return '🦓';
+    return '🐾';
+  }
+
+  function esc(s){
+    return String(s ?? '')
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#39;');
+  }
+
+  /* =========================
+   *（任意）月移動の下限/上限をつけたい場合
+   * =========================
+  // const MIN_MONTH = new Date(2023, 0, 1);   // 2023-01
+  // const MAX_MONTH = new Date(2026, 11, 1);  // 2026-12
+  // function sameYM(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth(); }
+  // function clampToYM(d){
+  //   const x = new Date(d.getFullYear(), d.getMonth(), 1);
+  //   if (x < MIN_MONTH) return new Date(MIN_MONTH);
+  //   if (x > MAX_MONTH) return new Date(MAX_MONTH);
+  //   return x;
+  // }
+  */
+
 })();
