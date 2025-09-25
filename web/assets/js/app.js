@@ -417,13 +417,15 @@
     if (text.includes('パンダ') || text.includes('panda')) return '🐼';
     if (text.includes('カバ')   || text.includes('hippo')) return '🦛';
     if (text.includes('ペンギン')|| text.includes('peng')) return '🐧';
-    if (text.includes('トラ')   || text.includes('tiger')) return '🐯';
+    if (text.includes('トラ')   || text.includes('tiger')|| text.includes('タイガー')) return '🐯';
     if (text.includes('ライオン')|| text.includes('lion'))  return '🦁';
     if (text.includes('キリン') || text.includes('giraffe'))return '🦒';
     if (text.includes('シロクマ')|| text.includes('ホッキョクグマ')|| text.includes('polar')) return '🐻‍❄️';
     if (text.includes('コアラ') || text.includes('koala')) return '🐨';
     if (text.includes('オカピ') || text.includes('okapi')) return '🦓';    
-    if (text.includes('ゾウ') || text.includes('elephant')) return '🐘';
+    if (text.includes('ゾウ') || text.includes('elephant')) return '🐘'；    
+    if (text.includes('サイ') || text.includes('rhinoceros')) return '🦏';    
+
     return '🐾';
   }
 
