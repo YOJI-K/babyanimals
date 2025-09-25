@@ -1,11 +1,9 @@
 // assets/js/app.js
 // Supabase連携版：ヒーロー/カレンダーともに「表示中の年・月に誕生日を迎える 0〜3歳」を表示
-// - ヒーロー：当月の0〜3歳（最大6件）※見出しを「今月お誕生日の赤ちゃん」に更新
-// - カレンダー：当月の0〜3歳を日付セルに年齢バッジで表示（複数いる日は最大2つ＋“+N”）
-// - 月別リスト：当月0〜3歳をカードで列挙（#js-birthdayList がある場合）
-// - zoo_id を用いて /zoos から name を取得し添付（メモリキャッシュ）
-// - ヘッダー：検索/お知らせの軽い連携、likeボタンはローカルストレージで保持（UIだけ）
-// 依存なし（バニラJS）
+// - TOPヒーロー：bday-card（カレンダー下部リストと完全共通UI）で今月0〜3歳を表示
+// - カレンダー：0〜3歳の年齢バッジ（日付セル）＋ 当月リストは共有レンダラーで描画
+// - zoo_id を用いて /zoos から name を取得（メモリキャッシュ）
+// - ヘッダー：検索/お知らせの軽い連携、likeボタンはローカルストレージ（UIのみ）
 
 (() => {
   /* =========================
@@ -15,7 +13,6 @@
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const pad2 = (n) => String(n).padStart(2, '0');
   const stripTime = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const ymd = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 
   /* =========================
    * Supabase REST 設定
@@ -45,9 +42,8 @@
   /* =========================
    * babies / zoos 取得
    * ========================= */
-
-  // zoo_id -> zoo のメモリキャッシュ
-  const zooCache = new Map();
+  const zooCache = new Map();           // zoo_id -> zoo
+  const monthCache = new Map();         // `${Y}-${M}` -> items（0〜3歳）
 
   async function ensureZoos(ids){
     const need = ids.filter(id => id && !zooCache.has(id));
@@ -65,9 +61,11 @@
     return babies.map(b => ({ ...b, zoo: b.zoo_id ? (zooCache.get(b.zoo_id) || null) : null }));
   }
 
-  // 指定の年Y・月Mに“誕生日を迎える”0〜3歳を取得
-  // → (Y-3..Y)年の同月（M）を OR で束ねて取得 → age=Y - birthYear を算出 → 0..3 に限定
+  // 指定の年Y・月Mに“誕生日を迎える”0〜3歳を取得（Y-3..Y の同月をORで取得）
   async function loadMonthAges0to3(Y, M_1to12){
+    const key = `${Y}-${M_1to12}`;
+    if (monthCache.has(key)) return monthCache.get(key);
+
     const ranges = [];
     for (let dy = 3; dy >= 0; dy--) {
       const year = Y - dy;
@@ -81,20 +79,18 @@
     const rows = await sbFetch(base);
     const withZoo = await attachZooInfo(rows);
 
-    // 当年Yでの年齢を付与し、0..3 のみ返す
     const enriched = withZoo.map(b => {
       const bd = new Date(b.birthday);
-      const age = Y - bd.getFullYear();
-      return { ...b, age, day: bd.getDate(), month: bd.getMonth()+1 };
-    }).filter(b => b.age >= 0 && b.age <= 3);
+      return { ...b, age: Y - bd.getFullYear(), day: bd.getDate(), month: bd.getMonth()+1 };
+    }).filter(b => b.age >= 0 && b.age <= 3)
+      .sort((a,b) => a.day - b.day || (a.name || '').localeCompare(b.name || '', 'ja'));
 
-    // 日付→名前で安定ソート
-    enriched.sort((a,b) => a.day - b.day || (a.name || '').localeCompare(b.name || '', 'ja'));
+    monthCache.set(key, enriched);
     return enriched;
   }
 
   /* =========================
-   * 初期化
+   * DOM 初期化
    * ========================= */
   document.addEventListener('DOMContentLoaded', async () => {
     setActiveTabbarLink();
@@ -104,16 +100,44 @@
     reduceMotionGuard();
     autoSetTabbarTitles();
 
-    // ヒーロー：今月0〜3歳
+    // TOPヒーロー（今月 0〜3歳）※存在時のみ
     await mountHeroThisMonth();
 
-    // カレンダー（今月）：0〜3歳の年齢バッジ & 月別リスト
+    // カレンダー（今月）※存在時のみ
     await mountCalendar(new Date());
 
-    bindMonthNav();
+    bindMonthNav();    // カレンダーの月移動（存在時のみ）
     bindLike();
     bindHeaderActions();
   });
+
+  /* =========================
+   * 共通レンダラー：bday-card
+   * ========================= */
+  function renderMonthlyCards(listEl, items){
+    listEl.innerHTML = '';
+    if (!items?.length){
+      listEl.insertAdjacentHTML('beforeend',
+        `<p style="color:#6b6b6b;font-size:13px;margin:0">今月のお誕生日（0〜3歳）の登録がありません。</p>`);
+      return;
+    }
+    items.forEach(b => {
+      const ageText = b.age === 0 ? '今年で0歳（はじめての誕生日）' : `今年で${b.age}歳`;
+      const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
+      const card = document.createElement('div');
+      card.className = 'bday-card';
+      card.setAttribute('role','listitem');
+      card.innerHTML = `
+        <div class="bday-card__avatar" aria-hidden="true">${pickEmoji(b)}</div>
+        <div>
+          <p class="bday-card__title">${esc(b.name)}（${esc(b.species)}）</p>
+          <p class="bday-card__meta">誕生日 ${esc(b.birthday)}${zooLabel}</p>
+        </div>
+        <span class="bday-chip">${b.age}歳</span>
+      `;
+      listEl.appendChild(card);
+    });
+  }
 
   /* =========================
    * ナビ／A11y
@@ -189,77 +213,47 @@
   }
 
   /* =========================
-   * ヒーロー（今月 0〜3歳）
+   * TOPヒーロー（今月 0〜3歳）※共通レンダラーを使用
    * ========================= */
   async function mountHeroThisMonth(){
-    const wrap = $('#hero-list'); if (!wrap) return;
-    wrap.innerHTML = '';
+    const listEl = $('#home-monthly-list'); if (!listEl) return; // TOP以外はスキップ
 
-    // 見出しを更新（存在する場合）
-    const heroTitle = $('#hero-title');
-    if (heroTitle) heroTitle.textContent = '今月お誕生日の赤ちゃん';
-    const heroDesc = document.querySelector('.hero__head .panel-desc');
-    if (heroDesc) heroDesc.textContent = '0〜3歳までの今月生まれを表示します';
-
+    // 見出しの整合
     const now = new Date();
-    const Y = now.getFullYear();
-    const M = now.getMonth() + 1;
+    const Y = now.getFullYear(); const M = now.getMonth() + 1;
+    const heroTitle = $('#hero-title'); if (heroTitle) heroTitle.textContent = '今月お誕生日の赤ちゃん（0〜3歳）';
+    const heroMonth = $('#hero-month-label'); if (heroMonth) heroMonth.textContent = `${Y}年${M}月 の誕生日`;
 
+    // データ取得（0〜3歳・今月）
     let items = [];
-    try {
-      items = await loadMonthAges0to3(Y, M);
-    } catch(e){
-      console.error(e);
-      wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">データの読み込みに失敗しました。</p>`);
-      return;
-    }
+    try { items = await loadMonthAges0to3(Y, M); }
+    catch(e){ console.error(e); }
 
-    if (!items.length){
-      wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">今月お誕生日の登録がありません。</p>`);
-      return;
-    }
+    // 共通レンダラーで描画
+    renderMonthlyCards(listEl, items);
 
-    items.slice(0,6).forEach(addHeroCard);
-  }
-
-  function addHeroCard(b){
-    const ageText = b.age === 0 ? '今年で0歳（はじめての誕生日）' : `今年で${b.age}歳`;
-    const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
-    const el = document.createElement('div');
-    el.className = 'hero-card';
-    el.setAttribute('role','listitem');
-    el.innerHTML = `
-      <div class="hero-card__avatar" aria-hidden="true">${pickEmoji(b)}</div>
-      <div>
-        <p class="hero-card__title">${esc(b.name)}（${esc(b.species)}）</p>
-        <p class="hero-card__meta">誕生日 ${esc(b.birthday)}${zooLabel} ｜ ${ageText}</p>
-      </div>
-      <button class="hero-card__cta" type="button" aria-label="${esc(b.name)}の詳細を見る">見る</button>
-    `;
-    $('#hero-list').appendChild(el);
+    // CTA：当月へ
+    const toCal = $('#to-calendar');
+    if (toCal) toCal.href = `./calendar/index.html?y=${Y}&m=${pad2(M)}`;
   }
 
   /* =========================
-   * カレンダー（0〜3歳の年齢バッジ & 月別リスト）
+   * カレンダー（年齢バッジ & 当月リスト=共有レンダラー）
    * ========================= */
   let currentMonth = new Date();
 
   async function mountCalendar(date){
-    const grid = $('#cal-grid'); if (!grid) return;
+    const grid = $('#cal-grid'); if (!grid) return; // TOP等にcal-gridなければスキップ
+
     currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     grid.innerHTML = '';
 
     const Y = currentMonth.getFullYear();
     const M = currentMonth.getMonth() + 1;
 
-    // 当年Yの当月Mに“誕生日を迎える” 0..3歳を取得
     let monthly = [];
-    try{
-      monthly = await loadMonthAges0to3(Y, M);
-    }catch(e){
-      console.error(e);
-      monthly = [];
-    }
+    try { monthly = await loadMonthAges0to3(Y, M); }
+    catch(e){ console.error(e); monthly = []; }
 
     // タイトル更新
     const calTitle = $('#cal-title');
@@ -287,39 +281,13 @@
       cell.setAttribute('role','gridcell');
       cell.innerHTML = `<span class="cal-day__date">${day}</span>`;
 
-      // 当月のその日に誕生日を迎える 0..3歳
       const hits = monthly.filter(b => b.day === day);
-
       if (hits.length){
-        // 年齢バッジ（最大2つ＋+N）
         const badgeWrap = document.createElement('div');
-        badgeWrap.style.position = 'absolute';
-        badgeWrap.style.bottom = '6px';
-        badgeWrap.style.left = '50%';
-        badgeWrap.style.transform = 'translateX(-50%)';
-        badgeWrap.style.display = 'flex';
-        badgeWrap.style.gap = '4px';
-        badgeWrap.setAttribute('aria-hidden','true');
-
-        const makeBadge = (age, past) => {
-          const b = document.createElement('span');
-          b.textContent = String(age);
-          b.style.display = 'inline-grid';
-          b.style.placeItems = 'center';
-          b.style.width = '16px';
-          b.style.height = '16px';
-          b.style.borderRadius = '999px';
-          b.style.fontSize = '11px';
-          b.style.fontWeight = '900';
-          b.style.lineHeight = '1';
-          b.style.background = past ? '#96a0ad' : 'var(--pink-400)';
-          b.style.color = '#fff';
-          b.style.boxShadow = '0 1px 0 rgba(0,0,0,.08)';
-          return b;
-        };
-
+        badgeWrap.className = 'badge-wrap';
+        // 過去日はグレー
         const isPast = stripTime(cellDate) < today;
-        hits.slice(0,2).forEach(h => badgeWrap.appendChild(makeBadge(h.age, isPast)));
+        hits.slice(0,2).forEach(h => badgeWrap.appendChild(makeAgeBadge(h.age, isPast)));
         if (hits.length > 2){
           const more = document.createElement('span');
           more.textContent = `+${hits.length - 2}`;
@@ -329,7 +297,7 @@
         }
         cell.appendChild(badgeWrap);
 
-        // アクセシビリティ・ツールチップ用
+        // a11yとツールチップ
         const ariaAges = hits.map(h=>`${h.age}歳`).join(', ');
         cell.title = hits.map(h=>{
           const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
@@ -338,56 +306,39 @@
         cell.style.cursor = 'pointer';
         cell.addEventListener('click', () => openDay(hits, cellDate, Y, M, day));
         cell.setAttribute('aria-label', `${Y}年${M}月${day}日、${hits.length}件の誕生日（${ariaAges}）`);
-      }else{
+      } else {
         cell.setAttribute('aria-label', `${Y}年${M}月${day}日`);
       }
 
       grid.appendChild(cell);
     }
 
-    // 月別リストも更新
+    // 月別リスト（共有レンダラー）
     renderMonthlyList(Y, M, monthly);
+  }
+
+  function makeAgeBadge(age, past){
+    const b = document.createElement('span');
+    b.textContent = String(age);
+    b.className = 'age-badge' + (past ? ' age-badge--past' : '');
+    return b;
   }
 
   function openDay(hits, dateObj, Y, M, D){
     const list = hits.map(h=>{
       const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
-      const ageText = `${h.age}歳`;
-      return `・${h.name}（${h.species}${zoo}）${ageText}`;
+      return `・${h.name}（${h.species}${zoo}）：${h.age}歳`;
     }).join('\n');
     alert(`${Y}年${M}月${D}日の誕生日（0〜3歳）\n\n${list}`);
   }
 
+  // 薄いラッパ：カレンダーの月別リスト（UIは共有レンダラー）
   function renderMonthlyList(Y, M, items){
     const wrap = $('#js-birthdayList');
     if (!wrap) return;
-
-    // 見出しの月ラベル更新
-    const monthLabel = $('#month-label-list');
-    if (monthLabel) monthLabel.textContent = `${Y}年${M}月`;
-
-    wrap.innerHTML = '';
-    if (!items.length){
-      wrap.insertAdjacentHTML('beforeend', `<p style="color:#6b6b6b;font-size:13px">この月のお誕生日は登録がありません（0〜3歳）。</p>`);
-      return;
-    }
-
-    items.forEach(b => {
-      const ageText = b.age === 0 ? '今年で0歳（はじめての誕生日）' : `今年で${b.age}歳`;
-      const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
-      const card = document.createElement('div');
-      card.className = 'bday-card';
-      card.setAttribute('role','listitem');
-      card.innerHTML = `
-        <div class="bday-card__avatar" aria-hidden="true">${pickEmoji(b)}</div>
-        <div>
-          <p class="bday-card__title">${esc(b.name)}（${esc(b.species)}）</p>
-          <p class="bday-card__meta">誕生日 ${esc(b.birthday)}${zooLabel}</p>
-        </div>
-        <span class="bday-chip">${b.age}歳</span>
-      `;
-      wrap.appendChild(card);
-    });
+    const monthLabelEl = $('#month-label-list');
+    if (monthLabelEl) monthLabelEl.textContent = `${Y}年${M}月`;
+    renderMonthlyCards(wrap, items);
   }
 
   function bindMonthNav(){
@@ -404,13 +355,21 @@
       const now = new Date();
       await mountCalendar(new Date(now.getFullYear(), now.getMonth(), 1));
     });
+
+    // URLに ?y=YYYY&m=MM があれば、初期月をそちらへ（カレンダーページ想定）
+    const grid = $('#cal-grid');
+    if (grid) {
+      const sp = new URLSearchParams(location.search);
+      const y = Number(sp.get('y')), m = Number(sp.get('m'));
+      if (y && m) mountCalendar(new Date(y, m - 1, 1));
+    }
   }
 
   /* =========================
    * お気に入り（トップ保存）
    * ========================= */
   function bindLike(){
-    const btn = document.querySelector('.like-btn');
+    const btn = $('.like-btn');
     if (!btn) return;
     const KEY = 'zb_top_fav';
     const set = (on)=>{
@@ -434,16 +393,14 @@
    * ヘッダー：検索/お知らせ
    * ========================= */
   function bindHeaderActions(){
-    // お知らせ：クリックでバッジ消去（簡易）
-    const bell = document.querySelector('.bell-btn');
+    const bell = $('.bell-btn');
     if (bell) {
       bell.addEventListener('click', () => {
         const badge = bell.querySelector('.badge');
         if (badge) badge.remove();
       }, {passive:true});
     }
-    // 検索：現状プレースホルダ
-    const search = document.querySelector('.search-btn');
+    const search = $('.search-btn');
     if (search) {
       search.addEventListener('click', () => {
         alert('検索は準備中です。');
@@ -455,17 +412,17 @@
    * 表示補助
    * ========================= */
   function pickEmoji(baby){
-    const m = (baby.species || '').toLowerCase();
-    if (m.includes('パンダ') || m.includes('panda')) return '🐼';
-    if (m.includes('カバ')   || m.includes('hippo')) return '🦛';
-    if (m.includes('ペンギン')|| m.includes('peng')) return '🐧';
-    if (m.includes('トラ')   || m.includes('tiger')) return '🐯';
-    if (m.includes('ライオン')|| m.includes('lion'))  return '🦁';
-    if (m.includes('キリン') || m.includes('giraffe'))return '🦒';
-    if (m.includes('シロクマ')|| m.includes('ホッキョクグマ')|| m.includes('polar')) return '🐻‍❄️';
-    if (m.includes('レッサーパンダ')|| m.includes('red panda')) return '🦊';
-    if (m.includes('コアラ')|| m.includes('koala')) return '🐨';
-    if (m.includes('オカピ')|| m.includes('okapi')) return '🦓';
+    const text = `${baby?.species || ''}`.toLowerCase();
+    if (text.includes('レッサー') || text.includes('red')) return '🦊';
+    if (text.includes('パンダ') || text.includes('panda')) return '🐼';
+    if (text.includes('カバ')   || text.includes('hippo')) return '🦛';
+    if (text.includes('ペンギン')|| text.includes('peng')) return '🐧';
+    if (text.includes('トラ')   || text.includes('tiger')) return '🐯';
+    if (text.includes('ライオン')|| text.includes('lion'))  return '🦁';
+    if (text.includes('キリン') || text.includes('giraffe'))return '🦒';
+    if (text.includes('シロクマ')|| text.includes('ホッキョクグマ')|| text.includes('polar')) return '🐻‍❄️';
+    if (text.includes('コアラ') || text.includes('koala')) return '🐨';
+    if (text.includes('オカピ') || text.includes('okapi')) return '🦓';
     return '🐾';
   }
 
