@@ -1,6 +1,9 @@
 // assets/js/app.js
-// Global enhancements + Supabase連携（home / news / babies / calendar）
-// babies.zoo_id を用いて zoos.name を解決
+// Supabase連携版：ヒーロー/カレンダーともに「表示中の年・月に誕生日を迎える 0〜3歳」を表示
+// - ヒーロー：当月の0〜3歳（最大6件）
+// - カレンダー：当月の0〜3歳を日付セルに年齢バッジで表示（複数いる日は最大2つ＋“+N”）
+// - zoo_id を用いて /zoos から name 等を取得し添付（メモリキャッシュ）
+// 依存なし（バニラJS）
 
 (() => {
   /* =========================
@@ -9,9 +12,8 @@
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const pad2 = (n) => String(n).padStart(2, '0');
-  const ymd  = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
   const stripTime = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const endOfDay  = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999);
+  const ymd = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 
   /* =========================
    * Supabase REST 設定
@@ -22,14 +24,14 @@
   async function sbFetch(path){
     const url = `${SUPABASE_URL}${path}`;
     const res = await fetch(url, {
+      method: "GET",
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         Prefer: "count=none"
-      },
-      method: "GET",
+      }
     });
     if (!res.ok) {
       const text = await res.text().catch(()=> "");
@@ -39,96 +41,54 @@
   }
 
   /* =========================
-   * データ取得：babies / zoos
+   * babies / zoos 取得
    * ========================= */
 
-  // メモリキャッシュ：zoo_id -> {id,name,prefecture,city,website}
+  // zoo_id -> zoo のメモリキャッシュ
   const zooCache = new Map();
 
-  /**
-   * 必要なzoo_idだけを /zoos からまとめて取得してキャッシュする
-   * @param {string[]} ids
-   * @returns {Promise<void>}
-   */
   async function ensureZoos(ids){
-    const needed = ids.filter(id => id && !zooCache.has(id));
-    if (needed.length === 0) return;
-
-    // `id=in.(id1,id2,...)` を作成（URLエンコード必要）
-    const inList = `(${needed.map(encodeURIComponent).join(',')})`;
+    const need = ids.filter(id => id && !zooCache.has(id));
+    if (!need.length) return;
+    const inList = `(${need.map(encodeURIComponent).join(",")})`;
     const path = `/rest/v1/zoos?select=id,name,prefecture,city,website&id=in.${encodeURIComponent(inList)}`;
-
     const rows = await sbFetch(path);
-    for (const z of rows) {
-      zooCache.set(z.id, z);
-    }
-
-    // 取得できなかったIDも空で埋めておく（無限リトライ防止）
-    needed.forEach(id => { if (!zooCache.has(id)) zooCache.set(id, null); });
+    rows.forEach(z => zooCache.set(z.id, z));
+    need.forEach(id => { if (!zooCache.has(id)) zooCache.set(id, null); });
   }
 
-  /**
-   * babiesレコード配列に zoo 情報を付与（zoo: {name,...}）
-   */
   async function attachZooInfo(babies){
     const ids = Array.from(new Set(babies.map(b => b.zoo_id).filter(Boolean)));
     await ensureZoos(ids);
-    return babies.map(b => ({
-      ...b,
-      zoo: b.zoo_id ? zooCache.get(b.zoo_id) || null : null
-    }));
+    return babies.map(b => ({ ...b, zoo: b.zoo_id ? (zooCache.get(b.zoo_id) || null) : null }));
   }
 
-  /**
-   * 指定年月（1-12）の誕生日を取得（昇順）
-   */
-  async function loadBabiesByMonth(year, month1to12){
-    const start = `${year}-${pad2(month1to12)}-01`;
-    const endDate = new Date(year, month1to12, 1); // 翌月1日
-    const end   = `${endDate.getFullYear()}-${pad2(endDate.getMonth()+1)}-01`;
-
-    const query = `/rest/v1/babies` +
-      `?select=id,name,species,birthday,thumbnail_url,zoo_id` +
-      `&birthday=gte.${encodeURIComponent(start)}` +
-      `&birthday=lt.${encodeURIComponent(end)}` +
-      `&order=birthday.asc` +
-      `&limit=1000`;
-
-    const rows = await sbFetch(query);
-    return attachZooInfo(rows);
-  }
-
-  /**
-   * 週末（今週の土〜日）の誕生日を取得。無ければ今日以降の直近2件。
-   */
-  async function loadWeekendOrSoonest(){
-    const now = new Date();
-    const day = now.getDay(); // 0=日
-    const sat = new Date(now); sat.setDate(now.getDate() + ((6 - day + 7) % 7));
-    const sun = new Date(sat); sun.setDate(sat.getDate() + 1);
-
-    const satStr = ymd(stripTime(sat));
-    const sunNext = new Date(sun); sunNext.setDate(sunNext.getDate() + 1); // exclusive
-    const sunNextStr = ymd(stripTime(sunNext));
-
-    const weekendQ = `/rest/v1/babies` +
-      `?select=id,name,species,birthday,thumbnail_url,zoo_id` +
-      `&birthday=gte.${encodeURIComponent(satStr)}` +
-      `&birthday=lt.${encodeURIComponent(sunNextStr)}` +
-      `&order=birthday.asc` +
-      `&limit=10`;
-
-    let rows = await sbFetch(weekendQ);
-    if (!rows || rows.length === 0) {
-      const todayStr = ymd(stripTime(now));
-      const soonQ = `/rest/v1/babies` +
-        `?select=id,name,species,birthday,thumbnail_url,zoo_id` +
-        `&birthday=gte.${encodeURIComponent(todayStr)}` +
-        `&order=birthday.asc` +
-        `&limit=2`;
-      rows = await sbFetch(soonQ);
+  // 指定の年Y・月Mに“誕生日を迎える”0〜3歳を取得
+  // → (Y-3..Y)年の同月（M）を OR で束ねて取得 → age=Y - birthYear を算出 → 0..3 に限定
+  async function loadMonthAges0to3(Y, M_1to12){
+    const ranges = [];
+    for (let dy = 3; dy >= 0; dy--) {
+      const year = Y - dy;
+      const start = `${year}-${pad2(M_1to12)}-01`;
+      const nextMonthDate = new Date(year, M_1to12, 1); // 翌月1日
+      const end   = `${nextMonthDate.getFullYear()}-${pad2(nextMonthDate.getMonth()+1)}-01`;
+      ranges.push(`and(birthday.gte.${start},birthday.lt.${end})`);
     }
-    return attachZooInfo(rows || []);
+    const orParam = `(${ranges.join(",")})`;
+    const base = `/rest/v1/babies?select=id,name,species,birthday,zoo_id,thumbnail_url&or=${encodeURIComponent(orParam)}&order=birthday.asc&limit=2000`;
+    const rows = await sbFetch(base);
+    const withZoo = await attachZooInfo(rows);
+
+    // 当年Yでの年齢を付与し、0..3 のみ返す
+    const enriched = withZoo.map(b => {
+      const bd = new Date(b.birthday);
+      const age = Y - bd.getFullYear();
+      return { ...b, age };
+    }).filter(b => b.age >= 0 && b.age <= 3);
+
+    // 同日が混在しても扱えるよう、日付で安定ソート
+    enriched.sort((a,b) => new Date(a.birthday) - new Date(b.birthday));
+    return enriched;
   }
 
   /* =========================
@@ -142,27 +102,27 @@
     reduceMotionGuard();
     autoSetTabbarTitles();
 
-    // Home-only widgets
-    await mountHeroWeekend();       // 週末 or 直近
-    await mountCalendar(new Date()); // 今月
+    // ヒーロー：今月0〜3歳
+    await mountHeroThisMonth();
+
+    // カレンダー（今月）：0〜3歳の年齢バッジ
+    await mountCalendar(new Date());
+
     bindMonthNav();
     bindLike();
   });
 
   /* =========================
-   * ナビ／A11y関連
+   * ナビ／A11y
    * ========================= */
-
   function normalizePath(inputHref) {
     try {
       const abs = new URL(inputHref, location.href);
-      let p = abs.pathname;
-      p = p.replace(/\/{2,}/g, '/');
+      let p = abs.pathname.replace(/\/{2,}/g,'/');
       if (p.endsWith('/')) p += 'index.html';
       return p;
     } catch {
-      let p = String(inputHref || '');
-      p = p.replace(/\/{2,}/g, '/');
+      let p = String(inputHref || '').replace(/\/{2,}/g,'/');
       if (/\/$/.test(p)) p += 'index.html';
       return p;
     }
@@ -172,16 +132,12 @@
     const current = normalizePath(location.pathname);
     const links = $$('.tabbar .tabbar__link');
     if (!links.length) return;
-    links.forEach(a => {
-      a.classList.remove('is-active');
-      a.removeAttribute('aria-current');
-    });
+    links.forEach(a => { a.classList.remove('is-active'); a.removeAttribute('aria-current'); });
     let matched = null;
     for (const a of links) {
       const href = a.getAttribute('href');
       if (!href) continue;
-      const target = normalizePath(href);
-      if (target === current) { matched = a; break; }
+      if (normalizePath(href) === current) { matched = a; break; }
     }
     if (!matched) {
       for (const a of links) {
@@ -189,15 +145,11 @@
         if (/(\.|\/)index\.html$/.test(href) && /\/index\.html$/.test(current)) { matched = a; break; }
       }
     }
-    if (matched) {
-      matched.classList.add('is-active');
-      matched.setAttribute('aria-current', 'page');
-    }
+    if (matched) { matched.classList.add('is-active'); matched.setAttribute('aria-current','page'); }
   }
 
   function headerOnScrollCompact() {
-    const header = $('.site-header');
-    if (!header) return;
+    const header = $('.site-header'); if (!header) return;
     const onScroll = () => {
       const scrolled = window.scrollY > 6;
       header.classList.toggle('is-scrolled', scrolled);
@@ -208,22 +160,15 @@
   }
 
   function a11yTouchFocus() {
-    document.addEventListener(
-      'touchstart',
-      (e) => {
-        const btn = e.target.closest('button, a, [tabindex]');
-        if (!btn) return;
-        btn.classList.add('had-touch');
-      },
-      { passive: true }
-    );
+    document.addEventListener('touchstart', (e) => {
+      const btn = e.target.closest('button, a, [tabindex]');
+      if (btn) btn.classList.add('had-touch');
+    }, { passive: true });
   }
 
   function reduceMotionGuard() {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (media.matches) {
-      document.documentElement.style.scrollBehavior = 'auto';
-    }
+    if (media.matches) document.documentElement.style.scrollBehavior = 'auto';
   }
 
   function improveExternalUseHref() {
@@ -241,34 +186,35 @@
   }
 
   /* =========================
-   * ヒーロー（今週末 or 直近）
+   * ヒーロー（今月 0〜3歳）
    * ========================= */
-
-  async function mountHeroWeekend(){
-    const wrap = $('#hero-list'); if(!wrap) return;
+  async function mountHeroThisMonth(){
+    const wrap = $('#hero-list'); if (!wrap) return;
     wrap.innerHTML = '';
+    const now = new Date();
+    const Y = now.getFullYear();
+    const M = now.getMonth() + 1;
+
     let items = [];
     try {
-      items = await loadWeekendOrSoonest();
+      items = await loadMonthAges0to3(Y, M);
     } catch(e){
       console.error(e);
       wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">データの読み込みに失敗しました。</p>`);
       return;
     }
 
-    if (!Array.isArray(items) || items.length === 0) {
-      wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">今週末・直近のお誕生日データが見つかりませんでした。</p>`);
+    if (!items.length){
+      wrap.insertAdjacentHTML('beforeend', `<p aria-live="polite">今月お誕生日の登録がありません。</p>`);
       return;
     }
 
-    items.slice(0,2).forEach(addHeroCard);
+    items.slice(0,6).forEach(addHeroCard);
   }
 
   function addHeroCard(b){
-    const today = stripTime(new Date());
-    const bd = stripTime(new Date(b.birthday));
-    const diff = Math.ceil((bd - today) / 86400000);
-    const meta = diff===0 ? '今日お誕生日！' : (diff>0 ? `あと${diff}日` : 'お誕生日は過ぎました');
+    const bd = new Date(b.birthday);
+    const ageText = b.age === 0 ? '今年で0歳（はじめての誕生日）' : `今年で${b.age}歳`;
     const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
     const el = document.createElement('div');
     el.className = 'hero-card';
@@ -277,7 +223,7 @@
       <div class="hero-card__avatar" aria-hidden="true">${pickEmoji(b)}</div>
       <div>
         <p class="hero-card__title">${esc(b.name)}（${esc(b.species)}）</p>
-        <p class="hero-card__meta">誕生日 ${esc(b.birthday)}${zooLabel} ｜ ${meta}</p>
+        <p class="hero-card__meta">誕生日 ${esc(b.birthday)}${zooLabel} ｜ ${ageText}</p>
       </div>
       <button class="hero-card__cta" type="button" aria-label="${esc(b.name)}の詳細を見る">見る</button>
     `;
@@ -285,35 +231,38 @@
   }
 
   /* =========================
-   * カレンダー
+   * カレンダー（0〜3歳の年齢バッジ）
    * ========================= */
   let currentMonth = new Date();
 
   async function mountCalendar(date){
-    const grid = $('#cal-grid'); if(!grid) return;
+    const grid = $('#cal-grid'); if (!grid) return;
     currentMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     grid.innerHTML = '';
 
-    const y = currentMonth.getFullYear();
-    const m = currentMonth.getMonth(); // 0-11
+    const Y = currentMonth.getFullYear();
+    const M = currentMonth.getMonth() + 1;
 
-    // 当月分をAPIで読み込み（zoo情報を同時解決）
+    // 当年Yの当月Mに“誕生日を迎える” 0..3歳を取得
     let monthly = [];
     try{
-      monthly = await loadBabiesByMonth(y, m+1);
+      monthly = await loadMonthAges0to3(Y, M);
     }catch(e){
       console.error(e);
       monthly = [];
     }
 
-    // 週の開始インデックス・最終日
-    const first = new Date(y,m,1);
-    const startIdx = first.getDay();
-    const lastDate = new Date(y, m + 1, 0).getDate();
+    // タイトル更新
+    const calTitle = $('#cal-title');
+    if (calTitle) calTitle.textContent = `${Y}年${M}月の誕生日カレンダー`;
 
+    // 曜日先頭インデックス・最終日
+    const first = new Date(Y, M-1, 1);
+    const startIdx = first.getDay();
+    const lastDate = new Date(Y, M, 0).getDate();
     const today = stripTime(new Date());
 
-    // 空白（前月分）
+    // 前月プレースホルダ
     for(let i=0;i<startIdx;i++){
       const d = document.createElement('div');
       d.className = 'cal-day cal-day--muted';
@@ -321,41 +270,75 @@
       grid.appendChild(d);
     }
 
-    // 今月
+    // 当月セル
     for(let day=1; day<=lastDate; day++){
-      const cellDate = new Date(y, m, day);
+      const cellDate = new Date(Y, M-1, day);
       const cell = document.createElement('div');
       cell.className = 'cal-day';
       cell.setAttribute('role','gridcell');
       cell.innerHTML = `<span class="cal-day__date">${day}</span>`;
 
-      // 誕生日がある日（当月データのみでOK）
+      // 当月のその日に誕生日を迎える 0..3歳
       const hits = monthly.filter(b => {
         const d = new Date(b.birthday);
-        return d.getFullYear()===y && d.getMonth()===m && d.getDate()===day;
+        return d.getMonth() === (M-1) && d.getDate() === day;
       });
 
-      if(hits.length){
-        const dot = document.createElement('span');
-        dot.className = 'cal-day__dot';
-        if(stripTime(cellDate) < today) dot.classList.add('cal-day__dot--past');
-        cell.appendChild(dot);
+      if (hits.length){
+        // 年齢バッジ（最大2つ＋+N）
+        const badgeWrap = document.createElement('div');
+        badgeWrap.style.position = 'absolute';
+        badgeWrap.style.bottom = '6px';
+        badgeWrap.style.left = '50%';
+        badgeWrap.style.transform = 'translateX(-50%)';
+        badgeWrap.style.display = 'flex';
+        badgeWrap.style.gap = '4px';
+        badgeWrap.setAttribute('aria-hidden','true');
+
+        const makeBadge = (age, past) => {
+          const b = document.createElement('span');
+          b.textContent = String(age);
+          b.style.display = 'inline-grid';
+          b.style.placeItems = 'center';
+          b.style.width = '16px';
+          b.style.height = '16px';
+          b.style.borderRadius = '999px';
+          b.style.fontSize = '11px';
+          b.style.fontWeight = '900';
+          b.style.lineHeight = '1';
+          b.style.background = past ? '#96a0ad' : 'var(--pink-400)';
+          b.style.color = '#fff';
+          b.style.boxShadow = '0 1px 0 rgba(0,0,0,.08)';
+          return b;
+        };
+
+        const isPast = stripTime(cellDate) < today;
+        const show = hits.slice(0,2);
+        show.forEach(h => badgeWrap.appendChild(makeBadge(h.age, isPast)));
+        if (hits.length > 2){
+          const more = document.createElement('span');
+          more.textContent = `+${hits.length - 2}`;
+          more.style.fontSize = '11px';
+          more.style.color = '#6b6b6b';
+          badgeWrap.appendChild(more);
+        }
+        cell.appendChild(badgeWrap);
+
+        // アクセシビリティ・ツールチップ用
+        const ariaAges = hits.map(h=>`${h.age}歳`).join(', ');
         cell.title = hits.map(h=>{
           const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
-          return `${h.name}（${h.species}${zoo}）`;
+          return `${h.name}（${h.species}${zoo}）: ${h.age}歳`;
         }).join(' / ');
         cell.style.cursor = 'pointer';
-        cell.addEventListener('click', () => openDay(hits, cellDate));
-        cell.setAttribute('aria-label', `${y}年${m+1}月${day}日、${hits.length}件の誕生日`);
+        cell.addEventListener('click', () => openDay(hits, cellDate, Y, M, day));
+        cell.setAttribute('aria-label', `${Y}年${M}月${day}日、${hits.length}件の誕生日（${ariaAges}）`);
       }else{
-        cell.setAttribute('aria-label', `${y}年${m+1}月${day}日`);
+        cell.setAttribute('aria-label', `${Y}年${M}月${day}日`);
       }
+
       grid.appendChild(cell);
     }
-
-    // タイトル更新
-    const calTitle = $('#cal-title');
-    if (calTitle) calTitle.textContent = `${y}年${m+1}月の誕生日カレンダー`;
 
     // 当月に該当が無い場合の案内
     const old = document.getElementById('cal-empty-note');
@@ -365,18 +348,18 @@
       p.id = 'cal-empty-note';
       p.style.color = '#7a6d72';
       p.style.fontSize = '13px';
-      p.textContent = 'この月のお誕生日は登録がありません。';
+      p.textContent = 'この月のお誕生日は登録がありません（0〜3歳）。';
       grid.parentNode.appendChild(p);
     }
   }
 
-  function openDay(hits, dateObj){
-    const yyyy = dateObj.getFullYear(), mm = dateObj.getMonth()+1, dd = dateObj.getDate();
+  function openDay(hits, dateObj, Y, M, D){
     const list = hits.map(h=>{
       const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
-      return `・${h.name}（${h.species}${zoo}）`;
+      const ageText = `${h.age}歳`;
+      return `・${h.name}（${h.species}${zoo}）${ageText}`;
     }).join('\n');
-    alert(`${yyyy}年${mm}月${dd}日の誕生日\n\n${list}`);
+    alert(`${Y}年${M}月${D}日の誕生日（0〜3歳）\n\n${list}`);
   }
 
   function bindMonthNav(){
@@ -416,7 +399,7 @@
   }
 
   /* =========================
-   * 表示補助（emoji選定/エスケープ）
+   * 表示補助
    * ========================= */
   function pickEmoji(baby){
     const m = (baby.species || '').toLowerCase();
@@ -443,7 +426,7 @@
   }
 
   /* =========================
-   *（任意）月移動の下限/上限をつけたい場合
+   * （任意）月移動の下限/上限を付けたい場合
    * =========================
   // const MIN_MONTH = new Date(2023, 0, 1);   // 2023-01
   // const MAX_MONTH = new Date(2026, 11, 1);  // 2026-12
