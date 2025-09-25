@@ -25,7 +25,7 @@
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り">
+      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録">
         <svg class="icon" aria-hidden="true" focusable="false">
           <use href="./assets/icons/icons.svg#icon-heart"></use>
         </svg>
@@ -53,8 +53,21 @@
     </a>
   </nav>
 
+  <main class="container" id="main">
+    <!-- Hero: 今週末の誕生日 -->
+    <section class="card hero" aria-labelledby="hero-title">
+      <header class="panel-head hero__head">
+        <div class="panel-icon hero__badge" aria-hidden="true">🎂</div>
+        <div>
+          <h2 id="hero-title" class="panel-title hero__title">この週末にお誕生日の赤ちゃん</h2>
+          <p class="panel-desc">直近の子もあわせてチェックできます</p>
+        </div>
+      </header>
+      <div id="hero-list" class="hero__list" role="list"></div>
+    </section>
+
     <!-- Quick Links -->
-    <section class="card-grid">
+    <section class="card-grid" aria-label="クイックリンク">
       <article class="card card--link">
         <header class="panel-head">
           <div class="panel-icon" aria-hidden="true">📰</div>
@@ -102,6 +115,25 @@
           <a class="btn btn--primary" href="./calendar/index.html" aria-label="カレンダーへ">カレンダーを見る</a>
         </footer>
       </article>
+    </section>
+
+    <!-- Calendar: 今月 -->
+    <section id="calendar" class="card calendar" aria-labelledby="cal-title">
+      <div class="calendar-head">
+        <h2 id="cal-title" class="panel-title">今月の誕生日カレンダー</h2>
+        <div class="calendar-nav" role="group" aria-label="月移動">
+          <button class="nav-icon" id="prev-month" aria-label="前の月へ">‹</button>
+          <button class="nav-icon" id="next-month" aria-label="次の月へ">›</button>
+        </div>
+      </div>
+      <div class="calendar__weekday" aria-hidden="true">
+        <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+      </div>
+      <div id="cal-grid" class="calendar__grid" role="grid" aria-readonly="true"></div>
+      <div class="legend" aria-hidden="true">
+        <span><span class="dot dot--future"></span>今後の誕生日</span>
+        <span><span class="dot dot--past"></span>過ぎた誕生日</span>
+      </div>
     </section>
 
     <!-- CTA / Message -->
