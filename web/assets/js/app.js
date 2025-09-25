@@ -1,8 +1,9 @@
 // assets/js/app.js
 // Supabase連携版：ヒーロー/カレンダーともに「表示中の年・月に誕生日を迎える 0〜3歳」を表示
-// - ヒーロー：当月の0〜3歳（最大6件）
+// - ヒーロー：当月の0〜3歳（最大6件）※見出しを「今月お誕生日の赤ちゃん」に更新
 // - カレンダー：当月の0〜3歳を日付セルに年齢バッジで表示（複数いる日は最大2つ＋“+N”）
 // - zoo_id を用いて /zoos から name 等を取得し添付（メモリキャッシュ）
+// - ヘッダー：検索/お知らせ（バッジ消去）の軽い連携、既存likeボタンはローカルストレージで保持
 // 依存なし（バニラJS）
 
 (() => {
@@ -110,6 +111,7 @@
 
     bindMonthNav();
     bindLike();
+    bindHeaderActions();
   });
 
   /* =========================
@@ -191,6 +193,13 @@
   async function mountHeroThisMonth(){
     const wrap = $('#hero-list'); if (!wrap) return;
     wrap.innerHTML = '';
+
+    // 見出しを更新（存在する場合）
+    const heroTitle = $('#hero-title');
+    if (heroTitle) heroTitle.textContent = '今月お誕生日の赤ちゃん';
+    const heroDesc = document.querySelector('.hero__head .panel-desc');
+    if (heroDesc) heroDesc.textContent = '0〜3歳までの今月生まれを表示します';
+
     const now = new Date();
     const Y = now.getFullYear();
     const M = now.getMonth() + 1;
@@ -213,7 +222,6 @@
   }
 
   function addHeroCard(b){
-    const bd = new Date(b.birthday);
     const ageText = b.age === 0 ? '今年で0歳（はじめての誕生日）' : `今年で${b.age}歳`;
     const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
     const el = document.createElement('div');
@@ -399,6 +407,27 @@
   }
 
   /* =========================
+   * ヘッダー：検索/お知らせ
+   * ========================= */
+  function bindHeaderActions(){
+    // お知らせ：クリックでバッジ消去（簡易）
+    const bell = document.querySelector('.bell-btn');
+    if (bell) {
+      bell.addEventListener('click', () => {
+        const badge = bell.querySelector('.badge');
+        if (badge) badge.remove();
+      }, {passive:true});
+    }
+    // 検索：現状プレースホルダ
+    const search = document.querySelector('.search-btn');
+    if (search) {
+      search.addEventListener('click', () => {
+        alert('検索は準備中です。');
+      });
+    }
+  }
+
+  /* =========================
    * 表示補助
    * ========================= */
   function pickEmoji(baby){
@@ -424,19 +453,5 @@
       .replaceAll('"','&quot;')
       .replaceAll("'",'&#39;');
   }
-
-  /* =========================
-   * （任意）月移動の下限/上限を付けたい場合
-   * =========================
-  // const MIN_MONTH = new Date(2023, 0, 1);   // 2023-01
-  // const MAX_MONTH = new Date(2026, 11, 1);  // 2026-12
-  // function sameYM(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth(); }
-  // function clampToYM(d){
-  //   const x = new Date(d.getFullYear(), d.getMonth(), 1);
-  //   if (x < MIN_MONTH) return new Date(MIN_MONTH);
-  //   if (x > MAX_MONTH) return new Date(MAX_MONTH);
-  //   return x;
-  // }
-  */
 
 })();

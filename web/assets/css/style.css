@@ -1,7 +1,7 @@
 /* ======================================================================
   Zoo Baby – Pink/Orange Theme (SP-first, compact)
   File: /assets/css/style.css
-  Last update: 2025-09-25
+  Last update: 2025-09-19
 ====================================================================== */
 
 /* -------- Reset -------- */
@@ -68,8 +68,8 @@ body {
 .site-header__left,
 .site-header__right{ display:flex; align-items:center; gap:8px; }
 
-.brand{ display:flex; align-items:center; gap:8px; min-width: 0; text-decoration:none; color:inherit; }
-.brand__icon{ font-size: var(--icon); line-height: 1; width: 20px; height: 20px; }
+.brand{ display:flex; align-items:center; gap:8px; min-width: 0; }
+.brand__icon{ font-size: var(--icon); line-height: 1; }
 .brand__title{
   font-size: 14px; font-weight: 700; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; max-width: 70vw;
@@ -77,10 +77,7 @@ body {
 .pill-btn.like-btn{
   width: 36px; height: 36px; border-radius: 999px; border:1px solid var(--border);
   display:grid; place-items:center; background:#fff;
-  transition: transform .18s ease, background .2s ease, border-color .2s ease;
 }
-.pill-btn.like-btn.is-on{ background: linear-gradient(180deg,#fff,var(--pink-50)); border-color: transparent; box-shadow: var(--shadow); }
-.pill-btn.like-btn.is-on .icon{ transform: scale(1.05); }
 
 /* ------------------------------------------------------------------ */
 /* Tabbar（上部の4タブ）                                              */
@@ -92,7 +89,7 @@ body {
   border: 1px solid var(--border); border-radius: 16px;
 }
 .tabbar__link{
-  display:flex; align-items:center; gap:8px;
+  display:grid; grid-template-columns: 22px 1fr; align-items:center; gap:8px;
   min-height:44px; padding: 10px 12px;
   background: var(--card);
   border:1px solid var(--border);
@@ -100,42 +97,23 @@ body {
   font-weight:700; letter-spacing:.02em;
   box-shadow: 0 1px 0 #fff inset;
 }
-.tabbar__link.is-active,
-.tabbar__link[aria-current="page"]{
+.tabbar__link.is-active{
   color:#fff; background: var(--grad); border-color: transparent;
 }
-.tabbar__icon{ font-size: var(--icon); line-height: 1; width: 20px; height: 20px; }
+.tabbar__icon{ font-size: var(--icon); line-height: 1; }
 .tabbar__link :where(svg,img){ width: var(--icon); height: var(--icon); }
-.tabbar__text{
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 /* ------------------------------------------------------------------ */
-/* Hero（今週末の誕生日）                                             */
+/* Page hero / segmented                                              */
 /* ------------------------------------------------------------------ */
-.hero{ padding: 14px; }
-.hero__head{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
-.hero__badge{ font-size: var(--icon-lg); }
-.hero__title{ margin:0; font-size: clamp(18px, 4.2vw, 22px); letter-spacing:.02em; }
-
-.hero__list{ display:grid; gap:10px; margin-top:10px; }
-.hero-card{
-  display:grid; grid-template-columns: 64px 1fr auto; gap:12px; align-items:center;
-  padding:12px; border:1px solid var(--border); border-radius:16px; background:#fff;
+.page-hero{ padding: 8px 0 4px; }
+.page-title{ margin: 8px 0 12px; font-size: clamp(20px, 5vw, 28px); letter-spacing:.02em; }
+.segmented{ display:flex; gap:8px; flex-wrap: wrap; }
+.segmented__btn{
+  border:1px solid var(--border); background:#fff; color:var(--ink);
+  padding:8px 12px; border-radius:999px; font-weight:700;
 }
-.hero-card__avatar{
-  width:64px; height:64px; border-radius:16px; display:grid; place-items:center;
-  background: var(--pink-100); font-size: 30px;
-}
-.hero-card__title{ margin:0; font-weight:900; }
-.hero-card__meta{ margin:2px 0 0; color:var(--muted); font-size:12px; }
-.hero-card__cta{
-  background: var(--grad); color:#fff; border:none; border-radius:999px; padding:8px 12px; font-weight:900;
-}
+.segmented__btn.is-selected{ background:var(--grad); color:#fff; border-color:transparent; }
 
 /* ------------------------------------------------------------------ */
 /* Card / Panel                                                       */
@@ -153,7 +131,7 @@ body {
   width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
   background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
   border:1px solid var(--border);
-  font-size: var(--icon-lg); line-height: 1;
+  font-size: var(--icon-lg); line-height: 1; /* ← ここでアイコン肥大を抑制 */
 }
 .panel-head :where(svg,img){ width: var(--icon-lg); height: var(--icon-lg); }
 
@@ -170,7 +148,7 @@ body {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  max-height: none !important;
+  max-height: none !important;   /* アイコン用 max-height を打ち消す */
 }
 
 /* ------------------------------------------------------------------ */
@@ -201,7 +179,6 @@ body {
 .calendar__weekday{
   display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
   padding: 6px 2px; color:#6b6b6b; font-weight:700; text-align:center;
-  font-size: 12px;
 }
 .calendar__grid{
   display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
@@ -234,7 +211,7 @@ body {
 .dot--past{ background: #96a0ad; }
 
 /* ------------------------------------------------------------------ */
-/* Birthday List (予備：今回のホームでは未使用)                        */
+/* Birthday List                                                      */
 /* ------------------------------------------------------------------ */
 .bday-list{ display:grid; gap:10px; }
 .bday-card{
@@ -281,6 +258,7 @@ body {
 
 /* ※カード内部で意図的に大きな画像を使う場合は data-allow-big を付けて回避 */
 .card :where(svg,img):not([data-allow-big]){ max-height: 40px; }
+/* ↑ ただし thumbnail は上の .card .thumb > img で必ず上書き（max-height:none!important） */
 
 /* ------------------------------------------------------------------ */
 /* Desktop enhancements                                               */
@@ -292,16 +270,14 @@ body {
   .bday-card{ grid-template-columns: 56px 1fr auto; padding:14px; }
   .bday-card__avatar{ width:56px; height:56px; }
   .tabbar{ margin-inline: auto; width:min(980px, 100%); }
-  .hero__list{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .card-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
 }
 
 /* =========================
   Hotfix: header/tabbar/segmented (SP)
-  2025-09-19 + hero/cal 振る舞い追記（2025-09-25）
+  2025-09-19
 ========================= */
 
-/* Header再掲（1行固定） */
+/* ① Header（1行固定・アイコン/タイトルのサイズを強制） */
 .site-header{
   min-height: 48px;
   padding: 8px 12px;
@@ -315,15 +291,23 @@ body {
   align-items: center;
   gap: 8px;
 }
+
 /* brand を1行に・はみ出し省略 */
-.brand{ min-width: 0; }
+.brand{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;            /* ← 省略記号に必須 */
+}
 .brand__title{
   font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 70vw;
+  max-width: 70vw;         /* タイトルが長くても1行 */
 }
 /* ロゴ/ハートの暴走抑制 */
 .brand__icon,
@@ -340,7 +324,7 @@ body {
   border-radius: 999px;
 }
 
-/* Tabbar（横並び固定） */
+/* ② Tabbar（横並び固定・アイコン/テキストの行揃え） */
 .tabbar{
   display: grid;
   grid-template-columns: repeat(4, minmax(0,1fr));
@@ -348,24 +332,31 @@ body {
   padding: 10px;
 }
 .tabbar__link{
-  display: flex;
+  display: flex;                 /* ← グリッドではなくフレックスで横並び */
   align-items: center;
   gap: 8px;
   min-height: 44px;
   padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
 }
 .tabbar__icon{
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
 }
+.tabbar__text{
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
 
-/* Segmented（別ページ用の流用前提） */
+/* ③ Segmented（横スクロール可・アイコン/テキストを1行に） */
 .segmented{
   display: flex;
   gap: 8px;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow-x: auto;              /* 画面幅が狭い時は横スクロール */
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
@@ -376,25 +367,182 @@ body {
   height: 36px;
   padding: 8px 12px;
   border-radius: 999px;
-  white-space: nowrap;
+  white-space: nowrap;           /* 折り返し防止 */
 }
-.segmented__btn .icon{ width: 16px; height: 16px; flex: 0 0 16px; }
+.segmented__btn .icon{
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
 
-/* SVGサイズの最終ガード */
+/* 汎用：SVGサイズの最終ガード（対象セクション内） */
 .site-header svg,
 .tabbar svg,
 .segmented svg { width: 1em; height: 1em; }
 
-/* Tabbar: レスポンシブ調整 */
-@media (max-width: 379px) {
-  .tabbar{ gap: 8px; padding: 8px; }
-  .tabbar__link{ min-height: 40px; padding: 8px 10px; gap: 6px; }
-  .tabbar__text{ font-size: 12px; letter-spacing: 0.02em; max-width: 18ch; }
-  .tabbar__icon{ width: 18px; height: 18px; flex-basis: 18px; }
+/* Tabbar: テキストがSPで収まるための段階的フォールバック */
+
+/* まずは省略の保険（1行固定＋ellipsis） */
+.tabbar__text{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+/* 340–379px：少しだけ詰める */
+@media (max-width: 379px) {
+  .tabbar{
+    gap: 8px;
+    padding: 8px;
+  }
+  .tabbar__link{
+    min-height: 40px;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .tabbar__text{
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    max-width: 18ch; /* 日本語も詰めすぎない程度で */
+  }
+  .tabbar__icon{
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
+}
+
+/* <340px：テキスト非表示＝アイコンのみ（横幅を最優先） */
 @media (max-width: 339px) {
-  .tabbar{ gap: 6px; padding: 6px; }
-  .tabbar__link{ justify-content: center; min-height: 40px; padding: 8px; gap: 0; }
-  .tabbar__text{ display: none; }
-  .tabbar__icon{ width: 22px; height: 22px; flex-basis: 22px; }
+  .tabbar{
+    gap: 6px;
+    padding: 6px;
+  }
+  .tabbar__link{
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px;
+    gap: 0;
+  }
+  .tabbar__text{
+    display: none; /* ← アイコンのみ表示に切替 */
+  }
+  .tabbar__icon{
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+  }
+}
+
+/* ===============================
+   ここから追記：Candy Header + Stacked Tabbar（PCも絵文字）
+   =============================== */
+
+/* Palette / tokens（追加） */
+:root{
+  --grad-header: linear-gradient(135deg, var(--pink-500), #ff6aa0, var(--orange-500));
+  --header-shadow: 0 6px 24px rgba(255,77,166,.18);
+  --tabbar-bg: linear-gradient(135deg, #fff, #fff0f5);
+  --tab-item-bg: #fff;
+  --tab-item-border: rgba(0,0,0,.06);
+  --tab-item-ink: #7b2d47;
+  --tab-active-bg: linear-gradient(135deg, var(--pink-500), var(--orange-500));
+  --tab-active-ink: #fff;
+}
+
+/* Header: Candy gradient + emoji-first */
+.site-header.site-header--candy{
+  background: var(--grad-header);
+  color: #fff;
+  border-bottom: none;
+  box-shadow: var(--header-shadow);
+}
+.brand__emoji{
+  display:inline-grid; place-items:center;
+  width: 28px; height: 28px; border-radius: 8px;
+  background: #fff; color: var(--pink-500); font-size: 18px; line-height: 1;
+  box-shadow: 0 1px 0 rgba(255,255,255,.7), 0 1px 6px rgba(0,0,0,.08);
+  }
+.site-header--candy .brand__icon{ display:none; }             /* SP既定は非表示 */
+@media (min-width: 720px){
+  .site-header--candy .brand__icon{ display:none; }           /* PCでも非表示（絵文字統一） */
+}
+.site-header--candy .brand__title{
+  color:#fff; letter-spacing:.01em; font-weight: 900;
+}
+
+/* Header buttons */
+.pill-btn{
+  width: 36px; height: 36px; border-radius: 999px;
+  display:grid; place-items:center; border:1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.95);
+  position: relative;
+}
+.pill-btn .emoji-icon{ font-size: 18px; line-height: 1; }
+.pill-btn.like-btn.is-on{
+  box-shadow: 0 6px 20px rgba(255,77,166,.25);
+}
+.pill-btn .badge{
+  position:absolute; top:-4px; right:-4px; width:14px; height:14px;
+  border-radius:999px; background:#fff; color: var(--pink-500);
+  font-size:10px; font-weight:900; display:grid; place-items:center;
+  box-shadow: 0 1px 6px rgba(0,0,0,.12);
+}
+
+/* Tabbar 台座 */
+.tabbar{
+  background: var(--tabbar-bg);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 20px;
+  padding: 12px;
+  margin: 10px 12px 0;
+}
+
+/* === スタック型（SP/PC共通） === */
+.tabbar--stack{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+}
+.tabbar--stack .tabbar__link{
+  /* 縦積み・中央ぞろえ・省略なし */
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  min-height: 60px; padding: 10px 8px; text-align: center; border-radius: 14px;
+  background: var(--tab-item-bg); border:1px solid var(--tab-item-border);
+  color: var(--tab-item-ink); font-weight: 800; font-size: 13px; text-decoration:none;
+  box-shadow: 0 1px 0 #fff inset, 0 1px 8px rgba(0,0,0,.04);
+  transition: box-shadow .2s ease, transform .06s ease;
+}
+.tabbar--stack .tabbar__link:active{ transform: translateY(1px); }
+.tabbar--stack .tabbar__link.is-active,
+.tabbar--stack .tabbar__link[aria-current="page"]{
+  background: var(--tab-active-bg); color: var(--tab-active-ink); border-color: transparent;
+  box-shadow: 0 6px 20px rgba(255,77,166,.25);
+}
+.tabbar--stack .tabbar__text{
+  white-space: normal;               /* ← 折り返し許可（…を出さない） */
+  overflow: visible; text-overflow: clip;
+}
+.tabbar--stack .tab-emoji{ font-size: 18px; line-height: 1; }
+.tabbar__icon{ display: none !important; } /* SVGは常時非表示（PCもSPも） */
+
+/* PCでも縦積みのまま（サイズ少し拡大） */
+@media (min-width: 720px){
+  .tabbar--stack .tabbar__link{
+    min-height: 66px;
+    font-size: 14px;
+    gap: 8px;
+  }
+  .tabbar--stack .tab-emoji{
+    font-size: 20px;
+  }
+}
+
+/* 旧メディアクエリの“テキスト非表示”を無効化（スタック型では常に表示） */
+@media (max-width: 339px) {
+  .tabbar--stack .tabbar__text{ display: inline !important; }
+  .tabbar--stack .tabbar__link{
+    justify-content: center;
+    gap: 4px;
+  }
 }
