@@ -608,3 +608,31 @@ body {
   .hero-card__avatar{ width: 56px; height: 56px; }
   .hero-card__title{ font-size: 17px; }
 }
+/* ===== PCでヘッダー/タブバーを中央に収める（共通幅：980px） ===== */
+@media (min-width: 980px){
+  /* ヘッダーは全幅のまま、内側だけ中央寄せ（左右パディングでガターを作る） */
+  .site-header{
+    padding-left: calc((100vw - 980px) / 2);
+    padding-right: calc((100vw - 980px) / 2);
+  }
+}
+
+/* タブバーはPC/タブレットで中央寄せ＆幅を制限 */
+.tabbar{
+  width: min(980px, 100%);
+  margin-inline: auto;
+}
+
+/* ===== カレンダー：0〜3歳の年齢バッジ（未定義の場合の補完） ===== */
+.badge-wrap{
+  position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+  display:flex; gap:4px;
+}
+.age-badge{
+  display:inline-grid; place-items:center;
+  width:16px; height:16px; border-radius:999px;
+  font-size:11px; font-weight:900; line-height:1; color:#fff;
+  background: var(--pink-400);
+  box-shadow:0 1px 0 rgba(0,0,0,.08);
+}
+.age-badge--past{ background:#96a0ad; }

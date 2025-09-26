@@ -424,7 +424,8 @@
     if (text.includes('コアラ') || text.includes('koala')) return '🐨';
     if (text.includes('オカピ') || text.includes('okapi')) return '🦓';    
     if (text.includes('ゾウ') || text.includes('elephant')) return '🐘'；    
-    if (text.includes('サイ') || text.includes('rhinoceros')) return '🦏';    
+    if (text.includes('サイ') || text.includes('rhinoceros')) return '🦏';        
+    if (text.includes('カワウソ') || text.includes('Otter')) return '🦦';    
 
     return '🐾';
   }
