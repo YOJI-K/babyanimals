@@ -1,4 +1,7 @@
-https://babyanimals.pages.dev/
-https://babyanimals.pages.dev/news/
-https://babyanimals.pages.dev/babies/
-https://babyanimals.pages.dev/calendar/
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://babyanimals.pages.dev/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://babyanimals.pages.dev/news/</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://babyanimals.pages.dev/babies/</loc><changefreq>daily</changefreq></url>
+  <url><loc>https://babyanimals.pages.dev/calendar/</loc><changefreq>daily</changefreq></url>
+</urlset>
