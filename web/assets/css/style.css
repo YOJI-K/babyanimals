@@ -636,3 +636,23 @@ body {
   box-shadow:0 1px 0 rgba(0,0,0,.08);
 }
 .age-badge--past{ background:#96a0ad; }
+/* ==== News: 画像なしプレースホルダー（グラデ＋🐾） ==== */
+.thumb.is-placeholder{
+  background: radial-gradient(800px 400px at 120% -20%, #ffe0f0 0, transparent 60%),
+              radial-gradient(600px 300px at -10% 30%, #fff0e0 0, transparent 60%),
+              linear-gradient(135deg, #ffe5f2 0%, #fff1e4 100%);
+  position: relative;
+}
+.thumb.is-placeholder::after{
+  content:'🐾';
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-size:48px; opacity:.9; filter:drop-shadow(0 2px 0 rgba(255,255,255,.8));
+}
+
+/* ==== News: ピル/バッジ ==== */
+.pill{display:inline-grid;place-items:center;padding:4px 8px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:11px;font-weight:800}
+.pill--new{background:linear-gradient(135deg,var(--pink-500),var(--orange-500));color:#fff;border-color:transparent}
+.pill--yt{background:#ffefe6;border-color:#ffd2b3}
+.pill--zoo{background:#eef7ff;border-color:#cfe3ff}
+.pill--web{background:#f5f3ff;border-color:#e1dcff}
+
