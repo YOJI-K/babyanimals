@@ -714,3 +714,63 @@ body {
 
 /* 近々誕生日インジケータ（カード右上の点） */
 .soon-dot{ position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; background:var(--pink-500); box-shadow:0 0 0 3px rgba(255,77,166,.15); }
+/* =========================
+  Home Hero — rail / nav / states
+========================= */
+.hero__head{
+  display:grid; grid-template-columns: auto 1fr auto; gap:12px; align-items:center;
+}
+.hero__titles{ min-width:0; }
+.hero__nav{ display:flex; gap:8px; align-items:center; }
+.pill{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:32px; padding:0 10px; border-radius:999px; border:1px solid var(--border); background:#fff; font-weight:800;
+}
+.pill--nav{ width:36px; padding:0; font-size:16px; }
+.pill--label{ background: linear-gradient(135deg,#fff,#fff7f0); font-variant-numeric: tabular-nums; }
+
+.hero__list--rail{
+  display:flex; gap:10px; padding:6px 2px 2px; margin-top:6px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory;
+}
+.hero__list--rail::-webkit-scrollbar{ display:none; }
+.hero-card{
+  flex:0 0 260px; scroll-snap-align:start;
+  border:1px solid var(--border); border-radius:16px; background:#fff; box-shadow:var(--shadow);
+  display:grid; grid-template-columns:48px 1fr auto; gap:12px; align-items:center;
+  padding:12px; min-height:72px;
+}
+@media (min-width: 720px){ .hero-card{ flex-basis:280px; } }
+.hero-card__avatar{
+  width:48px; height:48px; border-radius:12px; display:grid; place-items:center;
+  background: linear-gradient(135deg, #ffe4f0, #ffe7d5); border:1px solid var(--border); font-size:22px;
+}
+.hero-card__title{ margin:0; font-size:15px; font-weight:800; line-height:1.35; }
+.hero-card__meta{ margin:2px 0 0; color:#7c6e73; font-size:12px; }
+.hero-card__cta{
+  background:var(--grad); color:#fff; border:0; border-radius:999px; padding:8px 10px; font-weight:900; cursor:pointer;
+}
+.badge-age{
+  margin-left:6px; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:800; color:#fff;
+  background: linear-gradient(135deg, var(--pink-500), var(--orange-500));
+}
+
+/* skeleton / empty / error */
+.hero__skeleton{ display:flex; gap:10px; margin-top:6px; }
+.hero-card--skel{
+  flex:0 0 260px; height:72px; border-radius:16px;
+  background: linear-gradient(90deg,#eee 25%,#f7f7f7 37%,#eee 63%); background-size:400% 100%; animation:shimmer 1.35s infinite;
+  border:1px solid var(--border);
+}
+@keyframes shimmer{ 0%{background-position:100% 0} 100%{background-position:0 0} }
+
+.hero__empty{ margin-top:8px; color:#6b6b6b; }
+.hero__error{
+  margin-top:8px; background:#fff7f7; border:1px solid #ffdede; color:#a40000; padding:10px 12px; border-radius:10px;
+}
+
+/* zoo name chip（カード右上に置く場合の汎用。必要に応じて使う） */
+.chip-zoo{
+  display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px;
+  background:linear-gradient(135deg,#fff,#fff5fb); border:1px solid var(--border); font-size:12px; color:#7c6e73;
+}

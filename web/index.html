@@ -71,21 +71,42 @@
       <h1 class="page-title">動物園ベビー情報</h1>
     </section>
 
-    <!-- ▼ ヒーロー（カレンダーと同一レンダラーで 0〜3歳 / 今月） -->
-    <section class="card hero" aria-labelledby="hero-title">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">🎂</div>
-        <div>
-          <h2 id="hero-title" class="panel-title">今月お誕生日の赤ちゃん（0〜3歳）</h2>
-          <p id="hero-month-label" class="panel-desc">— の誕生日</p>
-        </div>
-      </header>
-      <div id="home-monthly-list" class="bday-list" role="list" aria-live="polite"></div>
-      <p style="margin:10px 0 0">
-        <a id="to-calendar" class="btn btn--primary" href="./calendar/index.html" aria-label="カレンダーへ">カレンダーで見る</a>
-      </p>
-    </section>
-    <!-- ▲ TOPのカレンダー本体は要望どおり削除 -->
+    <!-- Hero: 今月お誕生日（0〜3歳） -->
+<section class="card hero" aria-labelledby="hero-title">
+  <header class="panel-head hero__head">
+    <div class="panel-icon hero__badge" aria-hidden="true">🎂</div>
+    <div class="hero__titles">
+      <h2 id="hero-title" class="panel-title hero__title">今月お誕生日の赤ちゃん（0〜3歳）</h2>
+      <p class="panel-desc">先月・来月も1タップでチェックできます</p>
+    </div>
+    <div class="hero__nav" role="group" aria-label="月移動">
+      <button class="pill pill--nav" id="hero-prev" aria-label="先月へ">‹</button>
+      <span id="hero-month-label" class="pill pill--label" aria-live="polite">—</span>
+      <button class="pill pill--nav" id="hero-next" aria-label="来月へ">›</button>
+    </div>
+  </header>
+
+  <!-- スケルトン（初期表示） -->
+  <div id="hero-skel" class="hero__skeleton" aria-hidden="true">
+    <div class="hero-card hero-card--skel"></div>
+    <div class="hero-card hero-card--skel"></div>
+    <div class="hero-card hero-card--skel"></div>
+  </div>
+
+  <!-- 実データ -->
+  <div id="hero-list" class="hero__list hero__list--rail" role="list"></div>
+
+  <!-- 空状態 -->
+  <div id="hero-empty" class="hero__empty" hidden>
+    今月は対象がいません。
+    <button class="pill pill--nav" id="hero-show-next" type="button">来月を見る ›</button>
+  </div>
+
+  <!-- エラー -->
+  <div id="hero-error" class="hero__error" role="alert" hidden>
+    読み込みに失敗しました。時間をおいて再度お試しください。
+  </div>
+</section>
 
     <!-- Quick Links（既存） -->
     <section class="card-grid">
@@ -98,7 +119,7 @@
           </div>
         </header>
         <div class="card__body"><p>国内外の赤ちゃん動物ニュースをサクッとチェック。</p></div>
-        <footer class="card__footer"><a class="btn btn--primary" href="./news/index.html">ニュースを見る</a></footer>
+        <footer class="card__footer"><a class="btn btn--primary" href="./news/index.html">ニュースを読む</a></footer>
       </article>
 
       <article class="card card--link">
@@ -110,7 +131,7 @@
           </div>
         </header>
         <div class="card__body"><p>種別や動物園で絞り込んでお気に入りを見つけよう。</p></div>
-        <footer class="card__footer"><a class="btn btn--primary" href="./babies/index.html">赤ちゃんを見る</a></footer>
+        <footer class="card__footer"><a class="btn btn--primary" href="./babies/index.html">赤ちゃんを探す</a></footer>
       </article>
 
       <article class="card card--link">
@@ -122,7 +143,7 @@
           </div>
         </header>
         <div class="card__body"><p>今月のお誕生日をチェック！</p></div>
-        <footer class="card__footer"><a class="btn btn--primary" href="./calendar/index.html">カレンダーを見る</a></footer>
+        <footer class="card__footer"><a class="btn btn--primary" href="./calendar/index.html">誕生日をチェック</a></footer>
       </article>
     </section>
 
