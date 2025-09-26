@@ -3,174 +3,146 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>赤ちゃん一覧 | Baby Animals</title>
+  <title>赤ちゃん一覧 | どうベビ</title>
 
   <!-- SEO / OGP -->
   <meta name="description" content="日本の動物園にいる赤ちゃん動物を一覧表示。名前・種・誕生日・所属動物園で検索できます。">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="赤ちゃん一覧 | Baby Animals">
+  <meta property="og:title" content="赤ちゃん一覧 | どうベビ">
   <meta property="og:description" content="日本の動物園にいる赤ちゃん動物を一覧表示。名前・種・誕生日・所属動物園で検索できます。">
   <meta property="og:url" content="https://babyanimals.pages.dev/babies/">
   <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 
-  <!-- Supabase（news と同じ値。必要に応じて差し替え） -->
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+
+  <!-- Supabase（共通：メタ経由フォールバック） -->
   <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
   <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
-  <!-- Global styles -->
-  <link rel="stylesheet" href="/assets/css/style.css" />
+  <!-- 共通CSS / 共通JS -->
+  <link rel="stylesheet" href="../assets/css/style.css?v=20250926c" />
+  <script defer src="../assets/js/app.js?v=20250926c"></script>
+  <script defer src="../assets/js/babies.js?v=20250926c"></script>
 
-  <!-- Page specific helpers -->
-  <script defer src="/assets/js/app.js"></script>
-  <script defer src="/assets/js/babies.js"></script>
-
-  <!-- レイアウト微調整（news と同等のグリッド/スティッキー） -->
+  <!-- ページ固有の最小スタイル（レイアウト系のみ） -->
   <style>
-    .container.hero { overflow: visible; }
+    .baby-grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    @media (min-width:600px){ .baby-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (min-width:1024px){ .baby-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
 
-    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-    @media (min-width:600px){ .grid{ grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; } }
-    @media (min-width:1024px){ .grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    .baby-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; text-decoration:none; color:inherit; position:relative; }
+    .baby-card:hover{ transform:translateY(-2px); }
+    .baby-card .thumb{ position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#f2f2f2; }
+    .baby-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .baby-card .pad{ padding:10px 12px 12px; }
+    .baby-card .title{ font-size:15px; line-height:1.5; font-weight:900; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .baby-card .meta{ font-size:12px; color:#666; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
 
-    .card{ background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.06); display:flex; flex-direction:column; transition:transform .12s ease; }
-    .card:hover{ transform:translateY(-2px); }
-    .card a{ color:inherit; text-decoration:none; display:block; }
-
-    .thumb{ position:relative; width:100%; aspect-ratio:16/9; background:#f2f2f2; overflow:hidden; }
-    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-    .pad{ padding:10px 12px 12px; }
-    .title{ font-size:14.5px; line-height:1.5; font-weight:600; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .meta{ font-size:12px; color:#666; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .meta .dot::before{ content:"・"; margin:0 2px; color:#aaa; }
-    .badge{ display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; font-size:12px; background:#fff1f5; color:#c32f7b; }
-
-    .controls.sticky{ position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid #eee; padding:8px 12px; display:grid; grid-template-columns:1fr minmax(140px,1fr) minmax(120px,1fr); gap:8px; align-items:center; }
+    /* コントロールバー（ニュース相当） */
+    .controls.sticky{
+      position:sticky; top:0; z-index:10; background:#fff;
+      border-bottom:1px solid var(--border); padding:8px 12px;
+      display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:center;
+    }
     .controls.sticky > *{ min-width:0; }
-    .controls.sticky input[type="search"], .controls.sticky select{ width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff; }
-    @media (max-width:599px){ .controls.sticky{ grid-template-columns:1fr 1fr; } .controls.sticky #sort{ grid-column:1 / -1; } }
+    .controls.sticky input[type="search"], .controls.sticky select{
+      width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff;
+    }
 
-    .skeleton{ background:linear-gradient(90deg,#eee 25%,#f7f7f7 37%,#eee 63%); animation:shimmer 1.35s infinite; background-size:400% 100%; }
-    @keyframes shimmer{ 0%{background-position:100% 0;} 100%{background-position:0 0;} }
+    /* 年齢フィルタ（チップ） */
+    .age-filter{ display:flex; gap:8px; padding:8px 12px; overflow:auto; -webkit-overflow-scrolling:touch; }
+    .age-filter .segmented__btn{ height:32px; padding:6px 12px; font-size:13px; }
+    .age-filter .segmented__btn.is-selected{ box-shadow:0 0 0 2px rgba(255,77,166,.15) inset; }
+    @media (max-width:599px){
+      .controls.sticky{ grid-template-columns:1fr 1fr; }
+      .controls.sticky #sort{ grid-column:1 / -1; }
+    }
+
+    /* スケルトン */
+    .skeleton{ background:linear-gradient(90deg,#eee 25%,#f7f7f7 37%,#eee 63%); background-size:400% 100%; animation:shimmer 1.35s infinite; }
+    @keyframes shimmer{ 0%{background-position:100% 0} 100%{background-position:0 0} }
 
     #error{ display:none; background:#fff7f7; border:1px solid #ffdede; color:#a40000; padding:10px 12px; border-radius:10px; margin:14px 0; white-space:pre-line; }
-    .more-wrap{ display:flex; justify-content:center; margin:16px 0 32px; }
-    #more{ padding:10px 16px; font-size:14px; border-radius:999px; border:1px solid #ddd; background:#fff; cursor:pointer; }
-    #more[disabled]{ opacity:.6; cursor:not-allowed; }
   </style>
 </head>
-<body>
-  <!-- Header -->
-  <header class="site-header">
+<body class="theme" data-page-size="12">
+  <!-- ヘッダー（TOP/ニュース/カレンダーと同一：Candy × Emoji） -->
+  <header class="site-header site-header--candy" role="banner">
     <div class="site-header__left">
-      <a class="brand" href="/index.html">
-        <svg class="brand__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-logo"></use></svg>
-        <span class="brand__title">Zoo Baby Information Site</span>
+      <a class="brand" href="../index.html" aria-label="ホームへ">
+        <span class="brand__emoji" aria-hidden="true">🐾</span>
+        <svg class="brand__icon" aria-hidden="true" focusable="false">
+          <use href="../assets/icons/icons.svg#icon-logo"></use>
+        </svg>
+        <span class="brand__title">どうベビ</span>
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り">
-        <svg class="icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-heart"></use></svg>
+      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録"><span class="emoji-icon" aria-hidden="true">💗</span></button>
+      <button class="pill-btn search-btn" aria-label="検索" title="検索"><span class="emoji-icon" aria-hidden="true">🔍</span></button>
+      <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ" style="position:relative">
+        <span class="emoji-icon" aria-hidden="true">🔔</span><span class="badge" aria-hidden="true">!</span>
       </button>
     </div>
   </header>
 
-  <!-- Tabbar -->
-  <nav class="tabbar" aria-label="メイン">
-    <a class="tabbar__link" href="/index.html" aria-label="ホーム">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-home"></use></svg>
-      <span class="tabbar__text">ホーム</span>
-    </a>
-    <a class="tabbar__link" href="/news/index.html" aria-label="ニュース">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-news"></use></svg>
-      <span class="tabbar__text">ニュース</span>
-    </a>
-    <a class="tabbar__link is-active" href="/babies/index.html" aria-current="page" aria-label="赤ちゃん">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-baby"></use></svg>
-      <span class="tabbar__text">赤ちゃん</span>
-    </a>
-    <a class="tabbar__link" href="/calendar/index.html" aria-label="カレンダー">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="/assets/icons/icons.svg#icon-calendar"></use></svg>
-      <span class="tabbar__text">カレンダー</span>
-    </a>
+  <!-- タブバー（TOP/ニュース/カレンダーと同一：スタック＋絵文字） -->
+  <nav class="tabbar tabbar--stack" aria-label="メイン">
+    <a class="tabbar__link" href="../index.html" title="ホーム"><span class="tab-emoji" aria-hidden="true">🏠</span><span class="tabbar__text">ホーム</span></a>
+    <a class="tabbar__link" href="../news/index.html" title="ニュース"><span class="tab-emoji" aria-hidden="true">📰</span><span class="tabbar__text">ニュース</span></a>
+    <a class="tabbar__link is-active" href="./index.html" aria-current="page" title="赤ちゃん"><span class="tab-emoji" aria-hidden="true">🍼</span><span class="tabbar__text">赤ちゃん</span></a>
+    <a class="tabbar__link" href="../calendar/index.html" title="カレンダー"><span class="tab-emoji" aria-hidden="true">📅</span><span class="tabbar__text">カレンダー</span></a>
   </nav>
 
-  <div class="container hero">
-    <h1 class="page-title">赤ちゃん一覧</h1>
+  <main class="container">
+    <section class="page-hero"><h1 class="page-title">赤ちゃん一覧</h1></section>
 
-    <!-- 検索/絞り込み/ソート -->
+    <!-- 検索 / 絞り込み / 並び順 -->
     <div id="controls" class="controls sticky" role="region" aria-label="検索と絞り込み">
-      <input id="q" type="search" placeholder="名前・動物種で検索" aria-label="名前・動物種で検索">
+      <input id="q" type="search" placeholder="名前・動物種・園名で検索" aria-label="名前・動物種・園名で検索">
       <select id="zoo" aria-label="所属動物園で絞り込み">
         <option value="">すべての動物園</option>
       </select>
-      <select id="sort" aria-label="並び替え（誕生日）">
+      <select id="sort" aria-label="並び替え">
         <option value="desc" selected>誕生日が新しい順</option>
         <option value="asc">誕生日が古い順</option>
+        <option value="near">誕生日が近い順</option>
       </select>
     </div>
-    <div id="controls-ph" class="controls-placeholder" aria-hidden="true"></div>
 
-    <div class="banner">（インフィード広告枠）</div>
+    <!-- 年齢フィルタ（0〜3歳） -->
+    <div class="age-filter segmented" role="radiogroup" aria-label="年齢で絞り込み（0〜3歳）">
+      <button type="button" class="segmented__btn is-selected" data-age="" aria-checked="true" role="radio">すべて</button>
+      <button type="button" class="segmented__btn" data-age="0" aria-checked="false" role="radio">0歳</button>
+      <button type="button" class="segmented__btn" data-age="1" aria-checked="false" role="radio">1歳</button>
+      <button type="button" class="segmented__btn" data-age="2" aria-checked="false" role="radio">2歳</button>
+      <button type="button" class="segmented__btn" data-age="3" aria-checked="false" role="radio">3歳</button>
+    </div>
 
     <!-- スケルトン -->
-    <div id="skeleton-babies" class="grid" aria-hidden="true">
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+    <div id="skeleton-babies" class="baby-grid" aria-hidden="true">
+      <div class="baby-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="baby-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="baby-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
+      <div class="baby-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:70%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:40%;border-radius:8px;"></div></div></div>
     </div>
 
     <!-- エラー表示 -->
-    <div id="error"></div>
+    <div id="error" role="alert"></div>
 
     <!-- 実データ -->
-    <div id="list" class="grid" aria-live="polite"></div>
+    <div id="list" class="baby-grid" aria-live="polite"></div>
 
     <!-- 空状態 -->
-    <div id="empty" class="empty" style="display:none;">条件に合う赤ちゃんが見つかりませんでした</div>
+    <div id="empty" style="display:none;">条件に合う赤ちゃんが見つかりませんでした</div>
 
-    <!-- もっと読む（必要な場合のみ表示） -->
-    <div class="more-wrap">
-      <button id="more" style="display:none;">もっと読む</button>
-    </div>
-  </div>
+    <!-- もっと読む（キャンディボタンは共通CSSでスタイル済み） -->
+    <div class="more-wrap"><button id="more" type="button" style="display:none;">もっと読む</button></div>
+  </main>
 
-  <!-- Sticky フォールバック（必要時のみ fixed に切替） -->
-  <script>
-    (function () {
-      const $controls = document.getElementById('controls');
-      const $ph = document.getElementById('controls-ph');
-      const test = document.createElement('div');
-      test.style.cssText = 'position:sticky; position:-webkit-sticky; top:1px;';
-      const supportsSticky = /sticky/i.test(test.style.position);
-
-      let usingFixed = false;
-      let headerTop = 0;
-      let headerH = 0;
-
-      function measure() {
-        const rect = $controls.getBoundingClientRect();
-        headerH = rect.height;
-        headerTop = window.scrollY + rect.top;
-        $ph.style.setProperty('--controls-h', headerH + 'px');
-      }
-      function toFixedMode(){ if(!usingFixed){ usingFixed=true; $controls.classList.add('is-fixed'); $ph.classList.add('active'); } }
-      function toStickyMode(){ if(usingFixed){ usingFixed=false; $controls.classList.remove('is-fixed'); $ph.classList.remove('active'); } }
-      function onScroll(){
-        if (!supportsSticky){ toFixedMode(); return; }
-        const rect = $controls.getBoundingClientRect();
-        if (window.scrollY > headerTop && Math.abs(rect.top) > 2) toFixedMode();
-        else if (usingFixed && window.scrollY <= headerTop) toStickyMode();
-      }
-
-      measure();
-      window.addEventListener('resize', measure, { passive: true });
-      window.addEventListener('orientationchange', measure, { passive: true });
-      window.addEventListener('scroll', onScroll, { passive: true });
-      setTimeout(measure, 50);
-    })();
-  </script>
+  <footer class="site-footer" aria-label="フッター">
+    <small>© どうベビ（動物園ベビー情報）</small>
+  </footer>
 </body>
 </html>
