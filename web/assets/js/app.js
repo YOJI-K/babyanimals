@@ -464,12 +464,11 @@ function pickEmoji(baby){
 
 })();
 /* ==========================================================
- * Home Hero v2 (monthly 0–3yo) — rail / month switch / states
- * 依存: window.SUPABASE or <meta name="supabase-..."> or 定数
+ * Home Hero v3 — SP=縦スタック3件 / タブレット+=横6件
  * ========================================================== */
 (() => {
   const $list  = document.getElementById('hero-list');
-  if (!$list) return; // ヒーローがないページは無視
+  if (!$list) return;
 
   const $skel  = document.getElementById('hero-skel');
   const $empty = document.getElementById('hero-empty');
@@ -479,48 +478,42 @@ function pickEmoji(baby){
   const $next  = document.getElementById('hero-next');
   const $jumpN = document.getElementById('hero-show-next');
 
-  // ---- Supabase env ----
+  // --- env / fetch ---
   function getSupabaseEnv(){
     const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
     const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-    const URL  = (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL)) || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co';
-    const ANON = (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY)) || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY';
+    const URL  = (window.SUPABASE?.URL || window.SUPABASE?.SUPABASE_URL || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co');
+    const ANON = (window.SUPABASE?.ANON || window.SUPABASE?.SUPABASE_ANON_KEY || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY');
     return { URL, ANON };
   }
-  async function fetchJSON(url) {
-    const { URL: base, ANON } = getSupabaseEnv();
-    const u = new URL(url, base);
+  async function fetchJSON(path){
+    const { URL, ANON } = getSupabaseEnv();
+    const u = new URL(path, URL);
     const res = await fetch(u.toString(), {
       headers:{
-        apikey: ANON,
-        Authorization: `Bearer ${ANON}`,
-        'Accept-Profile': 'public',
-        'Content-Profile': 'public'
+        apikey: ANON, Authorization: `Bearer ${ANON}`,
+        'Accept-Profile':'public', 'Content-Profile':'public'
       },
       cache:'no-store'
     });
-    if (!res.ok) {
-      const t = await res.text().catch(()=>'');
-      throw new Error(`HTTP ${res.status} @ ${u.pathname} :: ${t}`);
-    }
+    if(!res.ok){ throw new Error(`HTTP ${res.status} @ ${u.pathname}`); }
     return res.json();
   }
 
-  // ---- utils ----
-  const ymd = (d) => d.toISOString().slice(0,10);
-  const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
-  const endOfMonth   = (d) => new Date(d.getFullYear(), d.getMonth()+1, 0);
-  const addMonths    = (d,n) => new Date(d.getFullYear(), d.getMonth()+n, 1);
-  const fmtMonthJP   = (d) => `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月`;
-  function ageOn(birthISO, ref){
-    const b = new Date(birthISO); if (isNaN(b)) return null;
-    let a = ref.getFullYear() - b.getFullYear();
-    const m = ref.getMonth() - b.getMonth();
-    if (m < 0 || (m === 0 && ref.getDate() < b.getDate())) a--;
+  // --- utils ---
+  const ymd=(d)=>d.toISOString().slice(0,10);
+  const startOfMonth=(d)=>new Date(d.getFullYear(), d.getMonth(), 1);
+  const endOfMonth=(d)=>new Date(d.getFullYear(), d.getMonth()+1, 0);
+  const addMonths=(d,n)=>new Date(d.getFullYear(), d.getMonth()+n, 1);
+  const fmtMonthJP=(d)=>`${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月`;
+  const fmtMD=(iso)=>{ const dd=new Date(iso); return dd.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}); };
+  function ageOn(bISO, ref){
+    const b=new Date(bISO); if(isNaN(b)) return null;
+    let a=ref.getFullYear()-b.getFullYear();
+    const m=ref.getMonth()-b.getMonth();
+    if(m<0 || (m===0 && ref.getDate()<b.getDate())) a--;
     return a;
   }
-
-  // emoji（拡張）
   const pickEmoji = (window.pickEmoji) || function(baby){
     const t = `${baby?.species||''}`.toLowerCase();
     if (t.includes('レッサー')||t.includes('red')) return '🦊';
@@ -542,71 +535,70 @@ function pickEmoji(baby){
     return '🐾';
   };
 
-  // ---- data loader（0〜3歳 & 対象月の子）----
+  // --- data ---
   async function loadMonthlyBabies(monthDate){
-    const from = ymd(new Date(monthDate.getFullYear()-3, monthDate.getMonth(), 1));
-    const to   = ymd(endOfMonth(monthDate));
+    const from=ymd(new Date(monthDate.getFullYear()-3, monthDate.getMonth(), 1));
+    const to=ymd(endOfMonth(monthDate));
+    const and=`(${[`birthday.gte.${from}`, `birthday.lte.${to}`].join(',')})`;
 
-    // PostgREST の複合条件は and=(col.op.val,col.op.val)
-    const and = `(${[
-      `birthday.gte.${from}`,
-      `birthday.lte.${to}`
-    ].join(',')})`;
-
-    // 1) babies_public → 2) babies + embed → 3) babies
-    try {
-      const qp = new URLSearchParams({
+    // babies_public → babies(embed) → babies
+    try{
+      const qp=new URLSearchParams({
         select:'id,name,species,birthday,zoo_id,zoo_name,thumbnail_url',
-        order:'birthday.asc,id.asc',
-        limit:'500'
+        order:'birthday.asc,id.asc', limit:'500'
       });
       qp.set('and', and);
       return await fetchJSON(`/rest/v1/babies_public?${qp.toString()}`);
-    } catch(e1) {
+    }catch{
       try{
-        const qp = new URLSearchParams({
+        const qp=new URLSearchParams({
           select:'id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)',
-          order:'birthday.asc,id.asc',
-          limit:'500'
+          order:'birthday.asc,id.asc', limit:'500'
         });
         qp.set('and', and);
-        const raw = await fetchJSON(`/rest/v1/babies?${qp.toString()}`);
-        return (raw||[]).map(x => ({...x, zoo_name: x.zoo?.name || ''}));
-      }catch(e2){
-        const qp = new URLSearchParams({
+        const raw=await fetchJSON(`/rest/v1/babies?${qp.toString()}`);
+        return (raw||[]).map(x=>({...x, zoo_name:x.zoo?.name||''}));
+      }catch{
+        const qp=new URLSearchParams({
           select:'id,name,species,birthday,zoo_id,thumbnail_url',
-          order:'birthday.asc,id.asc',
-          limit:'500'
+          order:'birthday.asc,id.asc', limit:'500'
         });
         qp.set('and', and);
-        const raw2 = await fetchJSON(`/rest/v1/babies?${qp.toString()}`);
-        return (raw2||[]).map(x => ({...x, zoo_name:''}));
+        const raw=await fetchJSON(`/rest/v1/babies?${qp.toString()}`);
+        return (raw||[]).map(x=>({...x, zoo_name:''}));
       }
     }
   }
 
-  // ---- render ----
+  // --- render ---
+  const isSP = () => window.matchMedia('(max-width: 599px)').matches;
+  const heroLimit = () => isSP() ? 3 : 6;  // ★ SP=3件
+
   function cardHTML(x, ref){
     const a = ageOn(x.birthday, ref);
-    const zoo = x.zoo_name || '園情報なし';
-    const title = `${x.name || '（名前未設定）'}（${x.species || '不明'}）`;
-    const meta  = `誕生日 ${x.birthday || '-'} ｜ ${zoo} ｜ ${a==null?'':`今年で${a}歳`}`;
     const emoji = pickEmoji(x);
+    const name = x.name || '（名前未設定）';
+    const sp   = x.species || '不明';
+    const date = x.birthday ? fmtMD(x.birthday) : '-';
+    const zoo  = x.zoo_name || '園情報なし';
     return `
-      <div class="hero-card" role="listitem">
+      <div class="hero-card" role="listitem" aria-label="${name}（${sp}）">
         <div class="hero-card__avatar" aria-hidden="true">${emoji}</div>
         <div>
-          <p class="hero-card__title">${title}</p>
-          <p class="hero-card__meta">${meta}</p>
+          <p class="hero-card__title">${name}（${sp}）</p>
+          <div class="hero-card__meta">
+            <span class="meta-chip meta-chip--date">📅 ${date}</span>
+            <span class="meta-chip meta-chip--zoo">🏛 ${zoo}</span>
+            ${a!=null ? `<span class="meta-chip meta-chip--age">🎉 ${a}歳</span>` : ''}
+          </div>
         </div>
-        <button class="hero-card__cta" type="button" aria-label="${x.name || 'この子'}の詳細（準備中）">見る</button>
       </div>`;
   }
   function setState({skel=false, empty=false, err=false}={}){
-    if ($skel)  $skel.style.display = skel ? 'flex' : 'none';
-    if ($empty) $empty.hidden       = !empty;
-    if ($err)   $err.hidden         = !err;
-    $list.style.display = (!skel && !empty && !err) ? 'flex' : 'none';
+    if($skel)  $skel.style.display = skel?'grid':'none';
+    if($empty) $empty.hidden       = !empty;
+    if($err)   $err.hidden         = !err;
+    $list.style.display = (!skel && !empty && !err) ? '' : 'none';
   }
 
   let currentMonth = startOfMonth(new Date());
@@ -615,24 +607,16 @@ function pickEmoji(baby){
       setState({ skel:true });
       $label.textContent = fmtMonthJP(d);
       const all = await loadMonthlyBabies(d);
-
-      // 月・日一致＆年齢0〜3だけに最終絞り込み
       const mm = d.getMonth();
-      const filtered = (all||[]).filter(b => {
-        if (!b.birthday) return false;
-        const bd = new Date(b.birthday); if (isNaN(bd)) return false;
-        if (bd.getMonth() !== mm) return false;
-        const a = ageOn(b.birthday, d);
+      const filtered = (all||[]).filter(b=>{
+        if(!b.birthday) return false;
+        const bd=new Date(b.birthday); if(isNaN(bd)) return false;
+        if(bd.getMonth()!==mm) return false;
+        const a=ageOn(b.birthday,d);
         return a!=null && a>=0 && a<=3;
       });
-
-      if (!filtered.length){
-        $list.innerHTML = '';
-        setState({ empty:true });
-        return;
-      }
-      const top = filtered.slice(0, 6);
-      $list.innerHTML = top.map(x => cardHTML(x, d)).join('');
+      if(!filtered.length){ $list.innerHTML=''; setState({empty:true}); return; }
+      $list.innerHTML = filtered.slice(0, heroLimit()).map(x=>cardHTML(x, d)).join('');
       setState({});
     }catch(e){
       console.error('[hero]', e);
@@ -640,9 +624,14 @@ function pickEmoji(baby){
     }
   }
 
-  // 初期表示 & ナビ
+  // 初期表示
   renderMonth(currentMonth);
+
+  // 月ナビ
   $prev?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth,-1); renderMonth(currentMonth); });
   $next?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth, 1); renderMonth(currentMonth); });
   $jumpN?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth, 1); renderMonth(currentMonth); });
+
+  // 画面幅が変わったら件数も再評価
+  window.matchMedia('(max-width: 599px)').addEventListener?.('change', ()=>renderMonth(currentMonth));
 })();
