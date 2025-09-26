@@ -478,27 +478,37 @@ function pickEmoji(baby){
   const $next  = document.getElementById('hero-next');
   const $jumpN = document.getElementById('hero-show-next');
 
-  // --- env / fetch ---
-  function getSupabaseEnv(){
-    const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
-    const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-    const URL  = (window.SUPABASE?.URL || window.SUPABASE?.SUPABASE_URL || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co');
-    const ANON = (window.SUPABASE?.ANON || window.SUPABASE?.SUPABASE_ANON_KEY || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY');
-    return { URL, ANON };
-  }
-  async function fetchJSON(path){
-    const { URL, ANON } = getSupabaseEnv();
-    const u = new URL(path, URL);
-    const res = await fetch(u.toString(), {
-      headers:{
-        apikey: ANON, Authorization: `Bearer ${ANON}`,
-        'Accept-Profile':'public', 'Content-Profile':'public'
-      },
+  // --- env / fetch (互換リトライ付き) ---
+function getSupabaseEnv(){
+  const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+  const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+  const URL  = (window.SUPABASE?.URL || window.SUPABASE?.SUPABASE_URL || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co');
+  const ANON = (window.SUPABASE?.ANON || window.SUPABASE?.SUPABASE_ANON_KEY || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY');
+  return { URL, ANON };
+}
+async function fetchJSON(path){
+  const { URL, ANON } = getSupabaseEnv();
+  const u = new URL(path, URL);
+
+  // 1st: profile ヘッダーあり
+  let res = await fetch(u.toString(), {
+    headers:{ apikey:ANON, Authorization:`Bearer ${ANON}`, 'Accept-Profile':'public', 'Content-Profile':'public' },
+    cache:'no-store'
+  });
+
+  // 406/4xx 対策: ヘッダーを減らして再試行
+  if (!res.ok) {
+    res = await fetch(u.toString(), {
+      headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` },
       cache:'no-store'
     });
-    if(!res.ok){ throw new Error(`HTTP ${res.status} @ ${u.pathname}`); }
-    return res.json();
   }
+  if (!res.ok) {
+    const t = await res.text().catch(()=> '');
+    throw new Error(`HTTP ${res.status} @ ${u.pathname} :: ${t}`);
+  }
+  return res.json();
+}
 
   // --- utils ---
   const ymd=(d)=>d.toISOString().slice(0,10);
@@ -535,40 +545,57 @@ function pickEmoji(baby){
     return '🐾';
   };
 
-  // --- data ---
-  async function loadMonthlyBabies(monthDate){
-    const from=ymd(new Date(monthDate.getFullYear()-3, monthDate.getMonth(), 1));
-    const to=ymd(endOfMonth(monthDate));
-    const and=`(${[`birthday.gte.${from}`, `birthday.lte.${to}`].join(',')})`;
+ // --- data loader (0–3歳 & 対象月) — マルチ戦略でリトライ ---
+async function loadMonthlyBabies(monthDate){
+  const from = new Date(monthDate.getFullYear()-3, monthDate.getMonth(), 1).toISOString().slice(0,10);
+  const to   = new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 0).toISOString().slice(0,10);
 
-    // babies_public → babies(embed) → babies
-    try{
-      const qp=new URLSearchParams({
-        select:'id,name,species,birthday,zoo_id,zoo_name,thumbnail_url',
-        order:'birthday.asc,id.asc', limit:'500'
-      });
-      qp.set('and', and);
-      return await fetchJSON(`/rest/v1/babies_public?${qp.toString()}`);
-    }catch{
-      try{
-        const qp=new URLSearchParams({
-          select:'id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)',
-          order:'birthday.asc,id.asc', limit:'500'
-        });
-        qp.set('and', and);
-        const raw=await fetchJSON(`/rest/v1/babies?${qp.toString()}`);
-        return (raw||[]).map(x=>({...x, zoo_name:x.zoo?.name||''}));
-      }catch{
-        const qp=new URLSearchParams({
-          select:'id,name,species,birthday,zoo_id,thumbnail_url',
-          order:'birthday.asc,id.asc', limit:'500'
-        });
-        qp.set('and', and);
-        const raw=await fetchJSON(`/rest/v1/babies?${qp.toString()}`);
-        return (raw||[]).map(x=>({...x, zoo_name:''}));
-      }
-    }
+  const base = (select) => new URLSearchParams({ select, order:'birthday.asc,id.asc', limit:'700' }).toString();
+  const andQS = (select) => `${base(select)}&and=${encodeURIComponent(`(birthday.gte.${from},birthday.lte.${to})`)}`;
+  const repeatQS = (select) => `${base(select)}&birthday=gte.${from}&birthday=lte.${to}`;
+
+  // 1) babies_public（and）
+  try {
+    return await fetchJSON(`/rest/v1/babies_public?${andQS('id,name,species,birthday,zoo_id,zoo_name,thumbnail_url')}`);
+  } catch (e1) {
+    console.warn('[hero] and@babies_public failed -> repeat', e1);
   }
+  // 2) babies_public（同一キー2回）
+  try {
+    return await fetchJSON(`/rest/v1/babies_public?${repeatQS('id,name,species,birthday,zoo_id,zoo_name,thumbnail_url')}`);
+  } catch (e2) {
+    console.warn('[hero] repeat@babies_public failed -> babies embed', e2);
+  }
+  // 3) babies + embed（and）
+  try {
+    const raw = await fetchJSON(`/rest/v1/babies?${andQS('id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)')}`);
+    return (raw||[]).map(x => ({...x, zoo_name:x.zoo?.name||''}));
+  } catch (e3) {
+    console.warn('[hero] and@babies(embed) failed -> repeat', e3);
+  }
+  // 4) babies + embed（同一キー2回）
+  try {
+    const raw = await fetchJSON(`/rest/v1/babies?${repeatQS('id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)')}`);
+    return (raw||[]).map(x => ({...x, zoo_name:x.zoo?.name||''}));
+  } catch (e4) {
+    console.warn('[hero] repeat@babies(embed) failed -> babies plain', e4);
+  }
+  // 5) babies 素（and）
+  try {
+    return await fetchJSON(`/rest/v1/babies?${andQS('id,name,species,birthday,zoo_id,thumbnail_url')}`);
+  } catch (e5) {
+    console.warn('[hero] and@babies failed -> repeat', e5);
+  }
+  // 6) babies 素（同一キー2回）
+  try {
+    return await fetchJSON(`/rest/v1/babies?${repeatQS('id,name,species,birthday,zoo_id,thumbnail_url')}`);
+  } catch (e6) {
+    console.warn('[hero] repeat@babies failed -> wide fallback', e6);
+  }
+  // 7) 最後の手段：下限のみで広く取得してクライアントで絞る
+  const wide = await fetchJSON(`/rest/v1/babies?${base('id,name,species,birthday,zoo_id,thumbnail_url')}&birthday=gte.${from}`);
+  return (wide||[]);
+}
 
   // --- render ---
   const isSP = () => window.matchMedia('(max-width: 599px)').matches;
