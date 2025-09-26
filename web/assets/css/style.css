@@ -707,14 +707,5 @@ body {
   font-size:52px; text-shadow: 0 2px 0 rgba(255,255,255,.75);
   animation: zb-paw-bob 2.4s ease-in-out infinite;
 }
-.news-card .thumb.is-placeholder::before{
-  /* 角ステッカー風の「No image」 */
-  content:'No image';
-  position:absolute; top:8px; right:-10px;
-  background: var(--grad); color:#fff; font-weight:900; font-size:11px;
-  padding:2px 8px; border-radius:999px;
-  transform: rotate(8deg);
-  box-shadow: 0 2px 8px rgba(255,77,166,.22);
-}
 @keyframes zb-paw-bob{ 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-4px) } }
 
