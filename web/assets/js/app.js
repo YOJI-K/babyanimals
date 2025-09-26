@@ -479,32 +479,37 @@ function pickEmoji(baby){
   const $jumpN = document.getElementById('hero-show-next');
 
   /* -------- Supabase env / fetch (fallback headers) -------- */
-  function getSupabaseEnv(){
-    const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
-    const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-    const URL  = (window.SUPABASE?.URL || window.SUPABASE?.SUPABASE_URL || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co');
-    const ANON = (window.SUPABASE?.ANON || window.SUPABASE?.SUPABASE_ANON_KEY || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY');
-    return { URL, ANON };
-  }
-  async function fetchJSON(path){
-    const { URL, ANON } = getSupabaseEnv();
-    const u = new URL(path, URL);
-    // 1st
-    let res = await fetch(u.toString(), {
-      headers:{ apikey:ANON, Authorization:`Bearer ${ANON}`, 'Accept-Profile':'public', 'Content-Profile':'public' },
-      cache:'no-store'
-    });
-    // 406/4xx → ヘッダー簡素化で再試行
-    if (!res.ok) {
-      res = await fetch(u.toString(), { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` }, cache:'no-store' });
-    }
-    if (!res.ok) {
-      const t = await res.text().catch(()=> '');
-      throw new Error(`HTTP ${res.status} @ ${u.pathname} :: ${t}`);
-    }
-    return res.json();
+  // 環境取得（URLという名前を使わない）
+function getSupabaseEnv(){
+  const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+  const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+  const BASE_URL = (window.SUPABASE?.URL || window.SUPABASE?.SUPABASE_URL || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co');
+  const ANON     = (window.SUPABASE?.ANON || window.SUPABASE?.SUPABASE_ANON_KEY || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY');
+  return { BASE_URL, ANON };
+}
+
+// フェッチ（window.URL を明示）
+async function fetchJSON(path){
+  const { BASE_URL, ANON } = getSupabaseEnv();
+  const u = new window.URL(path, BASE_URL);
+
+  // まずは profile 付きで
+  let res = await fetch(u.toString(), {
+    headers:{ apikey:ANON, Authorization:`Bearer ${ANON}`, 'Accept-Profile':'public', 'Content-Profile':'public' },
+    cache:'no-store'
+  });
+
+  // 406/4xx などはヘッダー簡素化で再試行
+  if (!res.ok) {
+    res = await fetch(u.toString(), { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` }, cache:'no-store' });
   }
 
+  if (!res.ok) {
+    const t = await res.text().catch(()=> '');
+    throw new Error(`HTTP ${res.status} @ ${u.pathname} :: ${t}`);
+  }
+  return res.json();
+}
   /* ---------------- Utils ---------------- */
   const ymd=(d)=>d.toISOString().slice(0,10);
   const startOfMonth=(d)=>new Date(d.getFullYear(), d.getMonth(), 1);
