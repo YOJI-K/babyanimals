@@ -655,4 +655,66 @@ body {
 .pill--yt{background:#ffefe6;border-color:#ffd2b3}
 .pill--zoo{background:#eef7ff;border-color:#cfe3ff}
 .pill--web{background:#f5f3ff;border-color:#e1dcff}
+/* =========================
+   News: もっと読む（キャンディ風）
+========================= */
+.more-wrap{ display:flex; justify-content:center; margin:18px 0 36px; }
+#more{
+  display:inline-grid; grid-auto-flow:column; place-items:center; gap:8px;
+  padding:12px 18px;
+  font-size:14px; font-weight:900; letter-spacing:.02em;
+  color:#fff;
+  background: var(--grad);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease, filter .12s ease;
+}
+#more::before{ content:"✨"; font-size:14px; line-height:1; }
+#more:hover{ transform: translateY(-1px); filter: saturate(1.05); }
+#more:active{ transform: translateY(0); }
+#more:focus-visible{ outline: 3px solid rgba(255,77,166,.35); outline-offset: 2px; }
+#more[disabled]{ opacity:.6; cursor:not-allowed; }
+#more.loading{
+  pointer-events:none; opacity:.92;
+}
+#more.loading::after{
+  content:""; width:14px; height:14px; margin-left:4px;
+  border:2px solid rgba(255,255,255,.95); border-right-color: transparent; border-radius:50%;
+  animation: zb-spin 1s linear infinite;
+}
+@keyframes zb-spin{ to{ transform: rotate(1turn); } }
+
+/* =========================================
+   News: サムネなしの可愛い🐾プレースホルダー
+   （パステル×水玉＋ステッカー）
+========================================= */
+.news-card .thumb.is-placeholder{
+  position: relative; overflow: hidden;
+  /* パステル地 */
+  background:
+    radial-gradient(26px 26px at 18% 24%, rgba(255,122,199,.18) 0 60%, transparent 61%),
+    radial-gradient(22px 22px at 42% 76%, rgba(255,175,97,.18) 0 60%, transparent 61%),
+    radial-gradient(30px 30px at 84% 38%, rgba(255,77,166,.15) 0 60%, transparent 61%),
+    linear-gradient(135deg, #fff6fb 0%, #fff2ea 100%) !important; /* ← グレー背景を確実に上書き */
+  border: 1px dashed rgba(255,77,166,.28);
+}
+.news-card .thumb.is-placeholder::after{
+  /* ふわっと中央の🐾 */
+  content:'🐾';
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-size:52px; text-shadow: 0 2px 0 rgba(255,255,255,.75);
+  animation: zb-paw-bob 2.4s ease-in-out infinite;
+}
+.news-card .thumb.is-placeholder::before{
+  /* 角ステッカー風の「No image」 */
+  content:'No image';
+  position:absolute; top:8px; right:-10px;
+  background: var(--grad); color:#fff; font-weight:900; font-size:11px;
+  padding:2px 8px; border-radius:999px;
+  transform: rotate(8deg);
+  box-shadow: 0 2px 8px rgba(255,77,166,.22);
+}
+@keyframes zb-paw-bob{ 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-4px) } }
 

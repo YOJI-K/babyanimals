@@ -159,6 +159,7 @@
     $more.disabled = !hasMore;
 
     $skeleton.style.display = 'none';
+     if ($more) $more.classList.remove('loading');  
   }
 
   function showError(msg) {
@@ -173,7 +174,11 @@
   $q?.addEventListener('input', debounce(() => { PAGE = 1; render(); }, 200));
   $source?.addEventListener('change', () => { PAGE = 1; render(); });
   $sort?.addEventListener('change', () => { PAGE = 1; render(); });
-  $more?.addEventListener('click', () => { PAGE += 1; render(); });
+  $more?.addEventListener('click', () => {
+  $more.classList.add('loading'); 
+  PAGE += 1;
+  render();
+});
 
   // optional: autoload (= true when ?autoload=1)
   (function setupAutoload(){
