@@ -1,19 +1,27 @@
 // assets/js/news.js
-// News list v2 — SP最適化・Supabase/メタタグ両対応・簡易ページング
+// News list v3 — ヘッダー/タブ統一, 可愛いNo Image, NEWバッジ, ピル, ページサイズ可変
 
 (() => {
-  // ===== 小さなユーティリティ =====
+  // ===== Utils =====
+  const qs = (id) => document.getElementById(id);
   const fmtDate = (iso) => {
     if (!iso) return '';
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '';
     return d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
-  const domain = (u) => {
-    try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; }
-  };
-  const qs = (id) => document.getElementById(id);
+  const domain = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+  const today = () => new Date();
 
+  function getPageSize() {
+    const sp = new URLSearchParams(location.search);
+    const qp = Number(sp.get('pagesize'));
+    if (!Number.isNaN(qp) && qp >= 1 && qp <= 50) return qp;
+    const fromData = Number(document.body?.dataset?.pageSize);
+    return (!Number.isNaN(fromData) && fromData >= 1) ? fromData : 12;
+  }
+
+  // ===== Nodes =====
   const $q        = qs('q');
   const $source   = qs('source');
   const $sort     = qs('sort');
@@ -23,15 +31,14 @@
   const $error    = qs('error');
   const $more     = qs('more');
 
-  // ===== 状態 =====
-  const PAGE_SIZE = 12;
+  // ===== State =====
+  let PAGE_SIZE = getPageSize();
   let PAGE = 1;
-  let all = [];       // サーバーから受けた配列
-  let filtered = [];  // 絞り込み後
+  let all = [];      // サーバー配列
+  let filtered = []; // 絞り込み結果
 
-  // ===== データ取得 =====
+  // ===== Data =====
   async function fetchFromSupabase() {
-    // window.SUPABASE（既存） or <meta> フォールバック
     const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
     const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
     const SUPA_URL = (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL)) || metaUrl;
@@ -42,7 +49,7 @@
     const url = new URL(`${SUPA_URL}/rest/v1/news_items`);
     url.searchParams.set('select', 'id,title,url,published_at,source_name,source_url,thumbnail_url');
     url.searchParams.set('order', 'published_at.desc,id.desc');
-    url.searchParams.set('limit', '200'); // 初期は200件をクライアントでページング
+    url.searchParams.set('limit', '200');
 
     const res = await fetch(url.toString(), {
       headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
@@ -53,34 +60,65 @@
   }
 
   async function fetchMock() {
-    const res = await fetch('/assets/mock/news.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error('mock load failed');
-    return res.json();
+    // 任意：公開環境にモックは不要。存在しない場合は握りつぶす
+    try {
+      const res = await fetch('../assets/mock/news.json', { cache: 'no-store' });
+      if (!res.ok) throw 0;
+      return res.json();
+    } catch { return []; }
   }
 
-  // ===== 描画 =====
+  // ===== View helpers =====
+  function sourcePill(item){
+    const base = (cls, text) => `<span class="pill ${cls}">${text}</span>`;
+    const isYT = /youtube/i.test(item.source_name || item.url || '');
+    const zooish = /(動物園|zoo|園|市立|県立)/i.test(item.source_name || '');
+    if (isYT)   return base('pill--yt',  '▶️ YouTube');
+    if (zooish) return base('pill--zoo', '🏛️動物園公式');
+    return base('pill--web', '🌐 Web');
+  }
+  function isNew(pubISO){
+    const pub = new Date(pubISO);
+    const diff = (today() - pub) / 86400000;
+    return diff >= 0 && diff <= 7;
+  }
+
   function cardHTML(item) {
-    const img = item.thumbnail_url || 'https://placehold.co/640x360?text=No+Image';
     const dateStr = fmtDate(item.published_at);
     const host = item.source_name || domain(item.url) || '';
     const title = item.title || '(無題)';
     const href = item.url || item.source_url || '#';
+    const hasImg = !!item.thumbnail_url;
 
     return `
-      <a href="${href}" class="card" target="_blank" rel="noopener">
-        <div class="thumb">
-          <img src="${img}" loading="lazy" alt="${title.replace(/"/g, '&quot;')}">
+      <a href="${href}" class="news-card" target="_blank" rel="noopener" aria-label="${title.replace(/"/g,'&quot;')}">
+        <div class="thumb ${hasImg ? '' : 'is-placeholder'}">
+          ${hasImg ? `<img src="${item.thumbnail_url}" loading="lazy" decoding="async" alt="${title.replace(/"/g,'&quot;')}">` : ''}
         </div>
         <div class="pad">
           <div class="title">${title}</div>
           <div class="meta">
-            <span>${dateStr}</span><span class="dot"></span><span>${host}</span>
+            <span>${dateStr}</span><span class="dot"></span><span>${host}</span><span class="dot"></span>${sourcePill(item)}
+            ${isNew(item.published_at) ? '<span class="pill pill--new">NEW</span>' : ''}
           </div>
         </div>
       </a>
     `;
   }
 
+  function bindImageFallback(scope){
+    (scope || document).querySelectorAll('.thumb img').forEach(img=>{
+      img.addEventListener('error', ()=>{
+        const wrap = img.closest('.thumb'); if (!wrap) return;
+        wrap.classList.add('is-placeholder');
+        img.remove();
+        wrap.setAttribute('role','img');
+        wrap.setAttribute('aria-label','画像なし');
+      }, { once:true, passive:true });
+    });
+  }
+
+  // ===== Filter/Sort/Render =====
   function applyFilter() {
     const q = ($q?.value || '').trim().toLowerCase();
     const src = ($source?.value || '').trim();
@@ -112,13 +150,14 @@
     const slice = filtered.slice(0, end);
 
     $list.innerHTML = slice.map(cardHTML).join('');
+    bindImageFallback($list);
+
     $empty.style.display = slice.length ? 'none' : 'block';
 
     const hasMore = slice.length < filtered.length;
     $more.style.display = hasMore ? 'inline-flex' : 'none';
     $more.disabled = !hasMore;
 
-    // スケルトンOFF
     $skeleton.style.display = 'none';
   }
 
@@ -127,21 +166,34 @@
     $error.textContent = msg;
   }
 
-  // ===== イベント =====
+  // ===== Events =====
   function debounce(fn, ms) {
     let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
   }
-
   $q?.addEventListener('input', debounce(() => { PAGE = 1; render(); }, 200));
   $source?.addEventListener('change', () => { PAGE = 1; render(); });
   $sort?.addEventListener('change', () => { PAGE = 1; render(); });
   $more?.addEventListener('click', () => { PAGE += 1; render(); });
 
-  // ===== 初期化 =====
+  // optional: autoload (= true when ?autoload=1)
+  (function setupAutoload(){
+    const sp = new URLSearchParams(location.search);
+    if (sp.get('autoload') !== '1') return;
+    if (!('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver((entries)=>{
+      if (entries.some(e=>e.isIntersecting)){
+        if ($more && !$more.disabled && $more.style.display !== 'none') {
+          $more.click();
+        }
+      }
+    }, { rootMargin: '400px 0px 400px 0px' });
+    if ($more) io.observe($more);
+  })();
+
+  // ===== Init =====
   (async function init() {
-    // 二重初期化防止
-    if (window.__NEWS_V2_INITED) return;
-    window.__NEWS_V2_INITED = true;
+    if (window.__NEWS_V3_INITED) return;
+    window.__NEWS_V3_INITED = true;
 
     try {
       $skeleton.style.display = 'grid';

@@ -3,41 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ニュース一覧 | Zoo Baby Information Site</title>
+  <title>ニュース一覧 | どうベビ</title>
 
   <!-- SEO / OGP -->
   <meta name="description" content="日本の動物園の赤ちゃん動物ニュースを一覧でチェック。公式サイト・ブログ・YouTube などをまとめて表示します。">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="ニュース一覧 | Zoo Baby Information Site">
+  <meta property="og:title" content="ニュース一覧 | どうベビ">
   <meta property="og:description" content="日本の動物園の赤ちゃん動物ニュースを一覧でチェック。公式サイト・ブログ・YouTube などをまとめて表示します。">
   <meta property="og:url" content="https://babyanimals.pages.dev/news/">
   <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 
-  <!-- Supabase（メタ経由フォールバック用。値は既存のものを維持） -->
+  <!-- Supabase（メタフォールバック） -->
   <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
   <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
-  <!-- Global styles / scripts -->
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <script defer src="/assets/js/app.js"></script>
-  <script defer src="/assets/js/news.js"></script>
+  <!-- 共通CSS/JS -->
+  <link rel="stylesheet" href="../assets/css/style.css?v=20250926b">
+  <script defer src="../assets/js/app.js?v=20250926b"></script>
+  <script defer src="../assets/js/news.js?v=20250926b"></script>
 
-  <!-- ページ固有：最低限の補助だけ（共通CSSでほぼ整います） -->
+  <!-- ニュース固有の軽い補助だけ（グリッド/コントロール） -->
   <style>
-    .grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
-    @media (min-width:600px){ .grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-    @media (min-width:1024px){ .grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    .news-grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    @media (min-width:600px){ .news-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (min-width:1024px){ .news-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
 
-    .card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; }
-    .card:hover{ transform:translateY(-2px); }
-    .card .thumb{ position:relative; width:100%; aspect-ratio:16/9; background:#f2f2f2; overflow:hidden; }
-    .card .thumb > img{ width:100%; height:100%; object-fit:cover; max-height:none !important; display:block; }
-    .pad{ padding:10px 12px 12px; }
-    .title{ font-size:14.5px; line-height:1.5; font-weight:700; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .meta{ font-size:12px; color:#666; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .meta .dot::before{ content:"・"; color:#aaa; }
+    .news-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; text-decoration:none; color:inherit }
+    .news-card:hover{ transform:translateY(-2px); }
+    .news-card .thumb{ position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#f2f2f2; }
+    .news-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .news-card .pad{ padding:10px 12px 12px; }
+    .news-card .title{ font-size:14.5px; line-height:1.5; font-weight:900; margin:6px 0 8px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .news-card .meta{ font-size:12px; color:#666; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .news-card .meta .dot::before{ content:"・"; color:#aaa; }
 
     .controls.sticky{
       position:sticky; top:0; z-index:10; background:#fff;
@@ -53,54 +54,40 @@
       .controls.sticky{ grid-template-columns:1fr 1fr; }
       .controls.sticky #sort{ grid-column:1 / -1; }
     }
-
-    .skeleton{ background:linear-gradient(90deg,#eee 25%,#f7f7f7 37%,#eee 63%); background-size:400% 100%; animation:shimmer 1.35s infinite; }
-    @keyframes shimmer{ 0%{background-position:100% 0} 100%{background-position:0 0} }
-
-    #error{ display:none; background:#fff7f7; border:1px solid #ffdede; color:#a40000; padding:10px 12px; border-radius:10px; margin:14px 0; white-space:pre-line; }
-    .more-wrap{ display:flex; justify-content:center; margin:16px 0 32px; }
-    #more{ padding:10px 16px; font-size:14px; border-radius:999px; border:1px solid #ddd; background:#fff; cursor:pointer; }
-    #more[disabled]{ opacity:.6; cursor:not-allowed; }
   </style>
 </head>
-<body data-news-v2="1">
-  <!-- Global Header -->
-  <header class="site-header" role="banner">
+
+<body class="theme" data-news-v2="1" data-page-size="12">
+  <!-- ヘッダー（TOP/カレンダーと同一） -->
+  <header class="site-header site-header--candy" role="banner">
     <div class="site-header__left">
-      <a class="brand" href="../index.html" aria-label="トップへ">
-        <svg class="brand__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-logo"></use></svg>
-        <span class="brand__title">Zoo Baby Information Site</span>
+      <a class="brand" href="../index.html" aria-label="ホームへ">
+        <span class="brand__emoji" aria-hidden="true">🐾</span>
+        <svg class="brand__icon" aria-hidden="true" focusable="false">
+          <use href="../assets/icons/icons.svg#icon-logo"></use>
+        </svg>
+        <span class="brand__title">どうベビ</span>
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り">
-        <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg>
+      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録"><span class="emoji-icon" aria-hidden="true">💗</span></button>
+      <button class="pill-btn search-btn" aria-label="検索" title="検索"><span class="emoji-icon" aria-hidden="true">🔍</span></button>
+      <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ" style="position:relative">
+        <span class="emoji-icon" aria-hidden="true">🔔</span><span class="badge" aria-hidden="true">!</span>
       </button>
     </div>
   </header>
 
-  <!-- Sticky Tabbar -->
-  <nav class="tabbar" aria-label="メイン">
-    <a class="tabbar__link" href="../index.html" aria-label="ホーム" title="ホーム">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
-      <span class="tabbar__text">ホーム</span>
-    </a>
-    <a class="tabbar__link is-active" href="./index.html" aria-current="page" aria-label="ニュース" title="ニュース">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-news"></use></svg>
-      <span class="tabbar__text">ニュース</span>
-    </a>
-    <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-baby"></use></svg>
-      <span class="tabbar__text">赤ちゃん</span>
-    </a>
-    <a class="tabbar__link" href="../calendar/index.html" aria-label="カレンダー" title="カレンダー">
-      <svg class="tabbar__icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
-      <span class="tabbar__text">カレンダー</span>
-    </a>
-</nav>
+  <!-- タブバー（TOP/カレンダーと同一：スタック＋絵文字） -->
+  <nav class="tabbar tabbar--stack" aria-label="メイン">
+    <a class="tabbar__link" href="../index.html" title="ホーム"><span class="tab-emoji" aria-hidden="true">🏠</span><span class="tabbar__text">ホーム</span></a>
+    <a class="tabbar__link is-active" href="./index.html" aria-current="page" title="ニュース"><span class="tab-emoji" aria-hidden="true">📰</span><span class="tabbar__text">ニュース</span></a>
+    <a class="tabbar__link" href="../babies/index.html" title="赤ちゃん"><span class="tab-emoji" aria-hidden="true">🍼</span><span class="tabbar__text">赤ちゃん</span></a>
+    <a class="tabbar__link" href="../calendar/index.html" title="カレンダー"><span class="tab-emoji" aria-hidden="true">📅</span><span class="tabbar__text">カレンダー</span></a>
+  </nav>
 
-  <div class="container hero">
-    <h1>ニュース一覧</h1>
+  <main class="container">
+    <section class="page-hero"><h1 class="page-title">ニュース一覧</h1></section>
 
     <!-- 検索/絞り込み/並び順 -->
     <div class="controls sticky" role="region" aria-label="検索と絞り込み">
@@ -116,36 +103,29 @@
       </select>
     </div>
 
-    <div class="banner">（インフィード広告枠）</div>
-
     <!-- 初期スケルトン -->
-    <div id="skeleton-news" class="grid" aria-hidden="true">
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
-      <div class="card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+    <div id="skeleton-news" class="news-grid" aria-hidden="true">
+      <!-- 4枚ほど -->
+      <div class="news-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="news-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="news-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
+      <div class="news-card"><div class="thumb skeleton"></div><div class="pad"><div class="skeleton" style="height:14px;width:80%;border-radius:8px;margin:6px 0;"></div><div class="skeleton" style="height:12px;width:50%;border-radius:8px;"></div></div></div>
     </div>
 
-    <div id="error" role="alert"></div>
+    <div id="error" role="alert" style="display:none"></div>
 
     <!-- 実データ -->
-    <div id="list" class="grid" aria-live="polite"></div>
+    <div id="list" class="news-grid" aria-live="polite"></div>
 
     <!-- 空状態 -->
-    <div id="empty" class="empty" style="display:none;">データがありません</div>
+    <div id="empty" style="display:none;">データがありません</div>
 
     <!-- もっと読む -->
-    <div class="more-wrap">
-      <button id="more" type="button">もっと読む</button>
-    </div>
-  </div>
+    <div class="more-wrap"><button id="more" type="button">もっと読む</button></div>
+  </main>
 
   <footer class="site-footer" aria-label="フッター">
-    <small>© Zoo Baby Information</small>
+    <small>© どうベビ（動物園ベビー情報）</small>
   </footer>
 </body>
 </html>
