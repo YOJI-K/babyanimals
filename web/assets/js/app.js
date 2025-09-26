@@ -464,7 +464,7 @@ function pickEmoji(baby){
 
 })();
 /* ==========================================================
- * Home Hero v3 — SP=縦スタック3件 / タブレット+=横6件
+ * Home Hero v4 — 取得安定化（gte1本）/ SP=縦3件 / TB+=横6件
  * ========================================================== */
 (() => {
   const $list  = document.getElementById('hero-list');
@@ -478,39 +478,34 @@ function pickEmoji(baby){
   const $next  = document.getElementById('hero-next');
   const $jumpN = document.getElementById('hero-show-next');
 
-  // --- env / fetch (互換リトライ付き) ---
-function getSupabaseEnv(){
-  const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
-  const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-  const URL  = (window.SUPABASE?.URL || window.SUPABASE?.SUPABASE_URL || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co');
-  const ANON = (window.SUPABASE?.ANON || window.SUPABASE?.SUPABASE_ANON_KEY || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY');
-  return { URL, ANON };
-}
-async function fetchJSON(path){
-  const { URL, ANON } = getSupabaseEnv();
-  const u = new URL(path, URL);
-
-  // 1st: profile ヘッダーあり
-  let res = await fetch(u.toString(), {
-    headers:{ apikey:ANON, Authorization:`Bearer ${ANON}`, 'Accept-Profile':'public', 'Content-Profile':'public' },
-    cache:'no-store'
-  });
-
-  // 406/4xx 対策: ヘッダーを減らして再試行
-  if (!res.ok) {
-    res = await fetch(u.toString(), {
-      headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` },
+  /* -------- Supabase env / fetch (fallback headers) -------- */
+  function getSupabaseEnv(){
+    const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+    const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+    const URL  = (window.SUPABASE?.URL || window.SUPABASE?.SUPABASE_URL || metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co');
+    const ANON = (window.SUPABASE?.ANON || window.SUPABASE?.SUPABASE_ANON_KEY || metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY');
+    return { URL, ANON };
+  }
+  async function fetchJSON(path){
+    const { URL, ANON } = getSupabaseEnv();
+    const u = new URL(path, URL);
+    // 1st
+    let res = await fetch(u.toString(), {
+      headers:{ apikey:ANON, Authorization:`Bearer ${ANON}`, 'Accept-Profile':'public', 'Content-Profile':'public' },
       cache:'no-store'
     });
+    // 406/4xx → ヘッダー簡素化で再試行
+    if (!res.ok) {
+      res = await fetch(u.toString(), { headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` }, cache:'no-store' });
+    }
+    if (!res.ok) {
+      const t = await res.text().catch(()=> '');
+      throw new Error(`HTTP ${res.status} @ ${u.pathname} :: ${t}`);
+    }
+    return res.json();
   }
-  if (!res.ok) {
-    const t = await res.text().catch(()=> '');
-    throw new Error(`HTTP ${res.status} @ ${u.pathname} :: ${t}`);
-  }
-  return res.json();
-}
 
-  // --- utils ---
+  /* ---------------- Utils ---------------- */
   const ymd=(d)=>d.toISOString().slice(0,10);
   const startOfMonth=(d)=>new Date(d.getFullYear(), d.getMonth(), 1);
   const endOfMonth=(d)=>new Date(d.getFullYear(), d.getMonth()+1, 0);
@@ -545,61 +540,46 @@ async function fetchJSON(path){
     return '🐾';
   };
 
- // --- data loader (0–3歳 & 対象月) — マルチ戦略でリトライ ---
-async function loadMonthlyBabies(monthDate){
-  const from = new Date(monthDate.getFullYear()-3, monthDate.getMonth(), 1).toISOString().slice(0,10);
-  const to   = new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 0).toISOString().slice(0,10);
+  /* -------- Data loader：birthday >= (対象月の3年前の1日) --------
+     → 月一致/年齢0–3はクライアントで絞る（API差異に強い） */
+  async function loadRangeSince(monthDate){
+    const since = ymd(new Date(monthDate.getFullYear()-3, monthDate.getMonth(), 1));
+    // 1) babies_public
+    try {
+      const qs = new URLSearchParams({
+        select:'id,name,species,birthday,zoo_id,zoo_name,thumbnail_url',
+        order:'birthday.asc.nullsfirst,id.asc', limit:'2000'
+      });
+      qs.append('birthday', `gte.${since}`);
+      return await fetchJSON(`/rest/v1/babies_public?${qs.toString()}`);
+    } catch(e1) {
+      console.warn('[hero] babies_public failed -> babies(embed)', e1);
+    }
+    // 2) babies + embed
+    try {
+      const qs = new URLSearchParams({
+        select:'id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)',
+        order:'birthday.asc.nullsfirst,id.asc', limit:'2000'
+      });
+      qs.append('birthday', `gte.${since}`);
+      const raw = await fetchJSON(`/rest/v1/babies?${qs.toString()}`);
+      return (raw||[]).map(x => ({...x, zoo_name:x.zoo?.name || ''}));
+    } catch(e2) {
+      console.warn('[hero] babies(embed) failed -> babies(plain)', e2);
+    }
+    // 3) babies 素
+    const qs = new URLSearchParams({
+      select:'id,name,species,birthday,zoo_id,thumbnail_url',
+      order:'birthday.asc.nullsfirst,id.asc', limit:'2000'
+    });
+    qs.append('birthday', `gte.${since}`);
+    const raw = await fetchJSON(`/rest/v1/babies?${qs.toString()}`);
+    return (raw||[]).map(x => ({...x, zoo_name:''}));
+  }
 
-  const base = (select) => new URLSearchParams({ select, order:'birthday.asc,id.asc', limit:'700' }).toString();
-  const andQS = (select) => `${base(select)}&and=${encodeURIComponent(`(birthday.gte.${from},birthday.lte.${to})`)}`;
-  const repeatQS = (select) => `${base(select)}&birthday=gte.${from}&birthday=lte.${to}`;
-
-  // 1) babies_public（and）
-  try {
-    return await fetchJSON(`/rest/v1/babies_public?${andQS('id,name,species,birthday,zoo_id,zoo_name,thumbnail_url')}`);
-  } catch (e1) {
-    console.warn('[hero] and@babies_public failed -> repeat', e1);
-  }
-  // 2) babies_public（同一キー2回）
-  try {
-    return await fetchJSON(`/rest/v1/babies_public?${repeatQS('id,name,species,birthday,zoo_id,zoo_name,thumbnail_url')}`);
-  } catch (e2) {
-    console.warn('[hero] repeat@babies_public failed -> babies embed', e2);
-  }
-  // 3) babies + embed（and）
-  try {
-    const raw = await fetchJSON(`/rest/v1/babies?${andQS('id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)')}`);
-    return (raw||[]).map(x => ({...x, zoo_name:x.zoo?.name||''}));
-  } catch (e3) {
-    console.warn('[hero] and@babies(embed) failed -> repeat', e3);
-  }
-  // 4) babies + embed（同一キー2回）
-  try {
-    const raw = await fetchJSON(`/rest/v1/babies?${repeatQS('id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)')}`);
-    return (raw||[]).map(x => ({...x, zoo_name:x.zoo?.name||''}));
-  } catch (e4) {
-    console.warn('[hero] repeat@babies(embed) failed -> babies plain', e4);
-  }
-  // 5) babies 素（and）
-  try {
-    return await fetchJSON(`/rest/v1/babies?${andQS('id,name,species,birthday,zoo_id,thumbnail_url')}`);
-  } catch (e5) {
-    console.warn('[hero] and@babies failed -> repeat', e5);
-  }
-  // 6) babies 素（同一キー2回）
-  try {
-    return await fetchJSON(`/rest/v1/babies?${repeatQS('id,name,species,birthday,zoo_id,thumbnail_url')}`);
-  } catch (e6) {
-    console.warn('[hero] repeat@babies failed -> wide fallback', e6);
-  }
-  // 7) 最後の手段：下限のみで広く取得してクライアントで絞る
-  const wide = await fetchJSON(`/rest/v1/babies?${base('id,name,species,birthday,zoo_id,thumbnail_url')}&birthday=gte.${from}`);
-  return (wide||[]);
-}
-
-  // --- render ---
+  /* ---------------- Render ---------------- */
   const isSP = () => window.matchMedia('(max-width: 599px)').matches;
-  const heroLimit = () => isSP() ? 3 : 6;  // ★ SP=3件
+  const heroLimit = () => isSP() ? 3 : 6;
 
   function cardHTML(x, ref){
     const a = ageOn(x.birthday, ref);
@@ -629,19 +609,24 @@ async function loadMonthlyBabies(monthDate){
   }
 
   let currentMonth = startOfMonth(new Date());
+
   async function renderMonth(d){
     try{
       setState({ skel:true });
-      $label.textContent = fmtMonthJP(d);
-      const all = await loadMonthlyBabies(d);
-      const mm = d.getMonth();
+      if ($label) $label.textContent = fmtMonthJP(d);
+
+      const all = await loadRangeSince(d);
+      const mm = d.getMonth(), yyyy = d.getFullYear();
+
       const filtered = (all||[]).filter(b=>{
         if(!b.birthday) return false;
-        const bd=new Date(b.birthday); if(isNaN(bd)) return false;
-        if(bd.getMonth()!==mm) return false;
-        const a=ageOn(b.birthday,d);
+        const bd = new Date(b.birthday); if(isNaN(bd)) return false;
+        if (bd.getMonth() !== mm) return false;        // 月一致
+        if (bd.getFullYear() > yyyy) return false;     // 未来生まれ除外（念のため）
+        const a = ageOn(b.birthday, d);                // 当年齢
         return a!=null && a>=0 && a<=3;
       });
+
       if(!filtered.length){ $list.innerHTML=''; setState({empty:true}); return; }
       $list.innerHTML = filtered.slice(0, heroLimit()).map(x=>cardHTML(x, d)).join('');
       setState({});
@@ -659,6 +644,6 @@ async function loadMonthlyBabies(monthDate){
   $next?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth, 1); renderMonth(currentMonth); });
   $jumpN?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth, 1); renderMonth(currentMonth); });
 
-  // 画面幅が変わったら件数も再評価
+  // 画面幅変化で件数再評価（SP⇄TB）
   window.matchMedia('(max-width: 599px)').addEventListener?.('change', ()=>renderMonth(currentMonth));
 })();

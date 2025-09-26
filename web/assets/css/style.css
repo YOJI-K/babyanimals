@@ -714,32 +714,38 @@ body {
 
 /* 近々誕生日インジケータ（カード右上の点） */
 .soon-dot{ position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; background:var(--pink-500); box-shadow:0 0 0 3px rgba(255,77,166,.15); }
-/* =========================
-  Home Hero v3 — SP=縦スタック / タブレット+=横レール
-========================= */
+/* ===== Hero v4 – SP 縦3件 / 月送りは別行 ===== */
 .hero__head{
-  display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 8px;
 }
-.hero__titles{ min-width:0; }
+.hero__badge{ /* 既存のアイコンでOK */ }
 .hero__title{
   font-size: clamp(18px, 4.2vw, 22px);
   line-height: 1.28;
   text-wrap: balance;
+  margin: 0;
 }
-.hero__nav{ display:flex; gap:8px; align-items:center; }
+/* 月送りを「常に次の行の全幅」に */
+.hero__nav{
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 .pill{
   display:inline-flex; align-items:center; justify-content:center;
   height:32px; padding:0 10px; border-radius:999px; border:1px solid var(--border);
   background:#fff; font-weight:800;
 }
 .pill--nav{ width:36px; padding:0; font-size:16px; }
-.pill--label{ background: linear-gradient(135deg,#fff,#fff7f0); font-variant-numeric: tabular-nums; }
+.pill--label{ background:linear-gradient(135deg,#fff,#fff7f0); font-variant-numeric: tabular-nums; }
 
-/* === List layout === */
-/* SP: 縦スタック（読み取りやすさ重視） */
-#hero-list{
-  display:grid; gap:10px; padding:6px 2px 2px; margin-top:6px;
-}
+/* SP：縦スタック3件 */
+#hero-list{ display:grid; gap:10px; margin-top:6px; }
 .hero-card{
   border:1px solid var(--border); border-radius:16px; background:#fff;
   box-shadow: var(--shadow);
@@ -753,8 +759,6 @@ body {
 }
 .hero-card__title{ margin:0; font-size:16px; font-weight:800; line-height:1.3; }
 .hero-card__meta{ margin:6px 0 0; display:flex; flex-wrap:wrap; gap:6px; }
-
-/* タグ化したメタ（📅/🏛/🎉） */
 .meta-chip{
   display:inline-flex; align-items:center; gap:6px;
   padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700;
@@ -778,13 +782,13 @@ body {
   padding:10px 12px; border-radius:10px;
 }
 
-/* タブレット以上：横レールに切り替え（一覧性重視） */
+/* タブレット以上：横レール6件 */
 @media (min-width: 600px){
-  #hero-list{
-    display:flex; gap:10px; overflow-x:auto; -webkit-overflow-scrolling:touch;
-    scroll-snap-type:x mandatory; padding-right:2px;
-  }
+  #hero-list{ display:flex; gap:10px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory; padding-right:2px; }
   #hero-list::-webkit-scrollbar{ display:none; }
   .hero-card{ flex:0 0 260px; scroll-snap-align:start; grid-template-columns:48px 1fr; }
   .hero-card__avatar{ width:48px; height:48px; font-size:22px; border-radius:12px; }
+  /* 月送りは見出し右に戻す（横幅余裕があるとき） */
+  .hero__nav{ grid-column:auto; justify-self:end; }
 }
