@@ -1,27 +1,17 @@
-# --- root files
-/robots.txt     /robots.txt      200
-/sitemap.xml    /sitemap.xml     200
+# ルート系
+/robots.txt   /robots.txt   200
+/sitemap.xml  /sitemap.xml  200
 
-# --- static assets
-/assets/*       /assets/:splat   200
+# ニュース（まずは静的ファイルをそのまま）
+/news/index.html   /news/index.html   200
+/news/article.html /news/article.html 200
 
-# --- news
-# --- news (順序が重要) ---
-/news/index.html    /news/index.html    200
-/news/              /news/index.html    200
+# スラッグ（/news/xxxx → /news/article.html?slug=xxxx）
+/news/*  /news/article.html?slug=:splat  200!
 
-# 拡張子ありは書き換えない
-/news/*.*           /news/:splat        200
+# 他のディレクトリは必要に応じて（無くてもOK）
+/babies/*    /babies/:splat   200
+/calendar/*  /calendar/:splat 200
 
-# もし /news/assets/... が来たら /assets に振り向け（保険）
-/news/assets/*      /assets/:splat      200
-
-# 記事スラッグをテンプレへ
-/news/*             /news/article.html?slug=:splat   200!
-
-# --- other sections
-/babies/*       /babies/:splat   200
-/calendar/*     /calendar/:splat 200
-
-# --- SPA fallback（最後）
-/*              /index.html      200
+# SPA フォールバック
+/*  /index.html  200
