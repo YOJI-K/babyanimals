@@ -1,0 +1,97 @@
+<!doctype html><html lang="ja">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>記事 | Zoo Baby Information Site</title>
+
+  <!-- Supabase（メタ。Pages Functions導入前の直叩き用） -->
+  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
+  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
+
+  <link rel="stylesheet" href="/assets/css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <script defer src="/assets/js/app.js"></script>
+  <style>
+    .article{max-width:820px;margin:0 auto;padding:16px}
+    .article h1{font-size:clamp(22px,5vw,32px);margin:6px 0 10px}
+    .article .meta{color:#6b6b6b;margin-bottom:10px}
+    .article img{max-width:100%;height:auto;border-radius:12px}
+    .article .content :where(h2,h3){margin-top:1.6em}
+  </style>
+  <script defer>
+  window.addEventListener('DOMContentLoaded', async () => {
+    const slug = new URL(location.href).searchParams.get('slug');
+    const $t = id => document.getElementById(id);
+
+    async function fetchJSON(path){
+      const base = document.querySelector('meta[name="supabase-url"]').content.trim();
+      const key  = document.querySelector('meta[name="supabase-anon-key"]').content.trim();
+      const u = new window.URL(path, base);
+      const res = await fetch(u, { headers:{ apikey:key, Authorization:`Bearer ${key}` }, cache:'no-store' });
+      if(!res.ok){ throw new Error(await res.text()); }
+      return res.json();
+    }
+    function setMeta(name, content){
+      if(!content) return;
+      let m = document.querySelector(`meta[property="${name}"],meta[name="${name}"]`);
+      if(!m){ m=document.createElement('meta'); m.setAttribute(name.startsWith('og:')?'property':'name', name); document.head.appendChild(m); }
+      m.setAttribute('content', content);
+    }
+
+    try{
+      if(!slug) throw new Error('slugがありません');
+      const qs = new URLSearchParams({ select:'*', slug:`eq.${slug}`, limit:'1' }).toString();
+      const [a] = await fetchJSON(`/rest/v1/articles?${qs}`);
+      if(!a) throw new Error('記事が見つかりません');
+
+      document.title = `${a.title} | Zoo Baby Information Site`;
+      $t('a-title').textContent = a.title;
+      $t('a-meta').textContent  = `${new Date(a.published_at).toLocaleDateString('ja-JP',{year:'numeric',month:'short',day:'numeric'})} ｜ ${a.author_name||'編集部'}`;
+      if(a.thumbnail_url){ $t('a-thumb').src=a.thumbnail_url; $t('a-thumb').alt=a.title; }
+      else { $t('thumb-wrap').style.display='none'; }
+      $t('a-body').innerHTML = a.body_html ? a.body_html : (a.body_md ? marked.parse(a.body_md) : '<p>本文準備中です。</p>');
+
+      // canonical / OG / Twitter
+      const canon = location.origin + '/news/' + a.slug;
+      let link = document.querySelector('link[rel="canonical"]'); if(!link){ link=document.createElement('link'); link.rel='canonical'; document.head.appendChild(link); }
+      link.href = canon;
+      setMeta('og:type','article'); setMeta('og:title',a.title); setMeta('og:url',canon);
+      if(a.thumbnail_url) setMeta('og:image', a.thumbnail_url);
+      setMeta('twitter:card','summary_large_image');
+
+      // JSON-LD
+      const ld = {
+        "@context":"https://schema.org","@type":"Article",
+        "headline":a.title,"datePublished":a.published_at,"dateModified":a.updated_at||a.published_at,
+        "author":{"@type":"Person","name":a.author_name||"編集部"},
+        "image":a.thumbnail_url||undefined,"mainEntityOfPage":canon
+      };
+      const s=document.createElement('script'); s.type='application/ld+json'; s.textContent=JSON.stringify(ld); document.head.appendChild(s);
+    }catch(e){
+      console.error(e); $t('a-error').textContent='記事の読み込みに失敗しました。'; $t('a-error').style.display='block';
+    }
+  });
+  </script>
+</head>
+<body class="theme">
+  <header class="site-header"><div class="site-header__left">
+    <a class="brand" href="/index.html"><svg class="brand__icon"><use href="/assets/icons/icons.svg#icon-logo"></use></svg><span class="brand__title">Zoo Baby Information Site</span></a>
+  </div><div class="site-header__right"><button class="pill-btn like-btn" aria-label="お気に入り"><svg class="icon"><use href="/assets/icons/icons.svg#icon-heart"></use></svg></button></div></header>
+
+  <nav class="tabbar" aria-label="メイン">
+    <a class="tabbar__link" href="/index.html"><span class="tabbar__icon">🏠</span><span class="tabbar__text">ホーム</span></a>
+    <a class="tabbar__link is-active" href="/news/index.html" aria-current="page"><span class="tabbar__icon">📰</span><span class="tabbar__text">ニュース</span></a>
+    <a class="tabbar__link" href="/babies/index.html"><span class="tabbar__icon">🍼</span><span class="tabbar__text">赤ちゃん</span></a>
+    <a class="tabbar__link" href="/calendar/index.html"><span class="tabbar__icon">📅</span><span class="tabbar__text">カレンダー</span></a>
+  </nav>
+
+  <main class="container">
+    <article class="article">
+      <h1 id="a-title">読み込み中…</h1>
+      <p id="a-meta" class="meta"></p>
+      <div id="thumb-wrap" style="margin:12px 0;"><img id="a-thumb" alt=""></div>
+      <div id="a-error" class="hero__error" style="display:none"></div>
+      <section id="a-body" class="content"></section>
+    </article>
+  </main>
+  <footer class="site-footer"><small>© Zoo Baby Information</small></footer>
+</body></html>
