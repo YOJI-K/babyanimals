@@ -15,6 +15,10 @@
 
   <!-- Cloudflare Pages 共通CSS/JS（相対パスは /news/ からの参照） -->
   <link rel="stylesheet" href="../assets/css/style.css" />
+  
+  <!-- Supabase（メタ経由フォールバック） -->
+  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
+  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
   <!-- Cloudflare Web Analytics（既存のトークンに差し替え済み想定） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
@@ -22,10 +26,6 @@
 
   <!-- canonical は JS で slug 取得後に差し替え（静的には一覧に向ける） -->
   <link id="canonical" rel="canonical" href="https://babyanimals.pages.dev/news/">
-
-  <!-- Supabase（メタ経由フォールバック） -->
-  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
-  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
   <!-- ページ内だけの軽いタイポグラフィ補助 -->
   <style>
