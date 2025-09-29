@@ -46,8 +46,8 @@
 
     if (!SUPA_URL || !ANON) throw new Error('Supabase の URL / ANON KEY が設定されていません。');
 
-    const url = new URL(`${SUPA_URL}/rest/v1/news_items`);
-    url.searchParams.set('select', 'id,title,url,published_at,source_name,source_url,thumbnail_url');
+    const url = new URL(`${SUPA_URL}/rest/v1/news_feed_v2`);
+    url.searchParams.set('select', 'id,title,url,published_at,source_name,source_url,thumbnail_url,kind,featured');
     url.searchParams.set('order', 'published_at.desc,id.desc');
     url.searchParams.set('limit', '200');
 
@@ -126,7 +126,9 @@
     filtered = all.filter(it => {
       const hitQ = !q || (it.title || '').toLowerCase().includes(q) || (it.source_name || '').toLowerCase().includes(q);
       let hitS = true;
-      if (src === 'YouTube') {
+      if (src === '公式記事') {
+        hitS = it.kind === 'article';
+      } else if (src === 'YouTube') {
         hitS = /youtube/i.test(it.source_name || '');
       } else if (src === 'blog') {
         hitS = !/youtube/i.test(it.source_name || '');
