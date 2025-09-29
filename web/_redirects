@@ -6,15 +6,18 @@
 /assets/*       /assets/:splat   200
 
 # --- news
-# 1) 一覧ページはそのまま配信
+# --- news (順序が重要) ---
 /news/index.html    /news/index.html    200
 /news/              /news/index.html    200
 
-# 2) /news 配下の「拡張子あり」は書き換えない（CSS/JS/画像などの保険）
-/news/*.*       /news/:splat     200
+# 拡張子ありは書き換えない
+/news/*.*           /news/:splat        200
 
-# 3) それ以外（= /news/slug）を記事テンプレにリライト
-/news/*         /news/article.html?slug=:splat   200!
+# もし /news/assets/... が来たら /assets に振り向け（保険）
+/news/assets/*      /assets/:splat      200
+
+# 記事スラッグをテンプレへ
+/news/*             /news/article.html?slug=:splat   200!
 
 # --- other sections
 /babies/*       /babies/:splat   200
