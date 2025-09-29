@@ -3,172 +3,237 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ニュース記事 | どうベビ</title>
-  <meta name="description" content="どうベビ（動物園ベビー情報）のオリジナル記事ページです。">
+  <title>記事 | どうベビ</title>
+  <meta name="description" content="どうベビ公式の記事ページ。ニュース・お知らせ・使い方ガイドなど。">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 
-  <!-- OGP（JSで上書きされます） -->
+  <!-- OGP（静的な共通値。厳密な per-article OGP は将来SSRで対応） -->
   <meta property="og:type" content="article">
-  <meta property="og:title" content="ニュース記事 | どうベビ">
-  <meta property="og:description" content="どうベビのオリジナル記事">
-  <meta property="og:image" content="/assets/img/og.png">
-  <meta property="og:url" content="">
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <meta property="og:title" content="記事 | どうベビ">
+  <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
+  <meta property="og:url" content="https://babyanimals.pages.dev/news/">
 
-  <!-- Supabase（メタ値フォールバック） -->
-  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
-  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
+  <!-- Cloudflare Pages 共通CSS/JS（相対パスは /news/ からの参照） -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
 
-  <!-- 共通スタイル -->
-  <link rel="stylesheet" href="/assets/css/style.css" />
-  <!-- Cloudflare Web Analytics -->
+  <!-- Cloudflare Web Analytics（既存のトークンに差し替え済み想定） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
-    data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
-  <!-- canonical（JSで最終URLに置き換え） -->
+          data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
+
+  <!-- canonical は JS で slug 取得後に差し替え（静的には一覧に向ける） -->
   <link id="canonical" rel="canonical" href="https://babyanimals.pages.dev/news/">
+
+  <!-- ページ内だけの軽いタイポグラフィ補助 -->
   <style>
-    /* 記事専用の軽い追加だけ（共通デザインは style.css 依存） */
-    .article-wrap{max-width:880px;margin-inline:auto;}
-    .article-meta{color:#6f6166;font-size:14px;margin:10px 0 16px;}
-    .article-cover{border-radius:16px;overflow:hidden;background:#fff;display:block}
-    .article-cover img{width:100%;height:auto;display:block}
-    .article-body{font-size:16.5px;line-height:1.9;}
-    .article-body h2{font-size:22px;margin:24px 0 10px}
-    .backline{display:inline-flex;align-items:center;gap:8px;margin:6px 0 18px;color:#6b3d52;text-decoration:none;font-weight:700}
-    .backline::before{content:"←";}
-    @media(min-width:720px){ .article-body{font-size:18px} }
+    .article { max-width: 880px; margin: 0 auto; }
+    .article-head { display:grid; gap:10px; margin: 8px 0 14px; }
+    .article-title { font-size: clamp(20px, 5.5vw, 28px); line-height: 1.35; letter-spacing: .02em; margin: 0; }
+    .article-meta { color:#73656a; font-size:13px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .article-cover { width:100%; aspect-ratio: 16/9; border-radius:16px; overflow:hidden; background:#f6f6f6; margin: 12px 0 16px; }
+    .article-cover > img { width:100%; height:100%; object-fit:cover; display:block; }
+    .article-body { font-size:16px; line-height:1.9; }
+    .article-body h2, .article-body h3 { margin: 1.8em 0 .6em; }
+    .article-body img { max-width:100%; height:auto; border-radius:12px; }
+    .backline { display:inline-flex; align-items:center; gap:8px; color:#7a2460; text-decoration:none; font-weight:800; margin: 12px 0 16px; }
   </style>
 </head>
 <body class="theme">
+
   <!-- Header（Candy × Emoji） -->
-  <header class="site-header site-header--candy" role="banner">
+  <header class="site-header site-header--candy">
     <div class="site-header__left">
-      <a class="brand" href="/index.html" aria-label="ホームへ">
+      <a class="brand" href="../index.html" aria-label="ホームへ">
         <span class="brand__emoji" aria-hidden="true">🐾</span>
-        <svg class="brand__icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-logo"></use></svg>
+        <svg class="brand__icon" aria-hidden="true" focusable="false">
+          <use href="../assets/icons/icons.svg#icon-logo"></use>
+        </svg>
         <span class="brand__title">どうベビ</span>
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り"><span class="emoji-icon">💗</span></button>
-      <button class="pill-btn search-btn" aria-label="検索"><span class="emoji-icon">🔍</span></button>
-      <button class="pill-btn bell-btn" aria-label="お知らせ"><span class="emoji-icon">🔔</span><span class="badge">!</span></button>
+      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録">
+        <span class="emoji-icon" aria-hidden="true">💗</span>
+      </button>
+      <button class="pill-btn search-btn" aria-label="検索" title="検索">
+        <span class="emoji-icon" aria-hidden="true">🔍</span>
+      </button>
+      <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ">
+        <span class="emoji-icon" aria-hidden="true">🔔</span>
+        <span class="badge" aria-hidden="true">!</span>
+      </button>
     </div>
   </header>
 
-  <!-- Tabbar（スタック型・絵文字、共通デザイン） -->
+  <!-- Tabbar（PC/SPともスタック＋絵文字） -->
   <nav class="tabbar tabbar--stack" aria-label="メイン">
-    <a class="tabbar__link" href="/index.html" title="ホーム"><span class="tab-emoji">🏠</span><span class="tabbar__text">ホーム</span></a>
-    <a class="tabbar__link is-active" href="/news/index.html" aria-current="page" title="ニュース"><span class="tab-emoji">📰</span><span class="tabbar__text">ニュース</span></a>
-    <a class="tabbar__link" href="/babies/index.html" title="赤ちゃん"><span class="tab-emoji">🍼</span><span class="tabbar__text">赤ちゃん</span></a>
-    <a class="tabbar__link" href="/calendar/index.html" title="カレンダー"><span class="tab-emoji">📅</span><span class="tabbar__text">カレンダー</span></a>
+    <a class="tabbar__link" href="../index.html" title="ホーム"><span class="tab-emoji" aria-hidden="true">🏠</span><span class="tabbar__text">ホーム</span></a>
+    <a class="tabbar__link is-active" href="./index.html" aria-current="page" title="ニュース"><span class="tab-emoji" aria-hidden="true">📰</span><span class="tabbar__text">ニュース</span></a>
+    <a class="tabbar__link" href="../babies/index.html" title="赤ちゃん"><span class="tab-emoji" aria-hidden="true">🍼</span><span class="tabbar__text">赤ちゃん</span></a>
+    <a class="tabbar__link" href="../calendar/index.html" title="カレンダー"><span class="tab-emoji" aria-hidden="true">📅</span><span class="tabbar__text">カレンダー</span></a>
   </nav>
 
   <main class="container" id="main">
-    <div class="article-wrap card">
-      <a href="/news/index.html" class="backline">ニュース一覧に戻る</a>
-      <article id="article">
-        <header>
-          <h1 id="title" class="page-title">—</h1>
-          <div class="article-meta"><span id="date">—</span> ｜ <span id="source">編集部</span></div>
-          <figure id="cover" class="article-cover" hidden>
-            <img id="cover-img" src="" alt="">
-          </figure>
-        </header>
-        <section id="body" class="article-body">読み込み中…</section>
-      </article>
-    </div>
+    <a class="backline" href="./index.html">← ニュース一覧に戻る</a>
+
+    <article class="card card--panel article" itemscope itemtype="https://schema.org/Article">
+      <header class="article-head">
+        <h1 id="title" class="article-title" itemprop="headline">—</h1>
+        <div class="article-meta">
+          <time id="date" itemprop="datePublished" datetime=""></time>
+          <span id="author" itemprop="author">編集部</span>
+          <span id="readtime"></span>
+        </div>
+      </header>
+
+      <div id="cover" class="article-cover" hidden aria-hidden="true">
+        <img id="cover-img" alt="" itemprop="image">
+      </div>
+
+      <div id="body" class="article-body" itemprop="articleBody">
+        読み込み中…
+      </div>
+    </article>
   </main>
 
   <footer class="site-footer" aria-label="フッター">
     <small>© どうベビ（動物園ベビー情報）</small>
   </footer>
 
-  <!-- 共通JS（タブのactive付与などに利用） -->
-  <script src="/assets/js/app.js" defer></script>
+  <!-- 共通JS（タブバーの現在地ハイライト等） -->
+  <script src="../assets/js/app.js" defer></script>
 
-  <!-- 記事描画用JS -->
+  <!-- 記事取得＆描画 -->
   <script>
   (function(){
-    const qs = (s,ctx=document)=>ctx.querySelector(s);
-    const SUPA_URL = document.querySelector('meta[name="supabase-url"]').content;
-    const ANON     = document.querySelector('meta[name="supabase-anon-key"]').content;
+    const fmtDate = (iso) => {
+      if(!iso) return '';
+      const d = new Date(iso);
+      if(Number.isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
+    };
 
-    // slug は ?slug=xxx か /news/xxx（_redirectsで変換済み）のどちらにも対応
     function getSlug(){
       const u = new URL(location.href);
-      const s = u.searchParams.get('slug');
-      if (s) return s;
-      // 念のため /news/xxx のまま来た時
-      const m = location.pathname.match(/\/news\/([^\/?#]+)/);
-      return m ? m[1] : '';
+      const q = (u.searchParams.get('slug')||'').trim();
+      if(q) return q;
+      const m = u.pathname.match(/\/news\/([^\/?#]+)/);
+      return m ? decodeURIComponent(m[1]) : '';
     }
 
-    async function fetchJSON(path){
-      const url = new URL(path, SUPA_URL);
-      const res = await fetch(url.toString(), {
-        headers:{ apikey:ANON, Authorization:`Bearer ${ANON}` },
-        cache:'no-store'
-      });
-      if(!res.ok) throw new Error('HTTP '+res.status);
+    function getSupabaseEnv(){
+      const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+      const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+      return {
+        URL: (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL)) || metaUrl,
+        ANON: (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY)) || metaKey
+      };
+    }
+
+    async function fetchJSON(url, headers){
+      const res = await fetch(url, { headers, cache:'no-store' });
+      if(!res.ok){
+        const t = await res.text().catch(()=> '');
+        throw new Error(`HTTP ${res.status} :: ${t}`);
+      }
       return res.json();
     }
 
-    function fmtDate(iso){
-      const d = new Date(iso); if(isNaN(d)) return '';
-      return d.toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'});
-    }
+    // article → articles の順にフォールバック。カラム名の差も吸収。
+    async function fetchArticleBySlug(slug){
+      const { URL, ANON } = getSupabaseEnv();
+      if(!URL || !ANON) throw new Error('Supabase URL / ANON KEY が見つかりません。');
 
-    function setOG({title, description, image, url}){
-      const set = (sel, name, val) => {
-        if (!val) return;
-        let el = qs(sel);
-        if (!el) { el = document.createElement('meta'); el.setAttribute(name, sel.includes('property')?'property':'name'); document.head.appendChild(el); }
-        el.setAttribute('content', val);
+      const headers = { apikey: ANON, Authorization: `Bearer ${ANON}` };
+
+      const tryFetch = async (table, select) => {
+        const u = new URL(`${URL}/rest/v1/${table}`);
+        u.searchParams.set('select', select);
+        u.searchParams.set('slug', `eq.${slug}`);
+        u.searchParams.set('status', 'eq.published');
+        const arr = await fetchJSON(u.toString(), headers);
+        return Array.isArray(arr) ? arr[0] : null;
       };
-      set('meta[property="og:title"]','property',title);
-      set('meta[property="og:description"]','property',description);
-      set('meta[property="og:image"]','property',image);
-      set('meta[property="og:url"]','property',url);
-      // canonical
-      const can = qs('#canonical'); if (can) can.href = url;
-      document.title = `${title} | どうベビ`;
-    }
 
-    async function init(){
-      const slug = getSlug();
-      if(!slug){ qs('#body').textContent = '記事が見つかりませんでした。'; return; }
+      // 1) 単数テーブル名 `article`
+      let row = await tryFetch('article', 'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
+      if(row) return normalize(row);
 
-      // 自サイト記事のみ（status=published のみ表示）
-      const rows = await fetchJSON(`/rest/v1/articles?slug=eq.${encodeURIComponent(slug)}&status=eq.published&select=title,body_html,cover_url,published_at,author`);
-      const a = rows?.[0];
-      if(!a){ qs('#body').textContent = '記事が見つかりませんでした。'; return; }
+      // 2) 複数テーブル名 `articles`
+      row = await tryFetch('articles', 'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
+      if(row) return normalize(row);
 
-      qs('#title').textContent = a.title || '(無題)';
-      qs('#date').textContent  = a.published_at ? fmtDate(a.published_at) : '';
-      qs('#source').textContent= a.author || '編集部';
-
-      if (a.cover_url){
-        qs('#cover-img').src = a.cover_url;
-        qs('#cover-img').alt = a.title || '';
-        qs('#cover').hidden = false;
+      // 3) 旧カラム互換
+      row = await tryFetch('articles', 'slug,title,body_html,cover_url,author,published_at');
+      if(row){
+        row.thumbnail_url = row.thumbnail_url || row.cover_url || '';
+        row.author_name   = row.author_name   || row.author || '';
+        return normalize(row);
       }
 
-      // 安全な最小限のサニタイズ（基本は CMS 側でHTMLを生成している前提）
-      qs('#body').innerHTML = a.body_html || '';
-
-      const url = `${location.origin}/news/${slug}`;
-      setOG({
-        title: a.title,
-        description: (qs('#body').textContent || '').trim().slice(0, 120),
-        image: a.cover_url || '/assets/img/og.png',
-        url
-      });
+      throw new Error('記事が見つかりませんでした。');
     }
 
-    init().catch(e=>{
-      console.error(e);
-      qs('#body').textContent = '読み込みに失敗しました。時間をおいて再度お試しください。';
-    });
+    function normalize(r){
+      return {
+        slug: r.slug,
+        title: r.title || '',
+        html: r.body_html || '',
+        cover: r.thumbnail_url || '',
+        author: r.author_name || '編集部',
+        canonical: r.canonical_url || '',
+        readtime: r.reading_time || '',
+        published_at: r.published_at || ''
+      };
+    }
+
+    function render(a){
+      document.getElementById('title').textContent = a.title || '（無題）';
+      const t = fmtDate(a.published_at);
+      const $date = document.getElementById('date');
+      $date.textContent = t;
+      if(a.published_at) $date.setAttribute('datetime', a.published_at);
+
+      document.getElementById('author').textContent = a.author || '編集部';
+      document.getElementById('readtime').textContent = a.readtime ? `読了目安 ${a.readtime}分` : '';
+
+      const $cover = document.getElementById('cover');
+      const $img = document.getElementById('cover-img');
+      if(a.cover){
+        $img.src = a.cover;
+        $img.alt = a.title ? `${a.title} のカバー画像` : 'カバー画像';
+        $cover.hidden = false;
+        $cover.setAttribute('aria-hidden','false');
+      }else{
+        $cover.hidden = true;
+        $cover.setAttribute('aria-hidden','true');
+      }
+
+      document.getElementById('body').innerHTML = a.html || '<p>本文がまだありません。</p>';
+
+      // canonical を slug に差し替え
+      const can = document.getElementById('canonical');
+      const href = `https://babyanimals.pages.dev/news/${encodeURIComponent(a.slug || '')}`;
+      can.setAttribute('href', a.canonical || href);
+
+      // パンくずの戻るリンク強化（UTM保持などするならここで）
+    }
+
+    // ---- init ----
+    (async function init(){
+      const slug = getSlug();
+      if(!slug){
+        document.getElementById('body').textContent = '記事の指定（slug）が見つかりませんでした。';
+        return;
+      }
+      try{
+        const a = await fetchArticleBySlug(slug);
+        render(a);
+      }catch(e){
+        console.error(e);
+        document.getElementById('body').innerHTML =
+          '<div class="hero__error" role="alert">読み込みに失敗しました。時間をおいて再度お試しください。</div>';
+      }
+    })();
   })();
   </script>
 </body>
