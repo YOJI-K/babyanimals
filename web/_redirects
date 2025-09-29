@@ -7,3 +7,6 @@
 /calendar/*    /calendar/:splat 200
 
 /*             /index.html      200
+
+/news/*   /news/article.html?slug=:splat   200!
+
