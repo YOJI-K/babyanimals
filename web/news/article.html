@@ -108,137 +108,115 @@
 
   <!-- 記事取得＆描画 -->
   <script>
-  (function(){
-    const fmtDate = (iso) => {
-      if(!iso) return '';
-      const d = new Date(iso);
-      if(Number.isNaN(d.getTime())) return '';
-      return d.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
+(function(){
+  const fmtDate = (iso) => {
+    if(!iso) return '';
+    const d = new Date(iso);
+    if(Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
+  };
+  function getSlug(){
+    const u = new window.URL(location.href);
+    const q = (u.searchParams.get('slug')||'').trim();
+    if(q) return q;
+    const m = u.pathname.match(/\/news\/([^\/?#]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+  function getSupabaseEnv(){
+    const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+    const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+    return {
+      URL:  (window.SUPABASE && (window.SUPABASE.URL  || window.SUPABASE.SUPABASE_URL))  || metaUrl,
+      ANON: (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY)) || metaKey
+    };
+  }
+  async function fetchJSON(url, headers){
+    const res = await fetch(url, { headers, cache:'no-store' });
+    if(!res.ok){
+      const t = await res.text().catch(()=> '');
+      throw new Error(`HTTP ${res.status} :: ${t}`);
+    }
+    return res.json();
+  }
+  async function fetchArticleBySlug(slug){
+    const { URL: SUPA_URL, ANON } = getSupabaseEnv();
+    if(!SUPA_URL || !ANON) throw new Error('Supabase URL / ANON KEY が見つかりません。');
+    const headers = { apikey: ANON, Authorization: `Bearer ${ANON}` };
+
+    const tryFetch = async (table, select) => {
+      const u = new window.URL(`${SUPA_URL}/rest/v1/${table}`);
+      u.searchParams.set('select', select);
+      u.searchParams.set('slug', `eq.${slug}`);
+      u.searchParams.set('status', 'eq.published');
+      const arr = await fetchJSON(u.toString(), headers);
+      return Array.isArray(arr) ? arr[0] : null;
     };
 
-    function getSlug(){
-      const u = new URL(location.href);
-      const q = (u.searchParams.get('slug')||'').trim();
-      if(q) return q;
-      const m = u.pathname.match(/\/news\/([^\/?#]+)/);
-      return m ? decodeURIComponent(m[1]) : '';
+    let row = await tryFetch('article',  'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
+    if(row) return normalize(row);
+
+    row = await tryFetch('articles', 'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
+    if(row) return normalize(row);
+
+    row = await tryFetch('articles', 'slug,title,body_html,cover_url,author,published_at');
+    if(row){
+      row.thumbnail_url = row.thumbnail_url || row.cover_url || '';
+      row.author_name   = row.author_name   || row.author || '';
+      return normalize(row);
     }
+    throw new Error('記事が見つかりませんでした。');
+  }
+  function normalize(r){
+    return {
+      slug: r.slug,
+      title: r.title || '',
+      html:  r.body_html || '',
+      cover: r.thumbnail_url || '',
+      author: r.author_name || '編集部',
+      canonical: r.canonical_url || '',
+      readtime: r.reading_time || '',
+      published_at: r.published_at || ''
+    };
+  }
+  function render(a){
+    document.getElementById('title').textContent = a.title || '（無題）';
+    const t = fmtDate(a.published_at);
+    const $date = document.getElementById('date');
+    $date.textContent = t;
+    if(a.published_at) $date.setAttribute('datetime', a.published_at);
+    document.getElementById('author').textContent = a.author || '編集部';
+    document.getElementById('readtime').textContent = a.readtime ? `読了目安 ${a.readtime}分` : '';
 
-    function getSupabaseEnv(){
-      const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
-      const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-      return {
-        URL: (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL)) || metaUrl,
-        ANON: (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY)) || metaKey
-      };
+    const $cover = document.getElementById('cover');
+    const $img = document.getElementById('cover-img');
+    if(a.cover){
+      $img.src = a.cover; $img.alt = a.title ? `${a.title} のカバー画像` : 'カバー画像';
+      $cover.hidden = false; $cover.setAttribute('aria-hidden','false');
+    }else{
+      $cover.hidden = true;  $cover.setAttribute('aria-hidden','true');
     }
+    document.getElementById('body').innerHTML = a.html || '<p>本文がまだありません。</p>';
 
-    async function fetchJSON(url, headers){
-      const res = await fetch(url, { headers, cache:'no-store' });
-      if(!res.ok){
-        const t = await res.text().catch(()=> '');
-        throw new Error(`HTTP ${res.status} :: ${t}`);
-      }
-      return res.json();
+    const can = document.getElementById('canonical');
+    const href = `https://babyanimals.pages.dev/news/${encodeURIComponent(a.slug || '')}`;
+    can.setAttribute('href', a.canonical || href);
+  }
+  (async function init(){
+    const slug = getSlug();
+    if(!slug){
+      document.getElementById('body').textContent = '記事の指定（slug）が見つかりませんでした。';
+      return;
     }
-
-    // article → articles の順にフォールバック。カラム名の差も吸収。
-    async function fetchArticleBySlug(slug){
-      const { URL, ANON } = getSupabaseEnv();
-      if(!URL || !ANON) throw new Error('Supabase URL / ANON KEY が見つかりません。');
-
-      const headers = { apikey: ANON, Authorization: `Bearer ${ANON}` };
-
-      const tryFetch = async (table, select) => {
-        const u = new URL(`${URL}/rest/v1/${table}`);
-        u.searchParams.set('select', select);
-        u.searchParams.set('slug', `eq.${slug}`);
-        u.searchParams.set('status', 'eq.published');
-        const arr = await fetchJSON(u.toString(), headers);
-        return Array.isArray(arr) ? arr[0] : null;
-      };
-
-      // 1) 単数テーブル名 `article`
-      let row = await tryFetch('article', 'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
-      if(row) return normalize(row);
-
-      // 2) 複数テーブル名 `articles`
-      row = await tryFetch('articles', 'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
-      if(row) return normalize(row);
-
-      // 3) 旧カラム互換
-      row = await tryFetch('articles', 'slug,title,body_html,cover_url,author,published_at');
-      if(row){
-        row.thumbnail_url = row.thumbnail_url || row.cover_url || '';
-        row.author_name   = row.author_name   || row.author || '';
-        return normalize(row);
-      }
-
-      throw new Error('記事が見つかりませんでした。');
+    try{
+      const a = await fetchArticleBySlug(slug);
+      render(a);
+    }catch(e){
+      console.error(e);
+      document.getElementById('body').innerHTML =
+        '<div class="hero__error" role="alert">読み込みに失敗しました。時間をおいて再度お試しください。</div>';
     }
-
-    function normalize(r){
-      return {
-        slug: r.slug,
-        title: r.title || '',
-        html: r.body_html || '',
-        cover: r.thumbnail_url || '',
-        author: r.author_name || '編集部',
-        canonical: r.canonical_url || '',
-        readtime: r.reading_time || '',
-        published_at: r.published_at || ''
-      };
-    }
-
-    function render(a){
-      document.getElementById('title').textContent = a.title || '（無題）';
-      const t = fmtDate(a.published_at);
-      const $date = document.getElementById('date');
-      $date.textContent = t;
-      if(a.published_at) $date.setAttribute('datetime', a.published_at);
-
-      document.getElementById('author').textContent = a.author || '編集部';
-      document.getElementById('readtime').textContent = a.readtime ? `読了目安 ${a.readtime}分` : '';
-
-      const $cover = document.getElementById('cover');
-      const $img = document.getElementById('cover-img');
-      if(a.cover){
-        $img.src = a.cover;
-        $img.alt = a.title ? `${a.title} のカバー画像` : 'カバー画像';
-        $cover.hidden = false;
-        $cover.setAttribute('aria-hidden','false');
-      }else{
-        $cover.hidden = true;
-        $cover.setAttribute('aria-hidden','true');
-      }
-
-      document.getElementById('body').innerHTML = a.html || '<p>本文がまだありません。</p>';
-
-      // canonical を slug に差し替え
-      const can = document.getElementById('canonical');
-      const href = `https://babyanimals.pages.dev/news/${encodeURIComponent(a.slug || '')}`;
-      can.setAttribute('href', a.canonical || href);
-
-      // パンくずの戻るリンク強化（UTM保持などするならここで）
-    }
-
-    // ---- init ----
-    (async function init(){
-      const slug = getSlug();
-      if(!slug){
-        document.getElementById('body').textContent = '記事の指定（slug）が見つかりませんでした。';
-        return;
-      }
-      try{
-        const a = await fetchArticleBySlug(slug);
-        render(a);
-      }catch(e){
-        console.error(e);
-        document.getElementById('body').innerHTML =
-          '<div class="hero__error" role="alert">読み込みに失敗しました。時間をおいて再度お試しください。</div>';
-      }
-    })();
   })();
-  </script>
+})();
+</script>
 </body>
 </html>
