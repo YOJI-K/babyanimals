@@ -2,11 +2,10 @@
 /sitemap.xml   /sitemap.xml     200
 
 /assets/*      /assets/:splat   200
+/news/*.*   /news/:splat   200
 /news/*        /news/:splat     200
+/news/*     /news/article.html?slug=:splat   200!
 /babies/*      /babies/:splat   200
 /calendar/*    /calendar/:splat 200
 
 /*             /index.html      200
-
-/news/*   /news/article.html?slug=:splat   200!
-
