@@ -5,32 +5,33 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>記事 | どうベビ</title>
   <meta name="description" content="どうベビ公式の記事ページ。ニュース・お知らせ・使い方ガイドなど。">
-  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml" />
 
-  <!-- OGP（静的な共通値。厳密な per-article OGP は将来SSRで対応） -->
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="記事 | どうベビ">
-  <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png">
-  <meta property="og:url" content="https://babyanimals.pages.dev/news/">
+  <!-- OGP（クライアント描画のため汎用） -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="記事 | どうベビ" />
+  <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png" />
+  <meta property="og:url" content="https://babyanimals.pages.dev/news/" />
+  <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- Cloudflare Pages 共通CSS/JS（相対パスは /news/ からの参照） -->
+  <!-- 共通CSS -->
   <link rel="stylesheet" href="../assets/css/style.css" />
-  
-  <!-- Supabase（メタ経由フォールバック） -->
-  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
-  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
-  <!-- Cloudflare Web Analytics（既存のトークンに差し替え済み想定） -->
+  <!-- Supabase（メタ経由フォールバック） -->
+  <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co" />
+  <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY" />
+
+  <!-- Cloudflare Web Analytics -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
           data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
 
-  <!-- canonical は JS で slug 取得後に差し替え（静的には一覧に向ける） -->
-  <link id="canonical" rel="canonical" href="https://babyanimals.pages.dev/news/">
+  <!-- canonical（JSで slug に差し替え） -->
+  <link id="canonical" rel="canonical" href="https://babyanimals.pages.dev/news/" />
 
-  <!-- ページ内だけの軽いタイポグラフィ補助 -->
+  <!-- ページ専用の最小スタイル（共通CSSに依存） -->
   <style>
     .article { max-width: 880px; margin: 0 auto; }
-    .article-head { display:grid; gap:10px; margin: 8px 0 14px; }
+    .article-head { display: grid; gap: 10px; margin: 8px 0 14px; }
     .article-title { font-size: clamp(20px, 5.5vw, 28px); line-height: 1.35; letter-spacing: .02em; margin: 0; }
     .article-meta { color:#73656a; font-size:13px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .article-cover { width:100%; aspect-ratio: 16/9; border-radius:16px; overflow:hidden; background:#f6f6f6; margin: 12px 0 16px; }
@@ -42,8 +43,7 @@
   </style>
 </head>
 <body class="theme">
-
-  <!-- Header（Candy × Emoji） -->
+  <!-- Candyヘッダー -->
   <header class="site-header site-header--candy">
     <div class="site-header__left">
       <a class="brand" href="../index.html" aria-label="ホームへ">
@@ -68,7 +68,7 @@
     </div>
   </header>
 
-  <!-- Tabbar（PC/SPともスタック＋絵文字） -->
+  <!-- スタック型タブバー（PC/SP共通） -->
   <nav class="tabbar tabbar--stack" aria-label="メイン">
     <a class="tabbar__link" href="../index.html" title="ホーム"><span class="tab-emoji" aria-hidden="true">🏠</span><span class="tabbar__text">ホーム</span></a>
     <a class="tabbar__link is-active" href="./index.html" aria-current="page" title="ニュース"><span class="tab-emoji" aria-hidden="true">📰</span><span class="tabbar__text">ニュース</span></a>
@@ -90,12 +90,10 @@
       </header>
 
       <div id="cover" class="article-cover" hidden aria-hidden="true">
-        <img id="cover-img" alt="" itemprop="image">
+        <img id="cover-img" alt="" itemprop="image" />
       </div>
 
-      <div id="body" class="article-body" itemprop="articleBody">
-        読み込み中…
-      </div>
+      <div id="body" class="article-body" itemprop="articleBody">読み込み中…</div>
     </article>
   </main>
 
@@ -103,114 +101,158 @@
     <small>© どうベビ（動物園ベビー情報）</small>
   </footer>
 
-  <!-- 共通JS（タブバーの現在地ハイライト等） -->
+  <!-- 共通JS -->
   <script src="../assets/js/app.js" defer></script>
 
-  <!-- 記事取得＆描画 -->
+  <!-- 記事取得＆描画（安全版） -->
   <script>
-(function(){
+(() => {
+  // ---- helpers ----
   const fmtDate = (iso) => {
-    if(!iso) return '';
+    if (!iso) return '';
     const d = new Date(iso);
-    if(Number.isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric' });
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
   };
-  function getSlug(){
-    const u = new window.URL(location.href);
-    const q = (u.searchParams.get('slug')||'').trim();
-    if(q) return q;
+
+  // URL から slug を取得（/news/xxx または ?slug=xxx の両対応）
+  const getSlug = () => {
+    const u = new URL(location.href);
+    const q = (u.searchParams.get('slug') || '').trim();
+    if (q) return q;
     const m = u.pathname.match(/\/news\/([^\/?#]+)/);
     return m ? decodeURIComponent(m[1]) : '';
-  }
-  function getSupabaseEnv(){
+  };
+
+  // Supabase 環境（window.SUPABASE or <meta> から）
+  const getSupabaseEnv = () => {
     const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
     const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
     return {
       URL:  (window.SUPABASE && (window.SUPABASE.URL  || window.SUPABASE.SUPABASE_URL))  || metaUrl,
       ANON: (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY)) || metaKey
     };
-  }
-  async function fetchJSON(url, headers){
-    const res = await fetch(url, { headers, cache:'no-store' });
-    if(!res.ok){
-      const t = await res.text().catch(()=> '');
+  };
+
+  const fetchJSON = async (url, headers) => {
+    const res = await fetch(url, { headers, cache: 'no-store' });
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
       throw new Error(`HTTP ${res.status} :: ${t}`);
     }
     return res.json();
-  }
-  async function fetchArticleBySlug(slug){
-    const { URL: SUPA_URL, ANON } = getSupabaseEnv();
-    if(!SUPA_URL || !ANON) throw new Error('Supabase URL / ANON KEY が見つかりません。');
-    const headers = { apikey: ANON, Authorization: `Bearer ${ANON}` };
+  };
 
-    const tryFetch = async (table, select) => {
-      const u = new window.URL(`${SUPA_URL}/rest/v1/${table}`);
+  // テーブル未存在(404/PGRST205)は握りつぶしてフォールバック継続
+  const tryFetch = async (baseUrl, headers, table, select, slug) => {
+    try {
+      const u = new URL(`${baseUrl}/rest/v1/${table}`);
       u.searchParams.set('select', select);
       u.searchParams.set('slug', `eq.${slug}`);
       u.searchParams.set('status', 'eq.published');
       const arr = await fetchJSON(u.toString(), headers);
       return Array.isArray(arr) ? arr[0] : null;
-    };
+    } catch (e) {
+      const msg = String(e.message || e);
+      if (msg.includes('404') || msg.includes('PGRST205') || msg.includes('Could not find the table')) {
+        console.warn('[article] fallback: missing table', table);
+        return null;
+      }
+      throw e;
+    }
+  };
 
-    let row = await tryFetch('article',  'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
-    if(row) return normalize(row);
+  async function fetchArticleBySlug(slug) {
+    const { URL: SUPA_URL, ANON } = getSupabaseEnv();
+    if (!SUPA_URL || !ANON) throw new Error('Supabase URL / ANON KEY が見つかりません。');
+    const headers = { apikey: ANON, Authorization: `Bearer ${ANON}` };
 
-    row = await tryFetch('articles', 'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at');
-    if(row) return normalize(row);
+    // 1) articles（複数・新スキーマ）
+    let row = await tryFetch(
+      SUPA_URL, headers, 'articles',
+      'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at',
+      slug
+    );
+    if (row) return normalize(row);
 
-    row = await tryFetch('articles', 'slug,title,body_html,cover_url,author,published_at');
-    if(row){
+    // 2) 旧カラム互換（cover_url / author）
+    row = await tryFetch(
+      SUPA_URL, headers, 'articles',
+      'slug,title,body_html,cover_url,author,published_at',
+      slug
+    );
+    if (row) {
       row.thumbnail_url = row.thumbnail_url || row.cover_url || '';
       row.author_name   = row.author_name   || row.author || '';
       return normalize(row);
     }
+
+    // 3) 単数テーブル（存在する場合）
+    row = await tryFetch(
+      SUPA_URL, headers, 'article',
+      'slug,title,body_html,thumbnail_url,author_name,canonical_url,reading_time,published_at',
+      slug
+    );
+    if (row) return normalize(row);
+
     throw new Error('記事が見つかりませんでした。');
   }
-  function normalize(r){
-    return {
-      slug: r.slug,
-      title: r.title || '',
-      html:  r.body_html || '',
-      cover: r.thumbnail_url || '',
-      author: r.author_name || '編集部',
-      canonical: r.canonical_url || '',
-      readtime: r.reading_time || '',
-      published_at: r.published_at || ''
-    };
-  }
-  function render(a){
+
+  const normalize = (r) => ({
+    slug: r.slug,
+    title: r.title || '',
+    html:  r.body_html || '',
+    cover: r.thumbnail_url || '',
+    author: r.author_name || '編集部',
+    canonical: r.canonical_url || '',
+    readtime: r.reading_time || '',
+    published_at: r.published_at || ''
+  });
+
+  const render = (a) => {
+    // タイトル
     document.getElementById('title').textContent = a.title || '（無題）';
-    const t = fmtDate(a.published_at);
+
+    // メタ
     const $date = document.getElementById('date');
+    const t = fmtDate(a.published_at);
     $date.textContent = t;
-    if(a.published_at) $date.setAttribute('datetime', a.published_at);
+    if (a.published_at) $date.setAttribute('datetime', a.published_at);
     document.getElementById('author').textContent = a.author || '編集部';
     document.getElementById('readtime').textContent = a.readtime ? `読了目安 ${a.readtime}分` : '';
 
+    // カバー
     const $cover = document.getElementById('cover');
-    const $img = document.getElementById('cover-img');
-    if(a.cover){
-      $img.src = a.cover; $img.alt = a.title ? `${a.title} のカバー画像` : 'カバー画像';
-      $cover.hidden = false; $cover.setAttribute('aria-hidden','false');
-    }else{
-      $cover.hidden = true;  $cover.setAttribute('aria-hidden','true');
+    const $img   = document.getElementById('cover-img');
+    if (a.cover) {
+      $img.src = a.cover;
+      $img.alt = a.title ? `${a.title} のカバー画像` : 'カバー画像';
+      $cover.hidden = false;
+      $cover.setAttribute('aria-hidden', 'false');
+    } else {
+      $cover.hidden = true;
+      $cover.setAttribute('aria-hidden', 'true');
     }
+
+    // 本文
     document.getElementById('body').innerHTML = a.html || '<p>本文がまだありません。</p>';
 
+    // canonical を slug に差し替え
     const can = document.getElementById('canonical');
     const href = `https://babyanimals.pages.dev/news/${encodeURIComponent(a.slug || '')}`;
     can.setAttribute('href', a.canonical || href);
-  }
-  (async function init(){
+  };
+
+  (async function init() {
     const slug = getSlug();
-    if(!slug){
+    if (!slug) {
       document.getElementById('body').textContent = '記事の指定（slug）が見つかりませんでした。';
       return;
     }
-    try{
+    try {
       const a = await fetchArticleBySlug(slug);
       render(a);
-    }catch(e){
+    } catch (e) {
       console.error(e);
       document.getElementById('body').innerHTML =
         '<div class="hero__error" role="alert">読み込みに失敗しました。時間をおいて再度お試しください。</div>';
