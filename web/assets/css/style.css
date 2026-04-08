@@ -1,7 +1,7 @@
 /* ======================================================================
-  Zoo Baby – Pink/Orange Theme (SP-first, compact)
+  Zoo Baby – Forest/Nature Theme (SP-first, compact)
   File: /assets/css/style.css
-  Last update: 2025-09-19
+  Redesigned: 2026-04-08
 ====================================================================== */
 
 /* -------- Reset -------- */
@@ -16,29 +16,29 @@ body {
     "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI",
     "YuGothic", "Meiryo", sans-serif;
   line-height: 1.6;
-  color: #3a2a2a;
+  color: #1a2e1c;
   background: #fff;
 }
 
 /* -------- Theme Vars -------- */
 :root{
-  --pink-50:#fff5fa;
-  --pink-100:#ffe8f2;
-  --pink-200:#ffd0e6;
-  --pink-400:#ff7ac7;
-  --pink-500:#ff4da6;
-  --orange-50:#fff7ef;
-  --orange-100:#ffefe1;
-  --orange-300:#ffd0a3;
-  --orange-500:#ffaf61;
-  --bg:#fff7fb;
-  --ink:#41363a;
-  --muted:#8e7c82;
-  --card:#ffffff;
-  --border:rgba(0,0,0,.08);
-  --shadow:0 8px 24px rgba(255,77,166,.08), 0 2px 8px rgba(0,0,0,.06);
+  --forest-50: #f0fdf4;
+  --forest-100: #dcfce7;
+  --forest-200: #bbf7d0;
+  --forest-400: #4ade80;
+  --forest-500: #16a34a;
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-300: #fcd34d;
+  --amber-500: #f59e0b;
+  --bg: #f4faf6;
+  --ink: #1a2e1c;
+  --muted: #5b7263;
+  --card: #ffffff;
+  --border: rgba(22,90,50,.09);
+  --shadow: 0 8px 24px rgba(22,90,50,.07), 0 2px 8px rgba(0,0,0,.04);
   --radius-12:12px; --radius-16:16px; --radius-18:18px; --radius-24:24px;
-  --grad:linear-gradient(135deg, var(--pink-500) 0%, var(--orange-500) 100%);
+  --grad: linear-gradient(135deg, #1b6b42 0%, #2a9b65 100%);
   --icon: 20px;          /* 基本アイコンサイズ（SP） */
   --icon-lg: 24px;       /* 大きめアイコン */
 }
@@ -49,8 +49,8 @@ body {
   margin-inline: auto;
   padding: 16px clamp(12px, 3.5vw, 24px);
   background:
-    radial-gradient(1200px 600px at 80% -200px, #ffe5f3 0, transparent 60%),
-    radial-gradient(800px 400px at -100px 30%, #fff2e3 0, transparent 60%);
+    radial-gradient(1200px 600px at 80% -200px, #d1fae5 0, transparent 60%),
+    radial-gradient(800px 400px at -100px 30%, #fef3c7 0, transparent 60%);
 }
 
 /* ------------------------------------------------------------------ */
@@ -60,7 +60,7 @@ body {
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 12px;
-  background: linear-gradient(180deg, #fffdfa 0%, rgba(255,253,250,.92) 100%);
+  background: linear-gradient(180deg, #f7fbf8 0%, rgba(247,251,248,.94) 100%);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(6px);
   min-height: 48px; /* 1行高さ */
@@ -85,7 +85,7 @@ body {
 .tabbar{
   display: grid; grid-template-columns: repeat(4,1fr);
   gap: 10px; padding: 10px; margin: 10px 12px 0;
-  background: linear-gradient(135deg, #fff, var(--orange-50));
+  background: linear-gradient(135deg, #fff, var(--forest-50));
   border: 1px solid var(--border); border-radius: 16px;
 }
 .tabbar__link{
@@ -99,6 +99,7 @@ body {
 }
 .tabbar__link.is-active{
   color:#fff; background: var(--grad); border-color: transparent;
+  box-shadow: 0 4px 12px rgba(27,107,66,.22);
 }
 .tabbar__icon{ font-size: var(--icon); line-height: 1; }
 .tabbar__link :where(svg,img){ width: var(--icon); height: var(--icon); }
@@ -113,7 +114,7 @@ body {
   border:1px solid var(--border); background:#fff; color:var(--ink);
   padding:8px 12px; border-radius:999px; font-weight:700;
 }
-.segmented__btn.is-selected{ background:var(--grad); color:#fff; border-color:transparent; }
+.segmented__btn.is-selected{ background:var(--grad); color:#fff; border-color:transparent; box-shadow: 0 3px 10px rgba(27,107,66,.2); }
 
 /* ------------------------------------------------------------------ */
 /* Card / Panel                                                       */
@@ -124,12 +125,14 @@ body {
   padding: 14px; margin: 16px 0;
 }
 .card--panel{ padding: 14px; }
-.card--message{ background: linear-gradient(180deg, #fff, var(--pink-50)); }
+.card--message{ background: linear-gradient(180deg, #fff, var(--forest-50)); }
 
 .panel-head{ display:flex; align-items:center; gap:12px; margin-bottom: 8px; }
+.panel-title{ margin:0; font-size:16px; font-weight:800; color: var(--ink); line-height:1.3; }
+.panel-desc{ margin:3px 0 0; font-size:12px; color: var(--muted); }
 .panel-icon{
   width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
-  background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
+  background: linear-gradient(135deg, #dcfce7, #fef3c7);
   border:1px solid var(--border);
   font-size: var(--icon-lg); line-height: 1; /* ← ここでアイコン肥大を抑制 */
 }
@@ -163,7 +166,7 @@ body {
   padding:8px 12px; border-radius:999px; background: #fff;
   border:1px solid var(--border); font-weight:800;
 }
-.chip--calendar{ background: linear-gradient(135deg, #fff, #fff7f0); }
+.chip--calendar{ background: linear-gradient(135deg, #fff, #f0fdf4); }
 .chip__icon{ font-size: var(--icon); line-height: 1; }
 .chip :where(svg,img){ width: var(--icon); height: var(--icon); }
 .nav-icon{
@@ -190,14 +193,14 @@ body {
   font-weight:700; color:#2e2a2b;
 }
 .cal-day--muted{ color:#b8aeb2; background: #fffdfa; }
-.cal-day--has{ box-shadow: inset 0 0 0 2px rgba(255, 77, 166, .25); }
+.cal-day--has{ box-shadow: inset 0 0 0 2px rgba(22,163,74,.28); }
 .cal-day__date{
   position:absolute; top:6px; right:8px; color:#6b6b6b;
   font-size:11px; font-weight:900;
 }
 .cal-day__dot{
   position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
-  width:6px; height:6px; border-radius:50%; background: var(--pink-400);
+  width:6px; height:6px; border-radius:50%; background: #16a34a;
 }
 .cal-day__dot--past{ background:#96a0ad; }
 
@@ -207,7 +210,7 @@ body {
   color:#6b6b6b; font-size:13px;
 }
 .dot{ display:inline-block; width:10px; height:10px; border-radius:50%; transform:translateY(1px); margin-right:4px; }
-.dot--future{ background: var(--pink-400); }
+.dot--future{ background: #16a34a; }
 .dot--past{ background: #96a0ad; }
 
 /* ------------------------------------------------------------------ */
@@ -220,12 +223,12 @@ body {
 }
 .bday-card__avatar{
   width:48px; height:48px; border-radius:12px; display:grid; place-items:center;
-  background: linear-gradient(135deg, #ffe4f0, #ffe7d5);
+  background: linear-gradient(135deg, #dcfce7, #fef3c7);
   border:1px solid var(--border);
   font-size: var(--icon-lg);
 }
 .bday-card__title{ margin:0; font-size:16px; font-weight:800; }
-.bday-card__meta{ margin:2px 0 0; color:#7c6e73; font-size:12px; }
+.bday-card__meta{ margin:2px 0 0; color:#5b7263; font-size:12px; }
 .bday-chip{
   background: var(--grad); color:#fff; border-radius:999px; font-weight:800;
   padding:6px 10px; font-size:12px; white-space:nowrap;
@@ -234,16 +237,47 @@ body {
 /* ------------------------------------------------------------------ */
 /* Message card                                                       */
 /* ------------------------------------------------------------------ */
-.card--message h3{ display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:18px; }
+.message-head{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.card--message h3{ display:flex; align-items:center; gap:8px; margin:0; font-size:18px; }
 .icon-heart{
-  width:28px; height:28px; border-radius:8px; display:grid; place-items:center;
-  background: var(--grad); color:#fff; font-size: var(--icon);
+  width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
+  background: var(--grad); color:#fff; font-size: 18px; flex-shrink:0;
 }
 
 /* ------------------------------------------------------------------ */
 /* Footer                                                             */
 /* ------------------------------------------------------------------ */
-.site-footer{ color:#7a6d72; text-align:center; padding: 24px 16px; font-size:12px; }
+/* ------------------------------------------------------------------ */
+/* Quick-link card grid                                               */
+/* ------------------------------------------------------------------ */
+.card-grid{
+  display:grid; gap:12px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+/* Quick-link card internals                                          */
+/* ------------------------------------------------------------------ */
+.card--link{ display:flex; flex-direction:column; }
+.card__body{ flex:1; padding: 4px 0 10px; }
+.card__body p{ margin:0; font-size:14px; color: var(--muted); line-height:1.6; }
+.card__footer{ padding-top:4px; }
+
+.btn{ display:inline-block; padding:10px 18px; border-radius:999px; font-size:14px; font-weight:800; text-decoration:none; transition: transform .12s ease, box-shadow .12s ease; }
+.btn--primary{
+  background: var(--grad); color:#fff; border:1px solid transparent;
+  box-shadow: 0 4px 14px rgba(27,107,66,.22);
+}
+.btn--primary:hover{ transform:translateY(-1px); box-shadow: 0 6px 18px rgba(27,107,66,.3); }
+.btn--primary:active{ transform:translateY(0); }
+
+/* ------------------------------------------------------------------ */
+/* Footer                                                             */
+/* ------------------------------------------------------------------ */
+.site-footer{
+  color: var(--muted); text-align:center; padding: 28px 16px; font-size:12px;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, transparent, var(--forest-50));
+}
 
 /* ------------------------------------------------------------------ */
 /* アイコン暴走ガード（カード／ボタン内の svg/img/emoji を強制縮小）   */
@@ -440,13 +474,13 @@ body {
 
 /* Palette / tokens（追加） */
 :root{
-  --grad-header: linear-gradient(135deg, var(--pink-500), #ff6aa0, var(--orange-500));
-  --header-shadow: 0 6px 24px rgba(255,77,166,.18);
-  --tabbar-bg: linear-gradient(135deg, #fff, #fff0f5);
+  --grad-header: linear-gradient(135deg, #14532d, #1b6b42, #22a05a);
+  --header-shadow: 0 6px 24px rgba(20,83,45,.24);
+  --tabbar-bg: linear-gradient(135deg, #fff, #f0fdf4);
   --tab-item-bg: #fff;
-  --tab-item-border: rgba(0,0,0,.06);
-  --tab-item-ink: #7b2d47;
-  --tab-active-bg: linear-gradient(135deg, var(--pink-500), var(--orange-500));
+  --tab-item-border: rgba(22,90,50,.08);
+  --tab-item-ink: #1e4a2e;
+  --tab-active-bg: linear-gradient(135deg, #1b6b42, #22a05a);
   --tab-active-ink: #fff;
 }
 
@@ -460,7 +494,7 @@ body {
 .brand__emoji{
   display:inline-grid; place-items:center;
   width: 28px; height: 28px; border-radius: 8px;
-  background: #fff; color: var(--pink-500); font-size: 18px; line-height: 1;
+  background: #fff; color: #1b6b42; font-size: 18px; line-height: 1;
   box-shadow: 0 1px 0 rgba(255,255,255,.7), 0 1px 6px rgba(0,0,0,.08);
   }
 .site-header--candy .brand__icon{ display:none; }             /* SP既定は非表示 */
@@ -484,7 +518,7 @@ body {
 }
 .pill-btn .badge{
   position:absolute; top:-4px; right:-4px; width:14px; height:14px;
-  border-radius:999px; background:#fff; color: var(--pink-500);
+  border-radius:999px; background:#fff; color: #1b6b42;
   font-size:10px; font-weight:900; display:grid; place-items:center;
   box-shadow: 0 1px 6px rgba(0,0,0,.12);
 }
@@ -517,7 +551,7 @@ body {
 .tabbar--stack .tabbar__link.is-active,
 .tabbar--stack .tabbar__link[aria-current="page"]{
   background: var(--tab-active-bg); color: var(--tab-active-ink); border-color: transparent;
-  box-shadow: 0 6px 20px rgba(255,77,166,.25);
+  box-shadow: 0 6px 20px rgba(27,107,66,.28);
 }
 .tabbar--stack .tabbar__text{
   white-space: normal;               /* ← 折り返し許可（…を出さない） */
@@ -632,15 +666,15 @@ body {
   display:inline-grid; place-items:center;
   width:16px; height:16px; border-radius:999px;
   font-size:11px; font-weight:900; line-height:1; color:#fff;
-  background: var(--pink-400);
+  background: #16a34a;
   box-shadow:0 1px 0 rgba(0,0,0,.08);
 }
 .age-badge--past{ background:#96a0ad; }
 /* ==== News: 画像なしプレースホルダー（グラデ＋🐾） ==== */
 .thumb.is-placeholder{
-  background: radial-gradient(800px 400px at 120% -20%, #ffe0f0 0, transparent 60%),
-              radial-gradient(600px 300px at -10% 30%, #fff0e0 0, transparent 60%),
-              linear-gradient(135deg, #ffe5f2 0%, #fff1e4 100%);
+  background: radial-gradient(800px 400px at 120% -20%, #d1fae5 0, transparent 60%),
+              radial-gradient(600px 300px at -10% 30%, #fef3c7 0, transparent 60%),
+              linear-gradient(135deg, #ecfdf5 0%, #fefce8 100%);
   position: relative;
 }
 .thumb.is-placeholder::after{
@@ -651,11 +685,11 @@ body {
 
 /* ==== News: ピル/バッジ ==== */
 .pill{display:inline-grid;place-items:center;padding:4px 8px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:11px;font-weight:800}
-.pill--new{background:linear-gradient(135deg,var(--pink-500),var(--orange-500));color:#fff;border-color:transparent}
-.pill--yt{background:#ffefe6;border-color:#ffd2b3}
-.pill--zoo{background:#eef7ff;border-color:#cfe3ff}
-.pill--web{background:#f5f3ff;border-color:#e1dcff}
-/* ==== Candy風「もっと読む」ボタン（共通） ==== */
+.pill--new{background:linear-gradient(135deg,#1b6b42,#2a9b65);color:#fff;border-color:transparent}
+.pill--yt{background:#fef9ec;border-color:#fde68a}
+.pill--zoo{background:#ecfdf5;border-color:#6ee7b7}
+.pill--web{background:#f0fdf4;border-color:#bbf7d0}
+/* ==== 「もっと読む」ボタン（共通） ==== */
 .more-wrap{ display:flex; justify-content:center; margin:18px 0 36px; }
 #more{
   display:inline-grid; grid-auto-flow:column; place-items:center; gap:8px;
@@ -665,10 +699,10 @@ body {
   box-shadow: var(--shadow); cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease, filter .12s ease;
 }
-#more::before{ content:"✨"; font-size:14px; line-height:1; }
+#more::before{ content:"🌿"; font-size:14px; line-height:1; }
 #more:hover{ transform: translateY(-1px); filter: saturate(1.05); }
 #more:active{ transform: translateY(0); }
-#more:focus-visible{ outline: 3px solid rgba(255,77,166,.35); outline-offset: 2px; }
+#more:focus-visible{ outline: 3px solid rgba(27,107,66,.35); outline-offset: 2px; }
 #more[disabled]{ opacity:.6; cursor:not-allowed; }
 #more.loading{ pointer-events:none; opacity:.92; }
 #more.loading::after{
@@ -678,15 +712,15 @@ body {
 }
 @keyframes zb-spin{ to{ transform: rotate(1turn); } }
 
-/* ==== 画像なしプレースホルダー（パステル＋🐾） ==== */
+/* ==== 画像なしプレースホルダー（ナチュラル＋🐾） ==== */
 .thumb.is-placeholder{
   position: relative; overflow: hidden;
   background:
-    radial-gradient(26px 26px at 18% 24%, rgba(255,122,199,.18) 0 60%, transparent 61%),
-    radial-gradient(22px 22px at 42% 76%, rgba(255,175,97,.18) 0 60%, transparent 61%),
-    radial-gradient(30px 30px at 84% 38%, rgba(255,77,166,.15) 0 60%, transparent 61%),
-    linear-gradient(135deg, #fff6fb 0%, #fff2ea 100%) !important;
-  border: 1px dashed rgba(255,77,166,.28);
+    radial-gradient(26px 26px at 18% 24%, rgba(74,222,128,.2) 0 60%, transparent 61%),
+    radial-gradient(22px 22px at 42% 76%, rgba(245,158,11,.16) 0 60%, transparent 61%),
+    radial-gradient(30px 30px at 84% 38%, rgba(22,163,74,.14) 0 60%, transparent 61%),
+    linear-gradient(135deg, #ecfdf5 0%, #fefce8 100%) !important;
+  border: 1px dashed rgba(22,163,74,.3);
 }
 .thumb.is-placeholder::after{
   content:'🐾';
@@ -698,22 +732,22 @@ body {
 
 /* ==== ピル（共通） ==== */
 .pill{display:inline-grid;place-items:center;padding:4px 8px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:11px;font-weight:800}
-.pill--new{background:linear-gradient(135deg,var(--pink-500),var(--orange-500));color:#fff;border-color:transparent}
-.pill--yt{background:#ffefe6;border-color:#ffd2b3}
-.pill--zoo{background:#eef7ff;border-color:#cfe3ff}
-.pill--web{background:#f5f3ff;border-color:#e1dcff}
+.pill--new{background:linear-gradient(135deg,#1b6b42,#2a9b65);color:#fff;border-color:transparent}
+.pill--yt{background:#fef9ec;border-color:#fde68a}
+.pill--zoo{background:#ecfdf5;border-color:#6ee7b7}
+.pill--web{background:#f0fdf4;border-color:#bbf7d0}
 
 /* ==== 年齢ピル（赤ちゃん） ==== */
-.pill--age-0{ background:#fff1f7; border-color:#ffd3ea; color:#c22b7c; }
-.pill--age-1{ background:#fff4e8; border-color:#ffd9b5; color:#c85a14; }
-.pill--age-2{ background:#fffbe1; border-color:#ffec9a; color:#8a6a00; }
-.pill--age-3{ background:#ecfff2; border-color:#c9f4d9; color:#1b7a44; }
+.pill--age-0{ background:#f0fdf4; border-color:#86efac; color:#15803d; }
+.pill--age-1{ background:#ecfeff; border-color:#67e8f9; color:#0e7490; }
+.pill--age-2{ background:#fffbeb; border-color:#fde68a; color:#92400e; }
+.pill--age-3{ background:#fdf4ff; border-color:#d8b4fe; color:#6b21a8; }
 .pill--muted{ background:#f5f5f7; border-color:#e2e2e6; color:#6d6d76; }
-.pill--soon{ background:linear-gradient(135deg,var(--pink-500),var(--orange-500)); color:#fff; border-color:transparent; }
-.pill--month{ background:#ffeef8; border-color:#ffd6ef; color:#ae2c73; }
+.pill--soon{ background:linear-gradient(135deg,#1b6b42,#2a9b65); color:#fff; border-color:transparent; }
+.pill--month{ background:#dcfce7; border-color:#86efac; color:#15803d; }
 
 /* 近々誕生日インジケータ（カード右上の点） */
-.soon-dot{ position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; background:var(--pink-500); box-shadow:0 0 0 3px rgba(255,77,166,.15); }
+.soon-dot{ position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; background:#1b6b42; box-shadow:0 0 0 3px rgba(27,107,66,.18); }
 /* ===== Hero v4 – SP 縦3件 / 月送りは別行 ===== */
 .hero__head{
   display: grid;
@@ -742,7 +776,7 @@ body {
   background:#fff; font-weight:800;
 }
 .pill--nav{ width:36px; padding:0; font-size:16px; }
-.pill--label{ background:linear-gradient(135deg,#fff,#fff7f0); font-variant-numeric: tabular-nums; }
+.pill--label{ background:linear-gradient(135deg,#fff,#fefce8); font-variant-numeric: tabular-nums; }
 
 /* SP：縦スタック3件 */
 #hero-list{ display:grid; gap:10px; margin-top:6px; }
@@ -754,7 +788,7 @@ body {
 }
 .hero-card__avatar{
   width:56px; height:56px; border-radius:14px; display:grid; place-items:center;
-  background: linear-gradient(135deg,#ffe4f0,#ffe7d5); border:1px solid var(--border);
+  background: linear-gradient(135deg,#dcfce7,#fef3c7); border:1px solid var(--border);
   font-size:24px;
 }
 .hero-card__title{ margin:0; font-size:16px; font-weight:800; line-height:1.3; }
@@ -762,11 +796,11 @@ body {
 .meta-chip{
   display:inline-flex; align-items:center; gap:6px;
   padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700;
-  background:#fff; border:1px solid var(--border); color:#6f5b62;
+  background:#fff; border:1px solid var(--border); color:#3d6050;
 }
-.meta-chip--date{ background:linear-gradient(135deg,#fff,#fff7f0); }
-.meta-chip--zoo { background:linear-gradient(135deg,#fff,#fff5fb); }
-.meta-chip--age { background:linear-gradient(135deg,#fff,#fff0f7); }
+.meta-chip--date{ background:linear-gradient(135deg,#fff,#fefce8); }
+.meta-chip--zoo { background:linear-gradient(135deg,#fff,#f0fdf4); }
+.meta-chip--age { background:linear-gradient(135deg,#fff,#ecfdf5); }
 
 /* Skeleton / states */
 .hero__skeleton{ display:grid; gap:10px; margin-top:6px; }
