@@ -282,7 +282,8 @@ function pickEmoji(baby){
     for(let day=1; day<=lastDate; day++){
       const cellDate = new Date(Y, M-1, day);
       const cell = document.createElement('div');
-      cell.className = 'cal-day';
+      const isToday = stripTime(cellDate).getTime() === today.getTime();
+      cell.className = 'cal-day' + (isToday ? ' cal-day--today' : '');
       cell.setAttribute('role','gridcell');
       cell.innerHTML = `<span class="cal-day__date">${day}</span>`;
 
@@ -593,15 +594,21 @@ async function fetchJSON(path){
     const sp   = x.species || '不明';
     const date = x.birthday ? fmtMD(x.birthday) : '-';
     const zoo  = x.zoo_name || '園情報なし';
+    const thumb = x.thumbnail_url;
+    const thumbHTML = thumb
+      ? `<img src="${esc(thumb)}" alt="${esc(name)}" loading="lazy" decoding="async">`
+      : `<span class="hero-card__thumb-emoji" aria-hidden="true">${emoji}</span>`;
     return `
-      <div class="hero-card" role="listitem" aria-label="${name}（${sp}）">
-        <div class="hero-card__avatar" aria-hidden="true">${emoji}</div>
+      <div class="hero-card" role="listitem" aria-label="${esc(name)}（${esc(sp)}）">
+        <div class="hero-card__thumb">
+          ${thumbHTML}
+          ${a!=null ? `<span class="hero-card__age-badge">${a}歳</span>` : ''}
+        </div>
         <div>
-          <p class="hero-card__title">${name}（${sp}）</p>
+          <p class="hero-card__title">${esc(name)}（${esc(sp)}）</p>
           <div class="hero-card__meta">
             <span class="meta-chip meta-chip--date">📅 ${date}</span>
-            <span class="meta-chip meta-chip--zoo">🏛 ${zoo}</span>
-            ${a!=null ? `<span class="meta-chip meta-chip--age">🎉 ${a}歳</span>` : ''}
+            <span class="meta-chip meta-chip--zoo">🏛 ${esc(zoo)}</span>
           </div>
         </div>
       </div>`;

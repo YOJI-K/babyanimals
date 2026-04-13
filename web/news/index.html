@@ -19,6 +19,13 @@
   <meta name="supabase-url" content="https://hvhpfrksyytthupboaeo.supabase.co">
   <meta name="supabase-anon-key" content="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY">
 
+  <!-- フォント -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
   <!-- 共通CSS/JS -->
   <link rel="stylesheet" href="../assets/css/style.css?v=20250926b">
   <script defer src="../assets/js/app.js?v=20250926b"></script>
@@ -123,7 +130,13 @@
     <div id="list" class="news-grid" aria-live="polite"></div>
 
     <!-- 空状態 -->
-    <div id="empty" style="display:none;">データがありません</div>
+    <div id="empty" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-state__art" aria-hidden="true"></div>
+        <p class="empty-state__title">ニュースが見つかりませんでした</p>
+        <p class="empty-state__desc">検索条件を変えて試してみてください</p>
+      </div>
+    </div>
 
     <!-- もっと読む -->
     <div class="more-wrap"><button id="more" type="button">もっと読む</button></div>

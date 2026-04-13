@@ -10,6 +10,9 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="./assets/img/og.png" />
   <meta property="og:url" content="/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
   <link rel="stylesheet" href="./assets/css/style.css" />
   <!-- Google Search Console verification -->
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
@@ -24,7 +27,6 @@
     <div class="site-header__left">
       <a class="brand" href="./index.html" aria-label="ホームへ">
         <span class="brand__emoji" aria-hidden="true">🐾</span>
-        <!-- SVGロゴはフェールセーフとして残す（CSSで非表示でもOK） -->
         <svg class="brand__icon" aria-hidden="true" focusable="false">
           <use href="./assets/icons/icons.svg#icon-logo"></use>
         </svg>
@@ -66,89 +68,108 @@
   </nav>
 
   <main class="container" id="main">
-    <!-- Page Title -->
-    <section class="page-hero">
-      <h1 class="page-title">動物園の赤ちゃんを追いかけよう</h1>
+
+    <!-- Zoo Stage（ヒーロービジュアル） -->
+    <section class="zoo-stage" aria-label="どうベビへようこそ">
+      <div class="zoo-stage__copy">
+        <p class="zoo-stage__eyebrow">Zoo Baby Info</p>
+        <h1 class="zoo-stage__title">動物園の赤ちゃんを<br>追いかけよう</h1>
+        <p class="zoo-stage__lede">誕生・成長をリアルタイムで</p>
+      </div>
+      <div class="zoo-stage__deco" aria-hidden="true">🐾</div>
     </section>
 
     <!-- Hero: 今月お誕生日（0〜3歳） -->
-<section class="card hero" aria-labelledby="hero-title">
-  <header class="panel-head hero__head">
-    <div class="panel-icon hero__badge" aria-hidden="true">🎂</div>
-    <div class="hero__titles">
-      <h2 id="hero-title" class="panel-title hero__title">今月お誕生日の赤ちゃん（0〜3歳）</h2>
-      <p class="panel-desc">先月・来月も1タップでチェックできます</p>
-    </div>
-    <div class="hero__nav" role="group" aria-label="月移動">
-      <button class="pill pill--nav" id="hero-prev" aria-label="先月へ">‹</button>
-      <span id="hero-month-label" class="pill pill--label" aria-live="polite">—</span>
-      <button class="pill pill--nav" id="hero-next" aria-label="来月へ">›</button>
-    </div>
-  </header>
+    <section class="card hero" aria-labelledby="hero-title">
+      <header class="panel-head hero__head">
+        <div class="panel-icon hero__badge" aria-hidden="true">🎂</div>
+        <div class="hero__titles">
+          <h2 id="hero-title" class="panel-title hero__title">今月お誕生日の赤ちゃん（0〜3歳）</h2>
+          <p class="panel-desc">先月・来月も1タップでチェックできます</p>
+        </div>
+        <div class="hero__nav" role="group" aria-label="月移動">
+          <button class="pill pill--nav" id="hero-prev" aria-label="先月へ">‹</button>
+          <span id="hero-month-label" class="pill pill--label" aria-live="polite">—</span>
+          <button class="pill pill--nav" id="hero-next" aria-label="来月へ">›</button>
+        </div>
+      </header>
 
-  <!-- スケルトン（初期表示） -->
-  <div id="hero-skel" class="hero__skeleton" aria-hidden="true">
-    <div class="hero-card hero-card--skel"></div>
-    <div class="hero-card hero-card--skel"></div>
-    <div class="hero-card hero-card--skel"></div>
-  </div>
+      <!-- スケルトン（初期表示） -->
+      <div id="hero-skel" class="hero__skeleton" aria-hidden="true">
+        <div class="hero-card hero-card--skel"></div>
+        <div class="hero-card hero-card--skel"></div>
+        <div class="hero-card hero-card--skel"></div>
+      </div>
 
-  <!-- 実データ -->
-  <div id="hero-list" class="hero__list hero__list--rail" role="list"></div>
+      <!-- 実データ -->
+      <div id="hero-list" class="hero__list hero__list--rail" role="list"></div>
 
-  <!-- 空状態 -->
-  <div id="hero-empty" class="hero__empty" hidden>
-    今月は対象がいません。
-    <button class="pill pill--nav" id="hero-show-next" type="button">来月を見る ›</button>
-  </div>
+      <!-- 空状態 -->
+      <div id="hero-empty" class="hero__empty" hidden>
+        <div class="empty-state">
+          <div class="empty-state__art" aria-hidden="true"></div>
+          <p class="empty-state__title">今月は対象がいません</p>
+          <p class="empty-state__desc">来月の誕生日をチェックしてみましょう</p>
+        </div>
+        <button class="pill pill--nav" id="hero-show-next" type="button" style="margin-top:8px">来月を見る ›</button>
+      </div>
 
-  <!-- エラー -->
-  <div id="hero-error" class="hero__error" role="alert" hidden>
-    読み込みに失敗しました。時間をおいて再度お試しください。
-  </div>
-</section>
+      <!-- エラー -->
+      <div id="hero-error" class="hero__error" role="alert" hidden>
+        読み込みに失敗しました。時間をおいて再度お試しください。
+      </div>
+    </section>
 
-    <!-- Quick Links（既存） -->
+    <!-- Quick Links（イラスト付きカテゴリカード） -->
     <section class="card-grid">
-      <article class="card card--link">
-        <header class="panel-head">
-          <div class="panel-icon" aria-hidden="true">🗞️</div>
-          <div>
-            <h2 class="panel-title">最新ニュース</h2>
-            <p class="panel-desc">誕生・成長の最新情報をまとめて</p>
-          </div>
-        </header>
-        <div class="card__body"><p>全国の動物園から届く赤ちゃん情報を一か所でまとめてチェック。</p></div>
-        <footer class="card__footer"><a class="btn btn--primary" href="./news/index.html">ニュースを読む</a></footer>
+      <article class="card card--illus card--illus-news">
+        <div class="illus-top" aria-hidden="true"></div>
+        <div class="illus-content">
+          <header class="panel-head">
+            <div class="panel-icon" aria-hidden="true">🗞️</div>
+            <div>
+              <h2 class="panel-title">最新ニュース</h2>
+              <p class="panel-desc">誕生・成長の最新情報をまとめて</p>
+            </div>
+          </header>
+          <div class="card__body"><p>全国の動物園から届く赤ちゃん情報を一か所でまとめてチェック。</p></div>
+          <footer class="card__footer"><a class="btn btn--primary" href="./news/index.html">ニュースを読む</a></footer>
+        </div>
       </article>
 
-      <article class="card card--link">
-        <header class="panel-head">
-          <div class="panel-icon" aria-hidden="true">🐣</div>
-          <div>
-            <h2 class="panel-title">赤ちゃん一覧</h2>
-            <p class="panel-desc">いま会いに行ける赤ちゃんを探す</p>
-          </div>
-        </header>
-        <div class="card__body"><p>動物種・動物園で絞り込んで、推し赤ちゃんを見つけよう。</p></div>
-        <footer class="card__footer"><a class="btn btn--primary" href="./babies/index.html">赤ちゃんを探す</a></footer>
+      <article class="card card--illus card--illus-babies">
+        <div class="illus-top" aria-hidden="true"></div>
+        <div class="illus-content">
+          <header class="panel-head">
+            <div class="panel-icon" aria-hidden="true">🐣</div>
+            <div>
+              <h2 class="panel-title">赤ちゃん一覧</h2>
+              <p class="panel-desc">いま会いに行ける赤ちゃんを探す</p>
+            </div>
+          </header>
+          <div class="card__body"><p>動物種・動物園で絞り込んで、推し赤ちゃんを見つけよう。</p></div>
+          <footer class="card__footer"><a class="btn btn--primary" href="./babies/index.html">赤ちゃんを探す</a></footer>
+        </div>
       </article>
 
-      <article class="card card--link">
-        <header class="panel-head">
-          <div class="panel-icon" aria-hidden="true">🗓️</div>
-          <div>
-            <h2 class="panel-title">誕生日カレンダー</h2>
-            <p class="panel-desc">今月・来月のお誕生日を先取り</p>
-          </div>
-        </header>
-        <div class="card__body"><p>0〜3歳の年齢バッジで、誰が何歳になるか一目でわかる。</p></div>
-        <footer class="card__footer"><a class="btn btn--primary" href="./calendar/index.html">カレンダーを見る</a></footer>
+      <article class="card card--illus card--illus-cal">
+        <div class="illus-top" aria-hidden="true"></div>
+        <div class="illus-content">
+          <header class="panel-head">
+            <div class="panel-icon" aria-hidden="true">🗓️</div>
+            <div>
+              <h2 class="panel-title">誕生日カレンダー</h2>
+              <p class="panel-desc">今月・来月のお誕生日を先取り</p>
+            </div>
+          </header>
+          <div class="card__body"><p>0〜3歳の年齢バッジで、誰が何歳になるか一目でわかる。</p></div>
+          <footer class="card__footer"><a class="btn btn--primary" href="./calendar/index.html">カレンダーを見る</a></footer>
+        </div>
       </article>
     </section>
 
     <!-- Message -->
-    <section class="card card--message">
+    <section class="card card--message card--cream">
       <div class="message-head">
         <span class="icon-heart" aria-hidden="true">🌿</span>
         <h3>動物園ファンの情報基地</h3>

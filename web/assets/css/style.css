@@ -826,3 +826,340 @@ body {
   /* 月送りは見出し右に戻す（横幅余裕があるとき） */
   .hero__nav{ grid-column:auto; justify-self:end; }
 }
+
+/* ============================================================
+   Zoo Stage – ホームページのヒーロー演出
+   ============================================================ */
+.zoo-stage {
+  position: relative;
+  min-height: clamp(180px, 44vw, 300px);
+  border-radius: var(--radius-24);
+  overflow: hidden;
+  margin: 12px 0 4px;
+  background: linear-gradient(170deg,
+    #bae6fd 0%,
+    #d1fae5 45%,
+    #fefce8 100%
+  );
+}
+.zoo-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cellipse cx='20' cy='40' rx='14' ry='6' fill='%2316a34a' opacity='.14' transform='rotate(-30 20 40)'/%3E%3Cellipse cx='70' cy='15' rx='12' ry='5' fill='%234ade80' opacity='.17' transform='rotate(25 70 15)'/%3E%3Cellipse cx='55' cy='75' rx='10' ry='4' fill='%2316a34a' opacity='.11' transform='rotate(-15 55 75)'/%3E%3Cellipse cx='85' cy='55' rx='8' ry='4' fill='%234ade80' opacity='.14' transform='rotate(10 85 55)'/%3E%3C/svg%3E");
+  background-size: 100px 100px;
+  animation: leaf-drift 30s linear infinite;
+  pointer-events: none;
+}
+.zoo-stage::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 55%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 120' preserveAspectRatio='none'%3E%3Cpath d='M0 80 Q 200 22 400 55 T 800 38 L 800 120 L 0 120 Z' fill='%234ade80' opacity='.32'/%3E%3Cpath d='M0 100 Q 200 58 400 80 T 800 66 L 800 120 L 0 120 Z' fill='%231b6b42' opacity='.42'/%3E%3C/svg%3E") bottom/100% 100% no-repeat;
+  pointer-events: none;
+}
+@keyframes leaf-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 100px 100px; }
+}
+.zoo-stage__copy {
+  position: relative;
+  z-index: 2;
+  padding: clamp(20px, 5vw, 36px) clamp(16px, 4vw, 32px) clamp(40px, 10vw, 64px);
+  max-width: 60%;
+}
+.zoo-stage__eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1b6b42;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.zoo-stage__title {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 5.5vw, 40px);
+  font-weight: 900;
+  color: #14532d;
+  line-height: 1.2;
+  letter-spacing: .01em;
+  font-family: var(--font-display, system-ui);
+  text-shadow: 0 2px 0 rgba(255,255,255,.7);
+}
+.zoo-stage__lede {
+  margin: 0;
+  font-size: clamp(12px, 2.5vw, 15px);
+  color: #166534;
+  font-weight: 600;
+}
+.zoo-stage__deco {
+  position: absolute;
+  z-index: 2;
+  font-size: clamp(48px, 12vw, 90px);
+  line-height: 1;
+  right: clamp(12px, 5vw, 40px);
+  top: 50%;
+  transform: translateY(-55%);
+  animation: zoo-float 5s ease-in-out infinite;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.1));
+  user-select: none;
+  pointer-events: none;
+}
+@keyframes zoo-float {
+  0%,100% { transform: translateY(-55%); }
+  50%      { transform: translateY(-65%); }
+}
+
+/* ============================================================
+   クイックリンク – イラスト付きカテゴリカード
+   ============================================================ */
+.card--illus {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.card--illus:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(22,90,50,.13), 0 4px 8px rgba(0,0,0,.05);
+}
+.illus-top {
+  height: 110px;
+  border-radius: calc(var(--radius-18) - 2px) calc(var(--radius-18) - 2px) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.illus-top::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.card--illus-news .illus-top {
+  background: linear-gradient(135deg, #fef9ec 0%, #fde68a 100%);
+  font-size: 52px;
+}
+.card--illus-news .illus-top::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='110'%3E%3Crect x='105' y='12' width='74' height='88' rx='5' fill='%23fef3c7' stroke='%23fbbf24' stroke-width='1.5'/%3E%3Crect x='113' y='22' width='58' height='7' rx='2' fill='%23f59e0b' opacity='.65'/%3E%3Crect x='113' y='34' width='46' height='4' rx='1.5' fill='%23fbbf24' opacity='.4'/%3E%3Crect x='113' y='42' width='38' height='4' rx='1.5' fill='%23fbbf24' opacity='.4'/%3E%3Crect x='113' y='50' width='50' height='4' rx='1.5' fill='%23fbbf24' opacity='.4'/%3E%3Crect x='113' y='58' width='32' height='4' rx='1.5' fill='%23fbbf24' opacity='.3'/%3E%3Ccircle cx='58' cy='52' r='28' fill='%23fbbf24' opacity='.25'/%3E%3Cpath d='M44 44 Q58 28 72 44' stroke='%23f59e0b' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='58' cy='42' r='10' fill='%23f59e0b' opacity='.65'/%3E%3C/svg%3E");
+}
+.card--illus-babies .illus-top {
+  background: linear-gradient(135deg, #ecfdf5 0%, #bbf7d0 100%);
+  font-size: 52px;
+}
+.card--illus-babies .illus-top::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='110'%3E%3Cellipse cx='100' cy='82' rx='58' ry='22' fill='%2386efac' opacity='.45'/%3E%3Cellipse cx='100' cy='72' rx='46' ry='28' fill='%23bbf7d0' stroke='%234ade80' stroke-width='1.5' opacity='.8'/%3E%3Ccircle cx='78' cy='62' r='15' fill='%23fef9c3' stroke='%23fbbf24' stroke-width='2'/%3E%3Ccircle cx='100' cy='57' r='17' fill='%23fef9c3' stroke='%23fbbf24' stroke-width='2'/%3E%3Ccircle cx='122' cy='62' r='15' fill='%23fef9c3' stroke='%23fbbf24' stroke-width='2'/%3E%3C/svg%3E");
+}
+.card--illus-cal .illus-top {
+  background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%);
+  font-size: 52px;
+}
+.card--illus-cal .illus-top::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='110'%3E%3Ccircle cx='150' cy='28' r='22' fill='%23fbbf24' opacity='.65'/%3E%3Crect x='48' y='26' width='84' height='70' rx='6' fill='white' stroke='%2316a34a' stroke-width='2'/%3E%3Crect x='48' y='26' width='84' height='20' rx='6' fill='%231b6b42'/%3E%3Crect x='48' y='40' width='84' height='6' fill='%231b6b42'/%3E%3Ccircle cx='66' cy='20' r='4.5' fill='%231b6b42'/%3E%3Ccircle cx='114' cy='20' r='4.5' fill='%231b6b42'/%3E%3Crect x='56' y='54' width='11' height='10' rx='2' fill='%234ade80' opacity='.6'/%3E%3Crect x='72' y='54' width='11' height='10' rx='2' fill='%234ade80' opacity='.6'/%3E%3Crect x='88' y='54' width='11' height='10' rx='2' fill='%23fbbf24' opacity='.85'/%3E%3Crect x='104' y='54' width='11' height='10' rx='2' fill='%234ade80' opacity='.6'/%3E%3Crect x='56' y='70' width='11' height='10' rx='2' fill='%234ade80' opacity='.6'/%3E%3Crect x='72' y='70' width='11' height='10' rx='2' fill='%23fbbf24' opacity='.5'/%3E%3Crect x='88' y='70' width='11' height='10' rx='2' fill='%231b6b42' opacity='.35'/%3E%3C/svg%3E");
+}
+.illus-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+}
+.illus-content .panel-head { margin-bottom: 6px; }
+.illus-content .card__body { flex: 1; }
+.illus-content .card__footer { padding-top: 6px; }
+
+/* ============================================================
+   フォント / タイポグラフィ
+   ============================================================ */
+:root {
+  --font-display: 'Zen Maru Gothic', system-ui, -apple-system, 'Noto Sans JP', sans-serif;
+}
+.page-title,
+.zoo-stage__title,
+.card--message h3,
+.panel-title {
+  font-family: var(--font-display);
+  font-feature-settings: 'palt';
+}
+
+/* ============================================================
+   マイクロインタラクション
+   ============================================================ */
+.card,
+.hero-card,
+.bday-card,
+.news-card,
+.baby-card {
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.bday-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(22,90,50,.11), 0 3px 6px rgba(0,0,0,.05);
+}
+.hero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(22,90,50,.10);
+}
+.news-card:hover,
+.baby-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(22,90,50,.12), 0 4px 8px rgba(0,0,0,.05);
+}
+.thumb { overflow: hidden; }
+.thumb > img { transition: transform .45s ease; }
+.baby-card:hover .thumb > img,
+.news-card:hover .thumb > img { transform: scale(1.05); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* ============================================================
+   写真ファースト hero-card
+   ============================================================ */
+.hero-card {
+  grid-template-columns: 88px 1fr;
+  min-height: 100px;
+  gap: 12px;
+}
+.hero-card__thumb {
+  width: 88px;
+  height: 88px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #dcfce7, #fef3c7);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.hero-card__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .45s ease;
+}
+.hero-card:hover .hero-card__thumb img { transform: scale(1.06); }
+.hero-card__thumb-emoji {
+  font-size: 36px;
+  line-height: 1;
+  animation: zb-paw-bob 2.4s ease-in-out infinite;
+}
+.hero-card__age-badge {
+  position: absolute;
+  top: 5px; right: 5px;
+  background: var(--grad);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 999px;
+  line-height: 1.5;
+}
+.hero-card--skel { height: 108px; }
+@media (min-width: 600px) {
+  .hero-card { flex: 0 0 280px; min-height: 108px; }
+  .hero-card__thumb { width: 96px; height: 96px; }
+  .hero-card--skel { height: 116px; }
+}
+
+/* ============================================================
+   空状態イラスト（Empty State）
+   ============================================================ */
+.empty-state {
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state__art {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  background: center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='54' fill='%23f0fdf4' stroke='%23bbf7d0' stroke-width='2'/%3E%3Cellipse cx='45' cy='74' rx='18' ry='8' fill='%234ade80' opacity='.4'/%3E%3Cellipse cx='75' cy='70' rx='14' ry='7' fill='%234ade80' opacity='.3'/%3E%3Crect x='44' y='40' width='3' height='32' rx='1.5' fill='%2316a34a' opacity='.7'/%3E%3Cellipse cx='44' cy='38' rx='13' ry='8' fill='%2316a34a' opacity='.5' transform='rotate(-20 44 38)'/%3E%3Cellipse cx='50' cy='42' rx='11' ry='6' fill='%234ade80' opacity='.6' transform='rotate(15 50 42)'/%3E%3Crect x='73' y='48' width='2.5' height='24' rx='1.2' fill='%2316a34a' opacity='.6'/%3E%3Cellipse cx='73' cy='46' rx='10' ry='6' fill='%234ade80' opacity='.5' transform='rotate(-10 73 46)'/%3E%3Ccircle cx='60' cy='86' r='4' fill='%23fbbf24' opacity='.7'/%3E%3Ccircle cx='52' cy='88' r='3' fill='%23fbbf24' opacity='.5'/%3E%3Ccircle cx='68' cy='87' r='3' fill='%23fbbf24' opacity='.5'/%3E%3C/svg%3E");
+}
+.empty-state__title {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--font-display, system-ui);
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+.empty-state__desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+/* thumb placeholder – 重複ルール統合 */
+.thumb.is-placeholder {
+  position: relative !important;
+  overflow: hidden;
+  background:
+    radial-gradient(26px 26px at 18% 24%, rgba(74,222,128,.18) 0 60%, transparent 61%),
+    radial-gradient(22px 22px at 42% 76%, rgba(245,158,11,.14) 0 60%, transparent 61%),
+    linear-gradient(135deg, #ecfdf5 0%, #fefce8 100%) !important;
+  border: 1px dashed rgba(22,163,74,.22) !important;
+}
+.thumb.is-placeholder::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: center/38% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cellipse cx='22' cy='38' rx='16' ry='7' fill='%234ade80' opacity='.38'/%3E%3Cellipse cx='38' cy='36' rx='13' ry='6' fill='%234ade80' opacity='.28'/%3E%3Crect x='21' y='16' width='2.5' height='22' rx='1.2' fill='%2316a34a' opacity='.6'/%3E%3Cellipse cx='21' cy='14' rx='10' ry='6' fill='%2316a34a' opacity='.48' transform='rotate(-15 21 14)'/%3E%3Cellipse cx='26' cy='17' rx='8' ry='5' fill='%234ade80' opacity='.55' transform='rotate(15 26 17)'/%3E%3Crect x='38' y='22' width='2' height='16' rx='1' fill='%2316a34a' opacity='.5'/%3E%3Cellipse cx='38' cy='20' rx='7' ry='4.5' fill='%234ade80' opacity='.42' transform='rotate(-10 38 20)'/%3E%3Ccircle cx='30' cy='46' r='3' fill='%23fbbf24' opacity='.6'/%3E%3C/svg%3E");
+  animation: zb-paw-bob 2.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   カレンダー磨き
+   ============================================================ */
+.cal-day--today {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
+  box-shadow: 0 0 0 2px #16a34a, 0 0 0 5px rgba(22,163,74,.18), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  animation: today-pulse 2.4s ease-in-out infinite;
+}
+@keyframes today-pulse {
+  0%,100% { box-shadow: 0 0 0 2px #16a34a, 0 0 0 5px rgba(22,163,74,.18), inset 0 1px 0 rgba(255,255,255,.8); }
+  50%      { box-shadow: 0 0 0 2px #16a34a, 0 0 0 9px rgba(22,163,74,.08), inset 0 1px 0 rgba(255,255,255,.8); }
+}
+.cal-day--has .age-badge { animation: bday-pop .65s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes bday-pop {
+  from { transform: scale(0) rotate(-12deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);  opacity: 1; }
+}
+.calendar-head::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--grad);
+  margin-bottom: 8px;
+}
+.calendar__weekday > div {
+  font-family: var(--font-display, system-ui);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ============================================================
+   装飾ディバイダ
+   ============================================================ */
+.section-divider {
+  height: 28px;
+  margin: 0;
+  background: center bottom / 100% 100% no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 28' preserveAspectRatio='none'%3E%3Cpath d='M0 14 Q 300 0 600 14 T 1200 14 L 1200 28 L 0 28 Z' fill='%23f0fdf4'/%3E%3C/svg%3E");
+}
+
+/* card--cream */
+.card--cream {
+  background: linear-gradient(180deg, #fffdf7 0%, #fefce8 100%);
+}
