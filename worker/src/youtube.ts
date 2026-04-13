@@ -16,7 +16,7 @@ export async function ingestYouTube(apiKey: string, channelIds: string[]): Promi
       searchUrl.searchParams.set("type", "video");
 
       const res = await fetch(searchUrl.toString());
-      const json = await res.json();
+      const json: any = await res.json();
       const items = (json.items || []) as any[];
       for (const it of items) {
         const videoId = it.id?.videoId;

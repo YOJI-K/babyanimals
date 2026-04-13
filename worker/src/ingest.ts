@@ -1,3 +1,7 @@
+// NOTE: このファイルは現在 index.ts から呼ばれていません（dead code）。
+// index.ts は独自の RSS/YouTube 処理（DB sources テーブル駆動）を持っており、
+// このファイルは将来のリファクタリング候補として残しています。
+
 import { ingestRssFeeds } from './rss';
 import { ingestYouTube } from './youtube';
 

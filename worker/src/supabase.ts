@@ -60,7 +60,7 @@ async function fetchExisting(env: EnvLike, urls: string[]): Promise<{ url: strin
       },
     });
     if (!res.ok) throw new Error(`Supabase select failed: ${res.status}`);
-    const json = await res.json();
+    const json: any[] = await res.json() as any[];
     out.push(...json);
   }
   return out;

@@ -141,7 +141,7 @@ async function sbPost(env: Env, path: string, body: unknown, extra?: Record<stri
   return res;
 }
 
-async function sbGet(env: Env, path: string) {
+async function sbGet(env: Env, path: string): Promise<any> {
   const url = `${env.SUPABASE_URL}${path}`;
   const res = await fetch(url, {
     headers: {
@@ -154,7 +154,7 @@ async function sbGet(env: Env, path: string) {
     const t = await res.text().catch(()=> '');
     throw new Error(`Supabase GET ${path} -> ${res.status}: ${t}`);
   }
-  return res.json();
+  return res.json() as Promise<any>;
 }
 
 async function sbPatch(env: Env, path: string, body: unknown) {
@@ -263,22 +263,54 @@ function parseSiteOG(html: string, fallbackUrl: string): FeedItem {
 const BABY_KEYWORDS = /(誕生|出産|赤ちゃん|赤仔|ベビー|生まれ|命名|名前に決定)/;
 
 const SPECIES_MAP = new Map<string, string>([
+  // パンダ・クマ系（長い名前を先に置くことで substring マッチ優先）
   ["ジャイアントパンダ", "ジャイアントパンダ"],
   ["レッサーパンダ", "レッサーパンダ"],
   ["ホッキョクグマ", "ホッキョクグマ"],
   ["シロクマ", "ホッキョクグマ"],
+  ["マレーグマ", "マレーグマ"],
+  // ネコ科
+  ["アムールトラ", "トラ"],
+  ["スマトラトラ", "トラ"],
   ["トラ", "トラ"],
   ["ライオン", "ライオン"],
+  ["チーター", "チーター"],
+  ["ユキヒョウ", "ユキヒョウ"],
+  ["ヒョウ", "ヒョウ"],
+  // 霊長類
+  ["ニシゴリラ", "ゴリラ"],
   ["ゴリラ", "ゴリラ"],
   ["チンパンジー", "チンパンジー"],
+  ["オランウータン", "オランウータン"],
+  ["ニホンザル", "ニホンザル"],
+  ["マンドリル", "マンドリル"],
+  // 草食大型獣
   ["キリン", "キリン"],
+  ["コビトカバ", "カバ"],
   ["カバ", "カバ"],
+  ["シロサイ", "サイ"],
+  ["クロサイ", "サイ"],
+  ["サイ", "サイ"],
   ["ゾウ", "ゾウ"],
+  // 小型哺乳類
   ["コツメカワウソ", "コツメカワウソ"],
   ["コアラ", "コアラ"],
   ["カンガルー", "カンガルー"],
   ["シマウマ", "シマウマ"],
+  // 鳥類
+  ["コウテイペンギン", "ペンギン"],
+  ["フンボルトペンギン", "ペンギン"],
+  ["ペンギン", "ペンギン"],
   ["フラミンゴ", "フラミンゴ"],
+  // は虫類・水生
+  ["ナイルワニ", "ワニ"],
+  ["ワニ", "ワニ"],
+  ["コモドオオトカゲ", "コモドオオトカゲ"],
+  ["カリフォルニアアシカ", "アシカ"],
+  ["アシカ", "アシカ"],
+  ["セイウチ", "セイウチ"],
+  ["バンドウイルカ", "イルカ"],
+  ["イルカ", "イルカ"],
 ]);
 
 const NAME_PATTERNS: RegExp[] = [
@@ -429,14 +461,38 @@ async function upsertBabyEvents(env: Env, rows: BabyEventRow[]) {
 }
 
 // -------------------------------
+// DB の sources テーブルが空の場合のフォールバック RSS（Google News 動物園赤ちゃん検索）
+// ※ Google News RSS は Cloudflare Workers から取得可能で比較的安定している
+// -------------------------------
+const FALLBACK_RSS_SOURCES = [
+  {
+    id: null, kind: 'googlenews', zoo_id: null,
+    url: 'https://news.google.com/rss/search?q=%E5%8B%95%E7%89%A9%E5%9C%92+%E8%B5%A4%E3%81%A1%E3%82%83%E3%82%93+%E8%AA%95%E7%94%9F&hl=ja&gl=JP&ceid=JP:ja'
+  },
+  {
+    id: null, kind: 'googlenews', zoo_id: null,
+    url: 'https://news.google.com/rss/search?q=%E5%8B%95%E7%89%A9%E5%9C%92+%E8%B5%A4%E3%81%A1%E3%82%83%E3%82%93+%E5%91%BD%E5%90%8D&hl=ja&gl=JP&ceid=JP:ja'
+  },
+  {
+    id: null, kind: 'googlenews', zoo_id: null,
+    url: 'https://news.google.com/rss/search?q=%E5%8B%95%E7%89%A9%E5%9C%92+%E3%83%99%E3%83%93%E3%83%BC+%E8%AA%95%E7%94%9F&hl=ja&gl=JP&ceid=JP:ja'
+  },
+];
+
+// -------------------------------
 // NEWS ジョブ: RSS/Atom/GoogleNews → イベント化 + news_items へも保存
 // -------------------------------
 async function runNewsJob(env: Env) {
   const started = new Date();
-  const sources = await sbGet(
+  const dbSources = await sbGet(
     env,
     `/rest/v1/sources?select=*&enabled=eq.true&kind=in.(rss,youtube,googlenews)&order=last_checked.asc.nullsfirst&limit=${MAX_SOURCES_PER_RUN}`
   );
+
+  // DB にソースが登録されていない場合はフォールバックを使用
+  const sources: any[] = Array.isArray(dbSources) && (dbSources as any[]).length > 0
+    ? (dbSources as any[])
+    : FALLBACK_RSS_SOURCES;
 
   const events: BabyEventRow[] = [];
   const processedIds: string[] = [];
@@ -445,7 +501,7 @@ async function runNewsJob(env: Env) {
 
   let total = 0, skipped = 0;
 
-  for (const s of sources as any[]) {
+  for (const s of sources) {
     try {
       if (s?.id) processedIds.push(s.id);
 
@@ -706,6 +762,16 @@ function inferBirthday(ev: EventForResolve): string | null {
   const byTitle = ev.title ? parseDateToISODateOnly(ev.title) : null;
   if (byAge) return byAge;
   if (byTitle) return byTitle;
+  // M月D日 パターン（年なし）→ 記事公開日の年で補完し、未来日なら前年に調整
+  if (ev.title) {
+    const m = ev.title.match(/(\d{1,2})月(\d{1,2})日/);
+    if (m) {
+      const pubDate = ev.published_at ? new Date(ev.published_at) : new Date();
+      const candidate = new Date(pubDate.getFullYear(), Number(m[1]) - 1, Number(m[2]));
+      if (candidate > pubDate) candidate.setFullYear(candidate.getFullYear() - 1);
+      return candidate.toISOString().slice(0, 10);
+    }
+  }
   if (ev.published_at) return (ev.published_at || '').slice(0, 10);
   return null;
 }
@@ -774,6 +840,11 @@ async function resolveBabyEntitiesJob(env: Env) {
     }
 
     if (canCreate) {
+      // zoo_id が解決できない場合はスキップ（外部キー制約エラー防止）
+      if (!zooIdForEvent) {
+        console.warn('[resolve] zoo_id unresolved, skipping baby creation for:', ev.title?.slice(0, 80));
+        continue;
+      }
       // babies 新規作成（個体IDが必要なのでここは単発 POST）
       const nameHint = ev.species || '';
       const displayName = ensureBabyName(ev.signal_name, nameHint);
@@ -782,7 +853,7 @@ async function resolveBabyEntitiesJob(env: Env) {
         species: ev.species,
         birthday: bday,
         thumbnail_url: ev.thumbnail_url,
-        zoo_id: zooIdForEvent, // ← 推定結果を使用（null あり得る）
+        zoo_id: zooIdForEvent,
       };
       const res = await sbPost(env, '/rest/v1/babies', [row], { 'Prefer': 'return=representation' });
       const createdRows = await res.json().catch(()=>[]) as any[];
@@ -831,7 +902,7 @@ async function runZoosJob(env: Env) {
       cf: { cacheTtl: 3600 }
     });
     if (!res.ok) throw new Error(`wikipedia -> ${res.status}`);
-    const json = await res.json();
+    const json: any = await res.json();
     const members: any[] = json?.query?.categorymembers || [];
     total = members.length;
 
