@@ -1,6 +1,20 @@
 // assets/js/babies.js
 // Babies list v3 — ヘッダー/タブ統一, 年齢フィルタ(0-3), 近い誕生日順, 可愛いNo Image, スピナー, ページサイズ可変
 
+// ── 動物園アフィリエイトデータ（ssg.js と同一マップ） ──────────────────
+// official_url: 動物園公式サイト
+// asoview_url:  アソビューアフィリエイトリンク（null = 非表示）
+const ZOO_AFFILIATE_MAP = {
+  '上野動物園':     { official_url: 'https://www.tokyo-zoo.net/zoo/ueno/',                         asoview_url: null },
+  '多摩動物公園':   { official_url: 'https://www.tokyo-zoo.net/zoo/tama/',                         asoview_url: null },
+  '旭山動物園':     { official_url: 'https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/',        asoview_url: null },
+  '札幌市円山動物園': { official_url: 'https://www.city.sapporo.jp/zoo/',                          asoview_url: null },
+  '神戸どうぶつ王国': { official_url: 'https://www.kobe-oukoku.com/',                              asoview_url: null },
+  '天王寺動物園':   { official_url: 'https://www.tennojizoo.jp/',                                  asoview_url: null },
+  '東山動植物園':   { official_url: 'https://www.higashiyama.city.nagoya.jp/',                     asoview_url: null },
+  'ズーラシア':     { official_url: 'https://www.hama-midorinokyokai.or.jp/zoo/zoorasia/',         asoview_url: null },
+};
+
 (() => {
   // ====== 小ユーティリティ ======
   const $ = (id) => document.getElementById(id);
@@ -139,26 +153,51 @@
     const alt   = [x.name, x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
     const soon  = x.birthday ? nextBirthdayDays(x.birthday) : Infinity;
     const isMonth = x.birthday ? (new Date(x.birthday).getMonth() === new Date().getMonth()) : false;
+    const href  = `/babies/${x.id}/`;
 
     const thumb = x.thumbnail_url
       ? `<div class="thumb"><img src="${x.thumbnail_url}" loading="lazy" decoding="async" alt="${alt}"></div>`
       : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
 
+    // ── アフィリエイト / 公式リンクボタン ──────────────────────────
+    const zooData = ZOO_AFFILIATE_MAP[zoo] || {};
+    let ticketBtn = '';
+    if (zooData.asoview_url) {
+      ticketBtn = `<div class="baby-card__foot">
+        <a href="${zooData.asoview_url}" class="baby-card__ticket"
+           target="_blank" rel="noopener sponsored"
+           data-link-type="ticket"
+           data-zoo-name="${zoo}"
+           data-animal-name="${x.name || ''}">🎟️ チケットを見る</a>
+      </div>`;
+    } else if (zooData.official_url) {
+      ticketBtn = `<div class="baby-card__foot">
+        <a href="${zooData.official_url}" class="baby-card__ticket baby-card__ticket--official"
+           target="_blank" rel="noopener noreferrer"
+           data-link-type="official"
+           data-zoo-name="${zoo}"
+           data-animal-name="${x.name || ''}">🗺️ 公式サイト</a>
+      </div>`;
+    }
+
     return `
-      <a href="#" class="baby-card" onclick="return false;" aria-label="${title}（${x.species || '種別不明'}、${zoo || '園情報なし'}）の詳細（準備中）">
-        ${thumb}
-        ${soon <= 14 ? `<span class="soon-dot" title="もうすぐお誕生日"></span>` : ''}
-        <div class="pad">
-          <div class="title">${title}${x.species ? `（${x.species}）` : ''}</div>
-          <div class="meta">
-            ${sourcePillZoo(zoo)}
-            ${pillBirthday(x.birthday)}
-            ${pillAge(x.birthday)}
-            ${soon <= 14 ? '<span class="pill pill--soon">もうすぐ</span>' : ''}
-            ${isMonth ? '<span class="pill pill--month">今月🎂</span>' : ''}
+      <div class="baby-card">
+        <a href="${href}" class="baby-card__link" aria-label="${title}（${x.species || '種別不明'}、${zoo || '園情報なし'}）の詳細">
+          ${thumb}
+          ${soon <= 14 ? `<span class="soon-dot" title="もうすぐお誕生日"></span>` : ''}
+          <div class="pad">
+            <div class="title">${title}${x.species ? `（${x.species}）` : ''}</div>
+            <div class="meta">
+              ${sourcePillZoo(zoo)}
+              ${pillBirthday(x.birthday)}
+              ${pillAge(x.birthday)}
+              ${soon <= 14 ? '<span class="pill pill--soon">もうすぐ</span>' : ''}
+              ${isMonth ? '<span class="pill pill--month">今月🎂</span>' : ''}
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
+        ${ticketBtn}
+      </div>
     `;
   }
 

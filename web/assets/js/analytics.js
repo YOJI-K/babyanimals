@@ -21,6 +21,7 @@
 
   // ── outbound_click ──────────────────────────────────────────────────
   // ページ内のすべての外部リンクをイベント委譲でトラッキング
+  // data-link-type / data-zoo-name / data-animal-name 属性があれば追加計測
   document.addEventListener('click', function (e) {
     const a = e.target.closest('a[href]');
     if (!a) return;
@@ -30,10 +31,14 @@
     try {
       const url = new URL(href, location.href);
       if (url.hostname === location.hostname) return;
-      sendEvent('outbound_click', {
-        link_url:  href,
-        link_text: (a.textContent || '').trim().slice(0, 100),
-      });
+      const params = {
+        link_url:    href,
+        link_text:   (a.textContent || '').trim().slice(0, 100),
+        link_type:   a.dataset.linkType   || 'general',
+      };
+      if (a.dataset.zooName)    params.zoo_name    = a.dataset.zooName;
+      if (a.dataset.animalName) params.animal_name = a.dataset.animalName;
+      sendEvent('outbound_click', params);
     } catch (_) { /* 不正なURL は無視 */ }
   }, { passive: true });
 

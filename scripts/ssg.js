@@ -182,6 +182,88 @@ function siteFooter() {
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>`;
 }
 
+// ─── 動物園アフィリエイトデータ ──────────────────────────────────────
+// official_url: 動物園公式サイト
+// asoview_url:  アソビューアフィリエイトリンク（null = 非表示）
+//
+// !! アフィリエイトIDが届いたら asoview_url を設定してください !!
+// 例: 'https://www.asoview.com/item/ticket/actXXXXXXXXXX/?affiliate_id=YOUR_ID'
+
+const ZOO_AFFILIATE_MAP = {
+  // ── 東京 ─────────────────────────────────────────────────────────────
+  '上野動物園': {
+    official_url: 'https://www.tokyo-zoo.net/zoo/ueno/',
+    asoview_url:  null, // TODO: アソビューアフィリエイトID設定後に入力
+  },
+  '多摩動物公園': {
+    official_url: 'https://www.tokyo-zoo.net/zoo/tama/',
+    asoview_url:  null,
+  },
+  // ── 北海道 ───────────────────────────────────────────────────────────
+  '旭山動物園': {
+    official_url: 'https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/',
+    asoview_url:  null,
+  },
+  '札幌市円山動物園': {
+    official_url: 'https://www.city.sapporo.jp/zoo/',
+    asoview_url:  null,
+  },
+  // ── 兵庫 ─────────────────────────────────────────────────────────────
+  '神戸どうぶつ王国': {
+    official_url: 'https://www.kobe-oukoku.com/',
+    asoview_url:  null,
+  },
+  // ── 大阪 ─────────────────────────────────────────────────────────────
+  '天王寺動物園': {
+    official_url: 'https://www.tennojizoo.jp/',
+    asoview_url:  null,
+  },
+  // ── 愛知 ─────────────────────────────────────────────────────────────
+  '東山動植物園': {
+    official_url: 'https://www.higashiyama.city.nagoya.jp/',
+    asoview_url:  null,
+  },
+  // ── 神奈川 ───────────────────────────────────────────────────────────
+  'ズーラシア': {
+    official_url: 'https://www.hama-midorinokyokai.or.jp/zoo/zoorasia/',
+    asoview_url:  null,
+  },
+};
+
+/** 動物園リンクボタン HTML を生成（ssg.js 用） */
+function zooLinksHtml(zooName, animalName) {
+  const data = ZOO_AFFILIATE_MAP[zooName];
+  if (!data) return '';
+
+  const safeZoo    = esc(zooName);
+  const safeAnimal = esc(animalName);
+  const buttons = [];
+
+  if (data.asoview_url) {
+    buttons.push(`<a class="zoo-link zoo-link--ticket"
+         href="${esc(data.asoview_url)}"
+         target="_blank" rel="noopener sponsored"
+         data-link-type="ticket"
+         data-zoo-name="${safeZoo}"
+         data-animal-name="${safeAnimal}">
+      🎟️ チケットを見る
+    </a>`);
+  }
+  if (data.official_url) {
+    buttons.push(`<a class="zoo-link zoo-link--official"
+         href="${esc(data.official_url)}"
+         target="_blank" rel="noopener noreferrer"
+         data-link-type="official"
+         data-zoo-name="${safeZoo}"
+         data-animal-name="${safeAnimal}">
+      🗺️ アクセス・営業時間
+    </a>`);
+  }
+  if (!buttons.length) return '';
+
+  return `<div class="zoo-links" aria-label="${safeZoo}へのリンク">${buttons.join('\n    ')}</div>`;
+}
+
 // ─── 赤ちゃん個別ページ ─────────────────────────────────────────────
 
 function babyHtml(b) {
@@ -209,6 +291,7 @@ function babyHtml(b) {
   const thumbHtml = b.thumbnail_url
     ? `<img class="ssg-detail__img" src="${esc(b.thumbnail_url)}" alt="${esc(name)}（${esc(species)}）" loading="eager" decoding="async">`
     : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`;
+
 
   return `<!doctype html>
 <html lang="ja">
@@ -241,7 +324,10 @@ ${siteNav('/babies/')}
         ${esc(zoo)}で生まれた${esc(species)}の赤ちゃんです。
         誕生日は${esc(bdayFmt) || '不明'}、現在${esc(age)}。
       </p>
-      <a class="btn btn--primary" href="/babies/">← 赤ちゃん一覧へ戻る</a>
+      ${zooLinksHtml(zoo, name)}
+      <div class="ssg-detail__actions">
+        <a class="btn btn--primary" href="/babies/">← 赤ちゃん一覧へ戻る</a>
+      </div>
     </div>
   </article>
 

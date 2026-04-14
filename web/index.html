@@ -158,6 +158,45 @@
       <a class="btn btn--primary news-preview-more" href="./news/index.html">もっとニュースを読む →</a>
     </section>
 
+    <!-- ============================================================
+         広告・アフィリエイト枠
+         ここに GoogleAdSense スクリプト や バナー広告 を挿入します。
+         アソビュー アフィリエイトID取得後、href を本番URLに変更してください。
+         ============================================================ -->
+    <section class="ad-section" aria-label="スポンサー">
+
+      <!-- ① アソビュー アフィリエイトバナー
+           TODO: アフィリエイトID取得後に href を本番アフィリリンクに差し替え
+           例: https://www.asoview.com/?affiliate_id=YOUR_ID
+      -->
+      <div class="aff-banner">
+        <a class="aff-banner__link"
+           href="https://www.asoview.com/"
+           target="_blank"
+           rel="noopener sponsored"
+           data-link-type="affiliate">
+          <div class="aff-banner__content">
+            <span class="aff-banner__icon" aria-hidden="true">🎟️</span>
+            <div class="aff-banner__text">
+              <p class="aff-banner__title">動物園のチケットをアソビューで予約</p>
+              <p class="aff-banner__desc">当日券より安い！事前予約でスムーズ入園</p>
+            </div>
+            <span class="aff-banner__arrow" aria-hidden="true">›</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- ② Google AdSense（パブリッシャーID取得後に有効化）
+      <ins class="adsbygoogle adsense-slot"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+           data-ad-slot="XXXXXXXXXX"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+
+    </section>
+
     <!-- クイックナビ -->
     <nav class="quick-nav" aria-label="クイックナビ">
       <a class="quick-nav__item" href="./news/index.html">

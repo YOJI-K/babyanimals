@@ -33,13 +33,21 @@
     @media (min-width:600px){ .baby-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
     @media (min-width:1024px){ .baby-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
 
-    .baby-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; text-decoration:none; color:inherit; position:relative; }
+    /* baby-card: <div>コンテナ + <a>メインリンク 構造 */
+    .baby-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; position:relative; display:flex; flex-direction:column; }
     .baby-card:hover{ transform:translateY(-2px); }
+    .baby-card__link{ display:block; text-decoration:none; color:inherit; flex:1; }
     .baby-card .thumb{ position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#f2f2f2; }
-    .baby-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .baby-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; max-height:none !important; }
     .baby-card .pad{ padding:10px 12px 12px; }
     .baby-card .title{ font-size:15px; line-height:1.5; font-weight:900; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
     .baby-card .meta{ font-size:12px; color:#666; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    /* チケット/公式ボタン */
+    .baby-card__foot{ padding:0 10px 10px; }
+    .baby-card__ticket{ display:flex; align-items:center; justify-content:center; gap:5px; padding:8px 12px; background:var(--grad); color:#fff; border-radius:999px; font-size:12px; font-weight:800; text-decoration:none; width:100%; transition:opacity .12s ease; }
+    .baby-card__ticket:hover{ opacity:.88; }
+    .baby-card__ticket--official{ background:#fff; color:#1b6b42; border:1.5px solid var(--border); }
+    .baby-card__ticket--official:hover{ opacity:1; background:var(--forest-50); }
 
     /* コントロールバー（ニュース相当） */
     .controls.sticky{
