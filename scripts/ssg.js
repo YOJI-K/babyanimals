@@ -107,6 +107,9 @@ function writeHtml(filePath, html) {
 
 // ─── 共通 HTML パーツ ───────────────────────────────────────────────
 
+// GA4 計測ID（CF Pages ビルド環境変数 GA_MEASUREMENT_ID が優先、未設定時はプレースホルダ）
+const GA_ID = process.env.GA_MEASUREMENT_ID || 'G-YRQJXRMEN2';
+
 function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   const og = ogImage || `${SITE_BASE}/assets/img/og.png`;
   return `<head>
@@ -123,10 +126,19 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="canonical" href="${esc(canonical)}" />
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" />
   <link rel="stylesheet" href="/assets/css/style.css" />
+  <!-- Google tag (gtag.js) — GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${GA_ID}');
+  </script>
   <script type="application/ld+json">${jsonLd}</script>
 </head>`;
 }
@@ -164,7 +176,7 @@ function siteNav(activeHref) {
 
 function siteFooter() {
   return `<footer class="site-footer" aria-label="フッター">
-  <small>© どうベビ（動物園ベビー情報）</small>
+  <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
 </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>`;
@@ -235,6 +247,19 @@ ${siteNav('/babies/')}
 
 </main>
 ${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+<script>
+  // GA4: 赤ちゃん個別ページ閲覧イベント
+  window.addEventListener('load', function () {
+    if (typeof gtag === 'function') {
+      gtag('event', 'baby_view', {
+        animal_name: '${esc(name)}',
+        animal_species: '${esc(species)}',
+        zoo_name: '${esc(zoo)}',
+      });
+    }
+  });
+</script>
 </body>
 </html>`;
 }
@@ -310,6 +335,7 @@ ${siteNav('/news/')}
 
 </main>
 ${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
 </body>
 </html>`;
 }
@@ -446,6 +472,33 @@ async function main() {
   console.log('\n🗺️  sitemap.xml 生成中...');
   writeHtml(path.join(WEB_DIR, 'sitemap.xml'), buildSitemap(babies, newsItems));
   console.log(`   ✅ ${babyCount + newsCount + 4} URL を出力`);
+
+  // ── 静的 HTML の GA4 ID 差し替え ──────────────────────────────────
+  // SSG で生成したページは既に GA_ID を埋め込み済み。
+  // 手書きの静的ページ（index.html 等）は G-YRQJXRMEN2 プレースホルダのままなので
+  // 実際の計測 ID が環境変数で渡された場合のみ差し替える。
+  if (GA_ID !== 'G-YRQJXRMEN2') {
+    const staticHtmlFiles = [
+      'web/index.html',
+      'web/babies/index.html',
+      'web/news/index.html',
+      'web/news/article.html',
+      'web/calendar/index.html',
+      'web/privacy/index.html',
+    ];
+    let patchCount = 0;
+    for (const rel of staticHtmlFiles) {
+      const absPath = path.resolve(__dirname, '..', rel);
+      if (!fs.existsSync(absPath)) continue;
+      const original = fs.readFileSync(absPath, 'utf-8');
+      const patched  = original.replaceAll('G-YRQJXRMEN2', GA_ID);
+      if (patched !== original) {
+        fs.writeFileSync(absPath, patched, 'utf-8');
+        patchCount++;
+      }
+    }
+    if (patchCount > 0) console.log(`   GA4 ID を静的ページ ${patchCount} 件に適用 (${GA_ID})`);
+  }
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`\n🎉 SSG 完了 (${elapsed}s)`);
