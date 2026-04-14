@@ -733,9 +733,10 @@ async function fetchJSON(path){
       const zoo  = b.zoo_name || '';
       const bday = b.birthday ? b.birthday.slice(0, 10).replace(/-/g, '/') : '—';
       const href = `/babies/${encodeURIComponent(b.id)}/`;
+      const emoji = pickE(b);
       const thumbHtml = b.thumbnail_url
-        ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy">`
-        : `<span aria-hidden="true">${pickE(b)}</span>`;
+        ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" onerror="this.parentNode.innerHTML='<span aria-hidden=\\'true\\'>${emoji}</span>'">`
+        : `<span aria-hidden="true">${emoji}</span>`;
 
       const a = document.createElement('a');
       a.className = 'recent-card';
