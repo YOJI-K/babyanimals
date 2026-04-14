@@ -758,3 +758,69 @@ async function fetchJSON(path){
     $list.innerHTML = '';
   });
 })();
+
+/* ==========================================================
+ * 最新ニュースプレビュー（トップページ 3 件）
+ * ========================================================== */
+(() => {
+  const $list = document.getElementById('news-preview-list');
+  if (!$list) return;
+
+  function getEnv() {
+    const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+    const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+    const BASE = metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co';
+    const ANON = metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY';
+    return { BASE, ANON };
+  }
+
+  const esc = s => String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const fmtDate = iso => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+  };
+
+  async function load() {
+    const { BASE, ANON } = getEnv();
+    const url = new URL(`${BASE}/rest/v1/news_feed_v2`);
+    url.searchParams.set('select', 'id,title,url,published_at,source_name,thumbnail_url');
+    url.searchParams.set('order', 'published_at.desc,id.desc');
+    url.searchParams.set('limit', '3');
+    const res = await fetch(url.toString(), {
+      headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+      cache: 'no-store'
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  load().then(rows => {
+    $list.innerHTML = '';
+    if (!rows?.length) return;
+    for (const item of rows) {
+      const a = document.createElement('a');
+      a.className = 'news-preview-card';
+      a.href = item.url || '#';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.setAttribute('role', 'listitem');
+      const thumbHtml = item.thumbnail_url
+        ? `<img src="${esc(item.thumbnail_url)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='🗞️'">`
+        : '🗞️';
+      a.innerHTML = `
+        <div class="news-preview-card__thumb">${thumbHtml}</div>
+        <div class="news-preview-card__body">
+          <p class="news-preview-card__title">${esc(item.title || '(無題)')}</p>
+          <p class="news-preview-card__meta">${fmtDate(item.published_at)}${item.source_name ? ' · ' + esc(item.source_name) : ''}</p>
+        </div>`;
+      $list.appendChild(a);
+    }
+  }).catch(e => {
+    console.warn('[news-preview]', e);
+    $list.innerHTML = '';
+  });
+})();
