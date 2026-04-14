@@ -988,6 +988,7 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+  max-height: none !important;   /* .card img の max-height:40px ガードを上書き */
 }
 
 .recent-card__body {
