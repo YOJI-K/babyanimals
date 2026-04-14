@@ -282,8 +282,7 @@ function pickEmoji(baby){
     for(let day=1; day<=lastDate; day++){
       const cellDate = new Date(Y, M-1, day);
       const cell = document.createElement('div');
-      const isToday = stripTime(cellDate).getTime() === today.getTime();
-      cell.className = 'cal-day' + (isToday ? ' cal-day--today' : '');
+      cell.className = 'cal-day';
       cell.setAttribute('role','gridcell');
       cell.innerHTML = `<span class="cal-day__date">${day}</span>`;
 
@@ -598,21 +597,15 @@ async function fetchJSON(path){
     const sp   = x.species || '不明';
     const date = x.birthday ? fmtMD(x.birthday) : '-';
     const zoo  = x.zoo_name || '園情報なし';
-    const thumb = x.thumbnail_url;
-    const thumbHTML = thumb
-      ? `<img src="${esc(thumb)}" alt="${esc(name)}" loading="lazy" decoding="async">`
-      : `<span class="hero-card__thumb-emoji" aria-hidden="true">${emoji}</span>`;
     return `
-      <div class="hero-card" role="listitem" aria-label="${esc(name)}（${esc(sp)}）">
-        <div class="hero-card__thumb">
-          ${thumbHTML}
-          ${a!=null ? `<span class="hero-card__age-badge">${a}歳</span>` : ''}
-        </div>
+      <div class="hero-card" role="listitem" aria-label="${name}（${sp}）">
+        <div class="hero-card__avatar" aria-hidden="true">${emoji}</div>
         <div>
-          <p class="hero-card__title">${esc(name)}（${esc(sp)}）</p>
+          <p class="hero-card__title">${name}（${sp}）</p>
           <div class="hero-card__meta">
             <span class="meta-chip meta-chip--date">📅 ${date}</span>
-            <span class="meta-chip meta-chip--zoo">🏛 ${esc(zoo)}</span>
+            <span class="meta-chip meta-chip--zoo">🏛 ${zoo}</span>
+            ${a!=null ? `<span class="meta-chip meta-chip--age">🎉 ${a}歳</span>` : ''}
           </div>
         </div>
       </div>`;
@@ -662,4 +655,105 @@ async function fetchJSON(path){
 
   // 画面幅変化で件数再評価（SP⇄TB）
   window.matchMedia('(max-width: 599px)').addEventListener?.('change', ()=>renderMonth(currentMonth));
+})();
+
+/* ==========================================================
+ * 新着の赤ちゃん（トップページ 3 件）
+ * ========================================================== */
+(() => {
+  const $list = document.getElementById('recent-list');
+  if (!$list) return;
+
+  /* --- Supabase env（Home Hero v4 と同一ロジック） --- */
+  function getEnv() {
+    const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
+    const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
+    const BASE = metaUrl || 'https://hvhpfrksyytthupboaeo.supabase.co';
+    const ANON = metaKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY';
+    return { BASE, ANON };
+  }
+
+  async function sbGet(path) {
+    const { BASE, ANON } = getEnv();
+    const u = new window.URL(path, BASE);
+    let r = await fetch(u.toString(), {
+      headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+      cache: 'no-store'
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+
+  const esc = s => String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+  const pickE = (b) => {
+    const t = `${b?.species||''}`.toLowerCase();
+    if (t.includes('レッサー')||t.includes('red panda'))  return '🦊';
+    if (t.includes('パンダ') ||t.includes('panda'))      return '🐼';
+    if (t.includes('ペンギン')||t.includes('penguin'))   return '🐧';
+    if (t.includes('トラ')   ||t.includes('tiger'))      return '🐯';
+    if (t.includes('ライオン')||t.includes('lion'))      return '🦁';
+    if (t.includes('ゾウ')   ||t.includes('elephant'))  return '🐘';
+    if (t.includes('キリン') ||t.includes('giraffe'))   return '🦒';
+    if (t.includes('カバ')   ||t.includes('hippo'))     return '🦛';
+    if (t.includes('コアラ') ||t.includes('koala'))     return '🐨';
+    if (t.includes('ホッキョクグマ')||t.includes('polar')) return '🐻‍❄️';
+    if (t.includes('カワウソ')||t.includes('otter'))    return '🦦';
+    return '🐾';
+  };
+
+  async function load() {
+    let rows = [];
+    // 1) babies_public（created_at 降順）
+    try {
+      rows = await sbGet(
+        '/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_name' +
+        '&order=created_at.desc.nullslast&limit=3'
+      );
+    } catch (_) {
+      // 2) フォールバック: babies + zoo embed
+      try {
+        const raw = await sbGet(
+          '/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo:zoos(name)' +
+          '&order=created_at.desc.nullslast&limit=3'
+        );
+        rows = (raw || []).map(x => ({ ...x, zoo_name: x.zoo?.name || '' }));
+      } catch (e2) {
+        console.warn('[recent-babies]', e2);
+      }
+    }
+
+    $list.innerHTML = '';
+    if (!rows || !rows.length) return;
+
+    for (const b of rows) {
+      const name = b.name || '（名前未設定）';
+      const zoo  = b.zoo_name || '';
+      const bday = b.birthday ? b.birthday.slice(0, 10).replace(/-/g, '/') : '—';
+      const href = `/babies/${encodeURIComponent(b.id)}/`;
+      const thumbHtml = b.thumbnail_url
+        ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy">`
+        : `<span aria-hidden="true">${pickE(b)}</span>`;
+
+      const a = document.createElement('a');
+      a.className = 'recent-card';
+      a.href = href;
+      a.setAttribute('role', 'listitem');
+      a.innerHTML = `
+        <div class="recent-card__thumb">${thumbHtml}</div>
+        <div class="recent-card__body">
+          <p class="recent-card__name">${esc(name)}（${esc(b.species || '不明')}）</p>
+          ${zoo ? `<p class="recent-card__meta">🏛 ${esc(zoo)}</p>` : ''}
+          <p class="recent-card__bday">🎂 ${esc(bday)}</p>
+        </div>`;
+      $list.appendChild(a);
+    }
+  }
+
+  load().catch(e => {
+    console.error('[recent-babies]', e);
+    $list.innerHTML = '';
+  });
 })();
