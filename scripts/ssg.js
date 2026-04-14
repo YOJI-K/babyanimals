@@ -176,7 +176,7 @@ function siteNav(activeHref) {
 
 function siteFooter() {
   return `<footer class="site-footer" aria-label="フッター">
-  <small>© どうベビ（動物園ベビー情報）</small>
+  <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
 </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>`;
@@ -472,6 +472,33 @@ async function main() {
   console.log('\n🗺️  sitemap.xml 生成中...');
   writeHtml(path.join(WEB_DIR, 'sitemap.xml'), buildSitemap(babies, newsItems));
   console.log(`   ✅ ${babyCount + newsCount + 4} URL を出力`);
+
+  // ── 静的 HTML の GA4 ID 差し替え ──────────────────────────────────
+  // SSG で生成したページは既に GA_ID を埋め込み済み。
+  // 手書きの静的ページ（index.html 等）は G-XXXXXXXXXX プレースホルダのままなので
+  // 実際の計測 ID が環境変数で渡された場合のみ差し替える。
+  if (GA_ID !== 'G-XXXXXXXXXX') {
+    const staticHtmlFiles = [
+      'web/index.html',
+      'web/babies/index.html',
+      'web/news/index.html',
+      'web/news/article.html',
+      'web/calendar/index.html',
+      'web/privacy/index.html',
+    ];
+    let patchCount = 0;
+    for (const rel of staticHtmlFiles) {
+      const absPath = path.resolve(__dirname, '..', rel);
+      if (!fs.existsSync(absPath)) continue;
+      const original = fs.readFileSync(absPath, 'utf-8');
+      const patched  = original.replaceAll('G-XXXXXXXXXX', GA_ID);
+      if (patched !== original) {
+        fs.writeFileSync(absPath, patched, 'utf-8');
+        patchCount++;
+      }
+    }
+    if (patchCount > 0) console.log(`   GA4 ID を静的ページ ${patchCount} 件に適用 (${GA_ID})`);
+  }
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`\n🎉 SSG 完了 (${elapsed}s)`);
