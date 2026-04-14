@@ -78,16 +78,21 @@
 
     <!-- ヒーロー（写真付き zoo-stage） -->
     <section class="zoo-stage" aria-label="どうベビへようこそ">
+      <!-- 背景写真 -->
+      <div class="zoo-stage__bg" aria-hidden="true">
+        <img src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80"
+             alt=""
+             loading="lazy">
+      </div>
+      <!-- 暗いオーバーレイ（テキスト視認性確保） -->
+      <div class="zoo-stage__overlay" aria-hidden="true"></div>
+      <!-- テキスト・CTA -->
       <div class="zoo-stage__copy">
         <p class="zoo-stage__eyebrow">Zoo Baby Info</p>
         <h1 class="zoo-stage__title">動物園の赤ちゃんを追いかけよう</h1>
         <p class="zoo-stage__lede">誕生・成長をリアルタイムで</p>
-        <a class="btn btn--primary zoo-stage__cta" href="./babies/index.html">赤ちゃんを探す →</a>
+        <a class="btn zoo-stage__cta" href="./babies/index.html">赤ちゃんを探す →</a>
       </div>
-      <img class="zoo-stage__photo"
-           src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=640&h=480&fit=crop&auto=format&q=80"
-           alt="動物園の赤ちゃん動物"
-           loading="lazy">
     </section>
 
     <!-- 新着の赤ちゃん（誕生日ヒーロー直前） -->
