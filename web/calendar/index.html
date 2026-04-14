@@ -12,6 +12,17 @@
   <!-- Favicon / OGP（任意） -->
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
   <meta property="og:image" content="../assets/img/og.png">
+  <!-- Google Search Console verification -->
+  <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
+  <!-- Google tag (gtag.js) — GA4 -->
+  <!-- TODO: G-XXXXXXXXXX を実際の計測IDに置き換えてください -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
   <!-- Cloudflare Web Analytics -->
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
   <!-- End Cloudflare Web Analytics -->
@@ -122,5 +133,6 @@
 
   <!-- Page JS（calendar.js は不要。app.js に統合） -->
   <script src="../assets/js/app.js" defer></script>
+  <script defer src="../assets/js/analytics.js"></script>
 </body>
 </html>

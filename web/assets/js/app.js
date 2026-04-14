@@ -448,6 +448,10 @@ function pickEmoji(baby){
       const on = !(localStorage.getItem(KEY)==='1');
       localStorage.setItem(KEY, on ? '1':'0');
       set(on);
+      // GA4: お気に入り登録イベント（追加時のみ送信）
+      if (on && typeof gtag === 'function') {
+        gtag('event', 'favorite_add', { page_path: location.pathname });
+      }
       btn.animate([{transform:'scale(1)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],
         {duration:240,easing:'ease-out'});
     }, {passive:false});

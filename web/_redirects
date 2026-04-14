@@ -1,12 +1,12 @@
 /robots.txt   /robots.txt   200
 /sitemap.xml  /sitemap.xml  200
 
-/news/index.html   /news/index.html   200
-/news/article.html /news/article.html 200
-/news/*            /news/article.html?slug=:splat   200!
+# 静的ファイルが存在する場合は優先して配信（SSG生成ページ）
+# 存在しない場合は各一覧ページへフォールバック
+/babies/*    /babies/index.html   200
+/news/*      /news/index.html     200
+/calendar/*  /calendar/index.html 200
 
 /assets/*    /assets/:splat   200
-/babies/*    /babies/:splat   200
-/calendar/*  /calendar/:splat 200
 
 /*  /index.html  200

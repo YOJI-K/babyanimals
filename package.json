@@ -1,0 +1,12 @@
+{
+  "name": "babyanimals",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/ssg.js",
+    "build:mock": "node scripts/ssg.js --mock"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
