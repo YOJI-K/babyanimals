@@ -108,7 +108,7 @@ function writeHtml(filePath, html) {
 // ─── 共通 HTML パーツ ───────────────────────────────────────────────
 
 // GA4 計測ID（CF Pages ビルド環境変数 GA_MEASUREMENT_ID が優先、未設定時はプレースホルダ）
-const GA_ID = process.env.GA_MEASUREMENT_ID || 'G-XXXXXXXXXX';
+const GA_ID = process.env.GA_MEASUREMENT_ID || 'G-YRQJXRMEN2';
 
 function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   const og = ogImage || `${SITE_BASE}/assets/img/og.png`;
@@ -475,9 +475,9 @@ async function main() {
 
   // ── 静的 HTML の GA4 ID 差し替え ──────────────────────────────────
   // SSG で生成したページは既に GA_ID を埋め込み済み。
-  // 手書きの静的ページ（index.html 等）は G-XXXXXXXXXX プレースホルダのままなので
+  // 手書きの静的ページ（index.html 等）は G-YRQJXRMEN2 プレースホルダのままなので
   // 実際の計測 ID が環境変数で渡された場合のみ差し替える。
-  if (GA_ID !== 'G-XXXXXXXXXX') {
+  if (GA_ID !== 'G-YRQJXRMEN2') {
     const staticHtmlFiles = [
       'web/index.html',
       'web/babies/index.html',
@@ -491,7 +491,7 @@ async function main() {
       const absPath = path.resolve(__dirname, '..', rel);
       if (!fs.existsSync(absPath)) continue;
       const original = fs.readFileSync(absPath, 'utf-8');
-      const patched  = original.replaceAll('G-XXXXXXXXXX', GA_ID);
+      const patched  = original.replaceAll('G-YRQJXRMEN2', GA_ID);
       if (patched !== original) {
         fs.writeFileSync(absPath, patched, 'utf-8');
         patchCount++;
