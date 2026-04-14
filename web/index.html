@@ -75,9 +75,39 @@
   </nav>
 
   <main class="container" id="main">
-    <!-- Page Title -->
-    <section class="page-hero">
-      <h1 class="page-title">動物園の赤ちゃんを追いかけよう</h1>
+
+    <!-- ヒーロー（写真付き zoo-stage） -->
+    <section class="zoo-stage" aria-label="どうベビへようこそ">
+      <div class="zoo-stage__copy">
+        <p class="zoo-stage__eyebrow">Zoo Baby Info</p>
+        <h1 class="zoo-stage__title">動物園の赤ちゃんを<br>追いかけよう</h1>
+        <p class="zoo-stage__lede">誕生・成長をリアルタイムで</p>
+        <a class="btn btn--primary zoo-stage__cta" href="./babies/index.html">赤ちゃんを探す →</a>
+      </div>
+      <img class="zoo-stage__photo"
+           src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=640&h=480&fit=crop&auto=format&q=80"
+           alt="動物園の赤ちゃん動物"
+           loading="lazy">
+    </section>
+
+    <!-- 新着の赤ちゃん（誕生日ヒーロー直前） -->
+    <section class="card recent-section" aria-labelledby="recent-title">
+      <header class="panel-head">
+        <div class="panel-icon" aria-hidden="true">🐣</div>
+        <div>
+          <h2 id="recent-title" class="panel-title">新着の赤ちゃん</h2>
+          <p class="panel-desc">最近登録された赤ちゃん情報</p>
+        </div>
+      </header>
+      <div id="recent-list" class="recent-list" role="list" aria-live="polite">
+        <!-- スケルトン（初期表示） -->
+        <div class="recent-skel" aria-hidden="true">
+          <div class="recent-card recent-card--skel"></div>
+          <div class="recent-card recent-card--skel"></div>
+          <div class="recent-card recent-card--skel"></div>
+        </div>
+      </div>
+      <a class="btn btn--primary recent-more" href="./babies/index.html">もっと見る →</a>
     </section>
 
     <!-- Hero: 今月お誕生日（0〜3歳） -->

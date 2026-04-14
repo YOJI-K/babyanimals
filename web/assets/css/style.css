@@ -826,3 +826,146 @@ body {
   /* 月送りは見出し右に戻す（横幅余裕があるとき） */
   .hero__nav{ grid-column:auto; justify-self:end; }
 }
+
+/* ============================================================
+   Zoo Stage — 写真版ヒーロー拡張
+   ============================================================ */
+.zoo-stage__photo {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  top: 0;
+  width: 46%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0 var(--radius-24) var(--radius-24) 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,.6) 28%, black 55%);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,.6) 28%, black 55%);
+  pointer-events: none;
+}
+/* SP（<= 400px）: 画像を小さく・やや透過 */
+@media (max-width: 400px) {
+  .zoo-stage__photo { width: 42%; opacity: .75; }
+  .zoo-stage__copy  { max-width: 70%; }
+}
+.zoo-stage__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 14px;
+  font-size: 14px;
+  padding: 10px 20px;
+  position: relative;
+  z-index: 3;
+}
+
+/* ============================================================
+   新着の赤ちゃん — recent-section
+   ============================================================ */
+.recent-section { padding: 16px; }
+
+/* 3列グリッド（PC） */
+.recent-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+/* SP: 横スクロールレール */
+@media (max-width: 600px) {
+  .recent-list {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 10px;
+    padding-bottom: 4px;
+  }
+  .recent-list::-webkit-scrollbar { display: none; }
+}
+
+.recent-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--forest-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-16);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .12s ease, box-shadow .12s ease;
+  /* SP: 横スクロール用固定幅 */
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+@media (max-width: 600px) {
+  .recent-card { width: 152px; }
+}
+.recent-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.recent-card--skel {
+  min-height: 170px;
+  background: linear-gradient(90deg, var(--forest-100) 25%, var(--forest-50) 50%, var(--forest-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.recent-card__thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--forest-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  flex-shrink: 0;
+}
+.recent-card__thumb > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recent-card__body {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.recent-card__name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.recent-card__meta,
+.recent-card__bday {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recent-more {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
