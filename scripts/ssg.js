@@ -16,6 +16,7 @@
 import fs   from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ZOOS, groupByPrefecture, toAffiliateMap } from './zoos-data.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIR    = path.resolve(__dirname, '../web');
@@ -162,6 +163,7 @@ function siteNav(activeHref) {
     { href: '/',          emoji: '🏕️', label: 'ホーム'       },
     { href: '/news/',     emoji: '🗞️', label: 'ニュース'     },
     { href: '/babies/',   emoji: '🐣', label: '赤ちゃん'     },
+    { href: '/zoos/',     emoji: '🏛️', label: '動物園'       },
     { href: '/calendar/', emoji: '🗓️', label: 'カレンダー'   },
   ];
   const links = tabs.map(t => {
@@ -183,52 +185,9 @@ function siteFooter() {
 }
 
 // ─── 動物園アフィリエイトデータ ──────────────────────────────────────
-// official_url: 動物園公式サイト
-// asoview_url:  アソビューアフィリエイトリンク（null = 非表示）
-//
-// !! アフィリエイトIDが届いたら asoview_url を設定してください !!
-// 例: 'https://www.asoview.com/item/ticket/actXXXXXXXXXX/?affiliate_id=YOUR_ID'
-
-const ZOO_AFFILIATE_MAP = {
-  // ── 東京 ─────────────────────────────────────────────────────────────
-  '上野動物園': {
-    official_url: 'https://www.tokyo-zoo.net/zoo/ueno/',
-    asoview_url:  null, // TODO: アソビューアフィリエイトID設定後に入力
-  },
-  '多摩動物公園': {
-    official_url: 'https://www.tokyo-zoo.net/zoo/tama/',
-    asoview_url:  null,
-  },
-  // ── 北海道 ───────────────────────────────────────────────────────────
-  '旭山動物園': {
-    official_url: 'https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/',
-    asoview_url:  null,
-  },
-  '札幌市円山動物園': {
-    official_url: 'https://www.city.sapporo.jp/zoo/',
-    asoview_url:  null,
-  },
-  // ── 兵庫 ─────────────────────────────────────────────────────────────
-  '神戸どうぶつ王国': {
-    official_url: 'https://www.kobe-oukoku.com/',
-    asoview_url:  null,
-  },
-  // ── 大阪 ─────────────────────────────────────────────────────────────
-  '天王寺動物園': {
-    official_url: 'https://www.tennojizoo.jp/',
-    asoview_url:  null,
-  },
-  // ── 愛知 ─────────────────────────────────────────────────────────────
-  '東山動植物園': {
-    official_url: 'https://www.higashiyama.city.nagoya.jp/',
-    asoview_url:  null,
-  },
-  // ── 神奈川 ───────────────────────────────────────────────────────────
-  'ズーラシア': {
-    official_url: 'https://www.hama-midorinokyokai.or.jp/zoo/zoorasia/',
-    asoview_url:  null,
-  },
-};
+// zoos-data.js から生成（マスターデータの一元管理）
+// 掲載内容の追加/修正は scripts/zoos-data.js を編集してください
+const ZOO_AFFILIATE_MAP = toAffiliateMap();
 
 /** 動物園リンクボタン HTML を生成（ssg.js 用） */
 function zooLinksHtml(zooName, animalName) {
@@ -426,6 +385,244 @@ ${siteFooter()}
 </html>`;
 }
 
+// ─── 動物園個別ページ ───────────────────────────────────────────────
+
+/**
+ * 動物園の赤ちゃんカードHTML（一覧ページの赤ちゃんカードと同デザイン）
+ */
+function zooBabyCardHtml(b) {
+  const name     = b.name || '赤ちゃん';
+  const species  = b.species || '';
+  const bdayFmt  = fmtDate(b.birthday);
+  const age      = ageText(b.birthday);
+  const href     = `/babies/${b.id}/`;
+  const thumb    = b.thumbnail_url
+    ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}${species ? `（${esc(species)}）` : ''}"></div>`
+    : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
+
+  return `<div class="baby-card">
+    <a href="${href}" class="baby-card__link">
+      ${thumb}
+      <div class="pad">
+        <div class="title">${esc(name)}${species ? `（${esc(species)}）` : ''}</div>
+        <div class="meta">
+          <span class="pill">🎂 ${esc(bdayFmt) || '—'}</span>
+          <span class="pill pill--age-${ageSuffix(b.birthday)}">${esc(age)}</span>
+        </div>
+      </div>
+    </a>
+  </div>`;
+}
+
+/**
+ * 動物園個別ページ HTML
+ */
+function zooHtml(zoo, babies) {
+  const zooBabies = babies.filter(b => b.zoo_name === zoo.db_name);
+  const count = zooBabies.length;
+  const sampleNames = zooBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
+
+  const title = `${zoo.name}の赤ちゃん動物一覧 | どうベビ`;
+  const desc = count > 0
+    ? `${zoo.name}で現在会える赤ちゃん動物を紹介。${sampleNames}${count > 3 ? 'など' : ''}${count}頭が暮らしています。${zoo.description || ''}`.slice(0, 160)
+    : `${zoo.name}の動物・アクセス・営業時間・入園料のご案内。${zoo.description || ''}`.slice(0, 160);
+  const canonical = `${SITE_BASE}/zoos/${zoo.slug}/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Zoo',
+    name: zoo.name,
+    description: zoo.description || desc,
+    url: canonical,
+    sameAs: zoo.official_url ? [zoo.official_url] : undefined,
+    address: {
+      '@type': 'PostalAddress',
+      addressRegion: zoo.prefecture,
+      addressLocality: zoo.city,
+      streetAddress: zoo.address,
+      addressCountry: 'JP',
+    },
+    openingHours: zoo.hours,
+  });
+
+  // アフィリエイト / 公式リンク
+  const ticketBtn = zoo.asoview_url
+    ? `<a class="zoo-link zoo-link--ticket"
+           href="${esc(zoo.asoview_url)}"
+           target="_blank" rel="noopener sponsored"
+           data-link-type="ticket"
+           data-zoo-name="${esc(zoo.db_name)}">
+        🎟️ チケットを予約する
+      </a>`
+    : '';
+  const officialBtn = zoo.official_url
+    ? `<a class="zoo-link zoo-link--official"
+           href="${esc(zoo.official_url)}"
+           target="_blank" rel="noopener noreferrer"
+           data-link-type="official"
+           data-zoo-name="${esc(zoo.db_name)}">
+        🗺️ 公式サイトはこちら
+      </a>`
+    : '';
+
+  const babiesGrid = count > 0
+    ? `<div class="baby-grid">${zooBabies.map(zooBabyCardHtml).join('')}</div>`
+    : `<div class="empty-state">
+         <p class="empty-state__title">現在、${esc(zoo.name)}の赤ちゃん情報はありません</p>
+         <p class="empty-state__desc">また新しい情報が入り次第掲載します。</p>
+       </div>`;
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/zoos/')}
+<main class="container" id="main">
+
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/zoos/">動物園一覧</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">${esc(zoo.name)}</span>
+  </nav>
+
+  <section class="zoo-hero">
+    <div class="zoo-hero__emoji" aria-hidden="true">${zoo.hero_emoji || '🏛️'}</div>
+    <div class="zoo-hero__body">
+      <p class="zoo-hero__region">${esc(zoo.prefecture)} ${esc(zoo.city)}</p>
+      <h1 class="zoo-hero__title">${esc(zoo.name)}の赤ちゃん動物</h1>
+      <p class="zoo-hero__count">現在 <strong>${count}</strong> 頭の赤ちゃんが暮らしています</p>
+    </div>
+  </section>
+
+  ${zoo.description ? `
+  <section class="card zoo-section">
+    <header class="panel-head">
+      <div class="panel-icon" aria-hidden="true">📝</div>
+      <div>
+        <h2 class="panel-title">${esc(zoo.name)}について</h2>
+      </div>
+    </header>
+    <p class="zoo-desc">${esc(zoo.description)}</p>
+  </section>` : ''}
+
+  <section class="card zoo-section" aria-labelledby="zoo-babies-title">
+    <header class="panel-head">
+      <div class="panel-icon" aria-hidden="true">🐣</div>
+      <div>
+        <h2 id="zoo-babies-title" class="panel-title">${esc(zoo.name)}の赤ちゃん一覧</h2>
+        <p class="panel-desc">${count}頭の赤ちゃん</p>
+      </div>
+    </header>
+    ${babiesGrid}
+  </section>
+
+  <section class="card zoo-section" aria-labelledby="zoo-info-title">
+    <header class="panel-head">
+      <div class="panel-icon" aria-hidden="true">ℹ️</div>
+      <div>
+        <h2 id="zoo-info-title" class="panel-title">基本情報・アクセス</h2>
+      </div>
+    </header>
+    <dl class="zoo-info">
+      ${zoo.address ? `<div class="zoo-info__row"><dt>📍 住所</dt><dd>${esc(zoo.address)}</dd></div>` : ''}
+      ${zoo.nearest_station ? `<div class="zoo-info__row"><dt>🚃 アクセス</dt><dd>${esc(zoo.nearest_station).replace(/\n/g, '<br>')}</dd></div>` : ''}
+      ${zoo.hours ? `<div class="zoo-info__row"><dt>🕘 営業時間</dt><dd>${esc(zoo.hours).replace(/\n/g, '<br>')}</dd></div>` : ''}
+      ${zoo.closed_days ? `<div class="zoo-info__row"><dt>📅 休園日</dt><dd>${esc(zoo.closed_days)}</dd></div>` : ''}
+      ${zoo.fees ? `<div class="zoo-info__row"><dt>💴 入園料</dt><dd>${esc(zoo.fees).replace(/\n/g, '<br>')}</dd></div>` : ''}
+    </dl>
+    <div class="zoo-links">
+      ${ticketBtn}
+      ${officialBtn}
+    </div>
+  </section>
+
+  <div class="ssg-detail__actions">
+    <a class="btn" href="/zoos/">← 動物園一覧へ戻る</a>
+  </div>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+<script>
+  window.addEventListener('load', function () {
+    if (typeof gtag === 'function') {
+      gtag('event', 'zoo_view', {
+        zoo_name: '${esc(zoo.db_name)}',
+        zoo_slug: '${esc(zoo.slug)}',
+        baby_count: ${count},
+      });
+    }
+  });
+</script>
+</body>
+</html>`;
+}
+
+/**
+ * 動物園一覧ページ HTML（都道府県別）
+ */
+function zooIndexHtml(babies) {
+  const groups = groupByPrefecture(ZOOS);
+  const countByDbName = new Map();
+  for (const b of babies) {
+    if (!b.zoo_name) continue;
+    countByDbName.set(b.zoo_name, (countByDbName.get(b.zoo_name) || 0) + 1);
+  }
+
+  const title = '動物園一覧（都道府県別）| どうベビ';
+  const desc = `日本全国の動物園${ZOOS.length}園を都道府県別に一覧掲載。各動物園で現在会える赤ちゃん動物の数もひと目でわかります。`;
+  const canonical = `${SITE_BASE}/zoos/`;
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: '動物園一覧',
+    description: desc,
+    url: canonical,
+  });
+
+  const sections = groups.map(g => {
+    const cards = g.zoos.map(z => {
+      const n = countByDbName.get(z.db_name) || 0;
+      return `<a class="zoo-card" href="/zoos/${esc(z.slug)}/">
+        <div class="zoo-card__emoji" aria-hidden="true">${z.hero_emoji || '🏛️'}</div>
+        <div class="zoo-card__body">
+          <p class="zoo-card__region">${esc(z.city)}</p>
+          <h3 class="zoo-card__name">${esc(z.name)}</h3>
+          <span class="zoo-card__badge${n > 0 ? ' zoo-card__badge--active' : ''}">🐣 赤ちゃん ${n}頭</span>
+        </div>
+      </a>`;
+    }).join('');
+    return `<section class="zoo-prefecture">
+      <h2 class="zoo-prefecture__title">${esc(g.prefecture)}</h2>
+      <div class="zoo-card-grid">${cards}</div>
+    </section>`;
+  }).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/zoos/')}
+<main class="container" id="main">
+
+  <section class="page-hero">
+    <h1 class="page-title">動物園一覧（都道府県別）</h1>
+    <p class="page-subtitle">全国 ${ZOOS.length} 園の動物園を掲載中</p>
+  </section>
+
+  ${sections}
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 // ─── サイトマップ ────────────────────────────────────────────────────
 
 function buildSitemap(babies, newsItems) {
@@ -435,8 +632,16 @@ function buildSitemap(babies, newsItems) {
     { loc: `${SITE_BASE}/`,           priority: '1.0', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/babies/`,    priority: '0.9', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/news/`,      priority: '0.9', changefreq: 'daily',   lastmod: today },
+    { loc: `${SITE_BASE}/zoos/`,      priority: '0.9', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/calendar/`,  priority: '0.8', changefreq: 'weekly',  lastmod: today },
   ];
+
+  const zooUrls = ZOOS.map(z => ({
+    loc:        `${SITE_BASE}/zoos/${z.slug}/`,
+    priority:   '0.8',
+    changefreq: 'weekly',
+    lastmod:    today,
+  }));
 
   const babyUrls = babies.map(b => ({
     loc:        `${SITE_BASE}/babies/${b.id}/`,
@@ -452,7 +657,7 @@ function buildSitemap(babies, newsItems) {
     lastmod:    n.published_at ? n.published_at.slice(0, 10) : today,
   }));
 
-  const allUrls = [...staticUrls, ...babyUrls, ...newsUrls];
+  const allUrls = [...staticUrls, ...zooUrls, ...babyUrls, ...newsUrls];
   const entries = allUrls.map(u => `  <url>
     <loc>${u.loc}</loc>
     <lastmod>${u.lastmod}</lastmod>
@@ -554,10 +759,24 @@ async function main() {
   }
   console.log(`   ✅ ${newsCount} 件完了`);
 
+  // ── 動物園個別ページ ──
+  console.log(`\n🏛️  動物園個別ページ生成中 (${ZOOS.length} 園)...`);
+  let zooCount = 0;
+  for (const zoo of ZOOS) {
+    writeHtml(path.join(WEB_DIR, 'zoos', zoo.slug, 'index.html'), zooHtml(zoo, babies));
+    zooCount++;
+  }
+  console.log(`   ✅ ${zooCount} 園完了`);
+
+  // ── 動物園一覧ページ ──
+  console.log(`\n🏛️  動物園一覧ページ生成中...`);
+  writeHtml(path.join(WEB_DIR, 'zoos', 'index.html'), zooIndexHtml(babies));
+  console.log(`   ✅ /zoos/ 出力`);
+
   // ── サイトマップ ──
   console.log('\n🗺️  sitemap.xml 生成中...');
   writeHtml(path.join(WEB_DIR, 'sitemap.xml'), buildSitemap(babies, newsItems));
-  console.log(`   ✅ ${babyCount + newsCount + 4} URL を出力`);
+  console.log(`   ✅ ${babyCount + newsCount + zooCount + 5} URL を出力`);
 
   // ── 静的 HTML の GA4 ID 差し替え ──────────────────────────────────
   // SSG で生成したページは既に GA_ID を埋め込み済み。
@@ -571,6 +790,7 @@ async function main() {
       'web/news/article.html',
       'web/calendar/index.html',
       'web/privacy/index.html',
+      'web/zoos/index.html',
     ];
     let patchCount = 0;
     for (const rel of staticHtmlFiles) {
@@ -590,7 +810,8 @@ async function main() {
   console.log(`\n🎉 SSG 完了 (${elapsed}s)`);
   console.log(`   赤ちゃんページ: ${babyCount} 件`);
   console.log(`   ニュースページ: ${newsCount} 件`);
-  console.log(`   合計: ${babyCount + newsCount} ページ生成`);
+  console.log(`   動物園ページ:   ${zooCount} 園 + 一覧1`);
+  console.log(`   合計: ${babyCount + newsCount + zooCount + 1} ページ生成`);
 }
 
 main().catch(err => {

@@ -1,7 +1,10 @@
 // assets/js/babies.js
 // Babies list v3 — ヘッダー/タブ統一, 年齢フィルタ(0-3), 近い誕生日順, 可愛いNo Image, スピナー, ページサイズ可変
 
-// ── 動物園アフィリエイトデータ（ssg.js と同一マップ） ──────────────────
+// ── 動物園アフィリエイトデータ ──────────────────────────────────────
+// ※ マスターデータは scripts/zoos-data.js です。
+//   ブラウザでは ES module import を使わずベタ書き（CDN不要で軽量化優先）。
+//   zoos-data.js を更新したときは、このマップも同期してください。
 // official_url: 動物園公式サイト
 // asoview_url:  アソビューアフィリエイトリンク（null = 非表示）
 const ZOO_AFFILIATE_MAP = {
