@@ -92,21 +92,21 @@
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録"><span class="emoji-icon" aria-hidden="true">💗</span></button>
-      <button class="pill-btn search-btn" aria-label="検索" title="検索"><span class="emoji-icon" aria-hidden="true">🔍</span></button>
+      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録"><svg class="btn-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-heart"></use></svg></button>
+      <button class="pill-btn search-btn" aria-label="検索" title="検索"><svg class="btn-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-search"></use></svg></button>
       <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ" style="position:relative">
-        <span class="emoji-icon" aria-hidden="true">🔔</span><span class="badge" aria-hidden="true">!</span>
+        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-bell"></use></svg><span class="badge" aria-hidden="true">!</span>
       </button>
     </div>
   </header>
 
   <!-- タブバー（TOP/カレンダーと同一：スタック＋絵文字） -->
   <nav class="tabbar tabbar--stack" aria-label="メイン">
-    <a class="tabbar__link" href="../index.html" title="ホーム"><span class="tab-emoji" aria-hidden="true">🏕️</span><span class="tabbar__text">ホーム</span></a>
-    <a class="tabbar__link is-active" href="./index.html" aria-current="page" title="ニュース"><span class="tab-emoji" aria-hidden="true">🗞️</span><span class="tabbar__text">ニュース</span></a>
-    <a class="tabbar__link" href="../babies/index.html" title="赤ちゃん"><span class="tab-emoji" aria-hidden="true">🐣</span><span class="tabbar__text">赤ちゃん</span></a>
-    <a class="tabbar__link" href="../zoos/index.html" title="動物園"><span class="tab-emoji" aria-hidden="true">🏛️</span><span class="tabbar__text">動物園</span></a>
-    <a class="tabbar__link" href="../calendar/index.html" title="カレンダー"><span class="tab-emoji" aria-hidden="true">🗓️</span><span class="tabbar__text">カレンダー</span></a>
+    <a class="tabbar__link" href="../index.html" title="ホーム"><svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-home"></use></svg><span class="tabbar__text">ホーム</span></a>
+    <a class="tabbar__link is-active" href="./index.html" aria-current="page" title="ニュース"><svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-newspaper"></use></svg><span class="tabbar__text">ニュース</span></a>
+    <a class="tabbar__link" href="../babies/index.html" title="赤ちゃん"><svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-paw"></use></svg><span class="tabbar__text">赤ちゃん</span></a>
+    <a class="tabbar__link" href="../zoos/index.html" title="動物園"><svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-landmark"></use></svg><span class="tabbar__text">動物園</span></a>
+    <a class="tabbar__link" href="../calendar/index.html" title="カレンダー"><svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg><span class="tabbar__text">カレンダー</span></a>
   </nav>
 
   <main class="container">
@@ -158,5 +158,7 @@
     <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
   </footer>
   <script defer src="../assets/js/analytics.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
 </body>
 </html>

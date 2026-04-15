@@ -42,13 +42,13 @@
     </div>
     <div class="site-header__right">
       <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録">
-        <span class="emoji-icon" aria-hidden="true">💗</span>
+        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-heart"></use></svg>
       </button>
       <button class="pill-btn search-btn" aria-label="検索" title="検索">
-        <span class="emoji-icon" aria-hidden="true">🔍</span>
+        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-search"></use></svg>
       </button>
       <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ">
-        <span class="emoji-icon" aria-hidden="true">🔔</span>
+        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-bell"></use></svg>
         <span class="badge" aria-hidden="true">!</span>
       </button>
     </div>
@@ -57,23 +57,23 @@
   <!-- Global Tabbar（PC/SPともスタック＋絵文字） -->
   <nav class="tabbar tabbar--stack" aria-label="メイン">
     <a class="tabbar__link is-active" href="./index.html" aria-label="ホーム" aria-current="page" title="ホーム">
-      <span class="tab-emoji" aria-hidden="true">🏕️</span>
+      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-home"></use></svg>
       <span class="tabbar__text">ホーム</span>
     </a>
     <a class="tabbar__link" href="./news/index.html" aria-label="ニュース" title="ニュース">
-      <span class="tab-emoji" aria-hidden="true">🗞️</span>
+      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-newspaper"></use></svg>
       <span class="tabbar__text">ニュース</span>
     </a>
     <a class="tabbar__link" href="./babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
-      <span class="tab-emoji" aria-hidden="true">🐣</span>
+      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-paw"></use></svg>
       <span class="tabbar__text">赤ちゃん</span>
     </a>
     <a class="tabbar__link" href="./zoos/index.html" aria-label="動物園" title="動物園">
-      <span class="tab-emoji" aria-hidden="true">🏛️</span>
+      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-landmark"></use></svg>
       <span class="tabbar__text">動物園</span>
     </a>
     <a class="tabbar__link" href="./calendar/index.html" aria-label="カレンダー" title="カレンダー">
-      <span class="tab-emoji" aria-hidden="true">🗓️</span>
+      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-calendar"></use></svg>
       <span class="tabbar__text">カレンダー</span>
     </a>
   </nav>
@@ -98,7 +98,7 @@
     <!-- 今月お誕生日（0〜3歳） -->
     <section class="card hero" aria-labelledby="hero-title">
       <header class="panel-head hero__head">
-        <div class="panel-icon hero__badge" aria-hidden="true">🎂</div>
+        <div class="panel-icon hero__badge" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="./assets/icons/icons.svg#icon-cake"></use></svg></div>
         <div class="hero__titles">
           <h2 id="hero-title" class="panel-title hero__title">今月お誕生日の赤ちゃん（0〜3歳）</h2>
           <p class="panel-desc">先月・来月も1タップでチェックできます</p>
@@ -127,7 +127,7 @@
     <!-- 新着の赤ちゃん -->
     <section class="card recent-section" aria-labelledby="recent-title">
       <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">🐣</div>
+        <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="./assets/icons/icons.svg#icon-paw"></use></svg></div>
         <div>
           <h2 id="recent-title" class="panel-title">新着の赤ちゃん</h2>
           <p class="panel-desc">最近登録された赤ちゃん情報</p>
@@ -146,7 +146,7 @@
     <!-- 最新ニュース（プレビュー3件） -->
     <section class="card news-preview-section" aria-labelledby="news-preview-title">
       <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">🗞️</div>
+        <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="./assets/icons/icons.svg#icon-newspaper"></use></svg></div>
         <div>
           <h2 id="news-preview-title" class="panel-title">最新ニュース</h2>
           <p class="panel-desc">動物園の最新情報</p>
@@ -225,5 +225,8 @@
 
   <script src="./assets/js/app.js" defer></script>
   <script src="./assets/js/analytics.js" defer></script>
+  <!-- Twemoji — 絵文字をプラットフォーム非依存のSVGに統一 -->
+  <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
 </body>
 </html>

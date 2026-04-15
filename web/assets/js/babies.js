@@ -163,6 +163,8 @@ const ZOO_AFFILIATE_MAP = {
       : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
 
     // ── アフィリエイト / 公式リンクボタン ──────────────────────────
+    const SVG_TICKET  = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-ticket"></use></svg>`;
+    const SVG_MAPPIN  = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-map-pin"></use></svg>`;
     const zooData = ZOO_AFFILIATE_MAP[zoo] || {};
     let ticketBtn = '';
     if (zooData.asoview_url) {
@@ -171,7 +173,7 @@ const ZOO_AFFILIATE_MAP = {
            target="_blank" rel="noopener sponsored"
            data-link-type="ticket"
            data-zoo-name="${zoo}"
-           data-animal-name="${x.name || ''}">🎟️ チケットを見る</a>
+           data-animal-name="${x.name || ''}">${SVG_TICKET} チケットを見る</a>
       </div>`;
     } else if (zooData.official_url) {
       ticketBtn = `<div class="baby-card__foot">
@@ -179,7 +181,7 @@ const ZOO_AFFILIATE_MAP = {
            target="_blank" rel="noopener noreferrer"
            data-link-type="official"
            data-zoo-name="${zoo}"
-           data-animal-name="${x.name || ''}">🗺️ 公式サイト</a>
+           data-animal-name="${x.name || ''}">${SVG_MAPPIN} 公式サイト</a>
       </div>`;
     }
 
