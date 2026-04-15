@@ -395,20 +395,22 @@ ${siteFooter()}
  * 動物園の赤ちゃんカードHTML（一覧ページの赤ちゃんカードと同デザイン）
  */
 function zooBabyCardHtml(b) {
-  const name     = b.name || '赤ちゃん';
+  const name     = b.name || '（名前未判明）';
   const species  = b.species || '';
+  // 名前の中に既に種別が含まれている場合（旧データの '赤ちゃん（X）'）は種別を重複表示しない
+  const showSpecies = species && !(b.name || '').includes(species);
   const bdayFmt  = fmtDate(b.birthday);
   const age      = ageText(b.birthday);
   const href     = `/babies/${b.id}/`;
   const thumb    = b.thumbnail_url
-    ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}${species ? `（${esc(species)}）` : ''}"></div>`
+    ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}"></div>`
     : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
 
   return `<div class="baby-card">
     <a href="${href}" class="baby-card__link">
       ${thumb}
       <div class="pad">
-        <div class="title">${esc(name)}${species ? `（${esc(species)}）` : ''}</div>
+        <div class="title">${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}</div>
         <div class="meta">
           <span class="pill">🎂 ${esc(bdayFmt) || '—'}</span>
           <span class="pill pill--age-${ageSuffix(b.birthday)}">${esc(age)}</span>

@@ -151,9 +151,11 @@ const ZOO_AFFILIATE_MAP = {
   }
 
   function cardHTML(x){
-    const title = x.name || '(no name)';
+    const title = x.name || '（名前未判明）';
     const zoo   = x.zoo_name || '';
-    const alt   = [x.name, x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
+    // 名前の中に既に種別が含まれている場合（例: 旧データの '赤ちゃん（マンドリル）'）は種別を重複表示しない
+    const showSpecies = x.species && !(x.name || '').includes(x.species);
+    const alt   = [x.name || '名前未判明', x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
     const soon  = x.birthday ? nextBirthdayDays(x.birthday) : Infinity;
     const isMonth = x.birthday ? (new Date(x.birthday).getMonth() === new Date().getMonth()) : false;
     const href  = `/babies/${x.id}/`;
@@ -191,7 +193,7 @@ const ZOO_AFFILIATE_MAP = {
           ${thumb}
           ${soon <= 14 ? `<span class="soon-dot" title="もうすぐお誕生日"></span>` : ''}
           <div class="pad">
-            <div class="title">${title}${x.species ? `（${x.species}）` : ''}</div>
+            <div class="title">${title}${showSpecies ? `（${x.species}）` : ''}</div>
             <div class="meta">
               ${sourcePillZoo(zoo)}
               ${pillBirthday(x.birthday)}
