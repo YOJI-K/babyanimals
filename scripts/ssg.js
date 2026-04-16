@@ -111,6 +111,13 @@ function writeHtml(filePath, html) {
 // GA4 計測ID（CF Pages ビルド環境変数 GA_MEASUREMENT_ID が優先、未設定時はプレースホルダ）
 const GA_ID = process.env.GA_MEASUREMENT_ID || 'G-YRQJXRMEN2';
 
+// Google AdSense（CF Pages 環境変数 ADSENSE_CLIENT / ADSENSE_SLOT_BABY で有効化）
+// 承認後: Cloudflare Pages のダッシュボードで環境変数を設定し再デプロイ
+const ADSENSE_CLIENT    = process.env.ADSENSE_CLIENT    || 'ca-pub-XXXXXXXXXXXXXXXXX';
+const ADSENSE_SLOT_BABY = process.env.ADSENSE_SLOT_BABY || 'XXXXXXXXXX';
+// プレースホルダーのままなら広告を非表示（XXXXX が含まれる場合は未設定とみなす）
+const ADSENSE_ENABLED   = !/X{5}/.test(ADSENSE_CLIENT);
+
 function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   const og = ogImage || `${SITE_BASE}/assets/img/og.png`;
   return `<head>
@@ -140,6 +147,8 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
     gtag('js', new Date());
     gtag('config', '${GA_ID}');
   </script>
+  ${ADSENSE_ENABLED ? `<!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}" crossorigin="anonymous"></script>` : '<!-- Google AdSense: 環境変数 ADSENSE_CLIENT を設定すると有効化されます -->'}
   <script type="application/ld+json">${jsonLd}</script>
 </head>`;
 }
@@ -293,6 +302,16 @@ ${siteNav('/babies/')}
       </div>
     </div>
   </article>
+
+  <!-- Google AdSense 広告（コンテンツ下部）-->
+  ${ADSENSE_ENABLED ? `<div class="ad-wrap ad-wrap--labeled" aria-label="広告">
+    <ins class="adsbygoogle adsense-slot"
+         data-ad-client="${ADSENSE_CLIENT}"
+         data-ad-slot="${ADSENSE_SLOT_BABY}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>` : ''}
 
 </main>
 ${siteFooter()}

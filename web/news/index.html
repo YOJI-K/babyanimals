@@ -77,6 +77,19 @@
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
   <!-- End Cloudflare Web Analytics -->
   <link rel="canonical" href="https://babyanimals.pages.dev/news/">
+  <!-- Google AdSense（承認後: ca-pub-XXXXXXXXXXXXXXXXX を実際のパブリッシャーIDに変更） -->
+  <script>
+    window.__AD_CLIENT  = 'ca-pub-XXXXXXXXXXXXXXXXX';
+    window.__AD_SLOT_NEWS = 'XXXXXXXXXX';
+    window.__AD_ENABLED = !/X{5}/.test(window.__AD_CLIENT);
+    if (window.__AD_ENABLED) {
+      var _as = document.createElement('script');
+      _as.async = true;
+      _as.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + window.__AD_CLIENT;
+      _as.crossOrigin = 'anonymous';
+      document.head.appendChild(_as);
+    }
+  </script>
 </head>
 
 <body class="theme" data-news-v2="1" data-page-size="12">
@@ -149,6 +162,30 @@
         <p class="empty-state__desc">検索条件を変えて試してみてください</p>
       </div>
     </div>
+
+    <!-- Google AdSense 広告（記事一覧下部）-->
+    <div class="ad-wrap ad-wrap--labeled" id="ad-news-slot" style="display:none" aria-label="広告">
+      <ins class="adsbygoogle adsense-slot"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+           data-ad-slot="XXXXXXXXXX"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
+    <script>
+      // AdSense が有効な場合のみ広告を表示・初期化
+      (function() {
+        var wrap = document.getElementById('ad-news-slot');
+        if (!wrap || !window.__AD_ENABLED) return;
+        // data-ad-client を実際のIDで上書き
+        var ins = wrap.querySelector('ins.adsbygoogle');
+        if (ins) {
+          ins.dataset.adClient = window.__AD_CLIENT;
+          ins.dataset.adSlot   = window.__AD_SLOT_NEWS;
+        }
+        wrap.style.display = '';
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      })();
+    </script>
 
     <!-- もっと読む -->
     <div class="more-wrap"><button id="more" type="button">もっと読む</button></div>
