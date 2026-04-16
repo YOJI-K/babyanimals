@@ -134,7 +134,13 @@ body {
   width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
   background: linear-gradient(135deg, #dcfce7, #fef3c7);
   border:1px solid var(--border);
-  font-size: var(--icon-lg); line-height: 1; /* ← ここでアイコン肥大を抑制 */
+  font-size: var(--icon-lg); line-height: 1;
+  flex-shrink: 0;
+}
+/* panel-icon 内のアウトラインSVG */
+.panel-icon .panel-icon__svg{
+  width: 20px; height: 20px;
+  display: block;
 }
 .panel-head :where(svg,img){ width: var(--icon-lg); height: var(--icon-lg); }
 
@@ -513,6 +519,11 @@ body {
   position: relative;
 }
 .pill-btn .emoji-icon{ font-size: 18px; line-height: 1; }
+/* SVGアイコンモード（絵文字 → アウトラインSVG） */
+.pill-btn .btn-icon{
+  width: 18px; height: 18px;
+  display: block; flex-shrink: 0;
+}
 .pill-btn.like-btn.is-on{
   box-shadow: 0 6px 20px rgba(255,77,166,.25);
 }
@@ -558,7 +569,12 @@ body {
   overflow: visible; text-overflow: clip;
 }
 .tabbar--stack .tab-emoji{ font-size: 18px; line-height: 1; }
-.tabbar__icon{ display: none !important; } /* SVGは常時非表示（PCもSPも） */
+/* アウトラインSVGアイコン（tab-emoji と同居可能。tab-iconを使う場合はtab-emojiは不要） */
+.tabbar--stack .tab-icon{
+  width: 22px; height: 22px;
+  display: block; flex-shrink: 0;
+}
+.tabbar__icon{ display: none !important; } /* 旧SVGは常時非表示 */
 
 /* PCでも縦積みのまま（サイズ少し拡大） */
 @media (min-width: 720px){
@@ -569,9 +585,8 @@ body {
     gap: 6px;
     padding: 10px 8px;
   }
-  .tabbar--stack .tab-emoji{
-    font-size: 20px;
-  }
+  .tabbar--stack .tab-emoji{ font-size: 20px; }
+  .tabbar--stack .tab-icon{ width: 24px; height: 24px; }
 }
 
 /* 旧メディアクエリの“テキスト非表示”を無効化（スタック型では常に表示） */
@@ -1272,11 +1287,36 @@ body {
   font-weight: 900;
   flex-shrink: 0;
 }
-/* Google Adsense コンテナ */
+/* ==========================================================
+   Google AdSense 広告コンテナ
+   ========================================================== */
+/* 広告ラッパー */
+.ad-wrap {
+  margin: 16px 0;
+  text-align: center;
+}
+.ad-wrap--inline {
+  grid-column: 1 / -1; /* グリッドレイアウト内で全幅 */
+}
+/* 「広告」ラベル付きコンテナ */
+.ad-wrap--labeled {
+  position: relative;
+}
+.ad-wrap--labeled::before {
+  content: '広告';
+  display: block;
+  font-size: 10px;
+  color: var(--muted, #9ca3af);
+  text-align: center;
+  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+}
+/* AdSense ins 要素本体 */
 .adsense-slot {
   display: block;
-  min-height: 60px;
+  min-height: 100px;
   text-align: center;
+  background: transparent;
 }
 
 /* ==========================================================
@@ -1487,4 +1527,38 @@ body {
 .zoo-jump__link:hover{
   background: var(--forest-100, #dcfce7);
   box-shadow: var(--shadow);
+}
+
+/* ==========================================================
+   ブランドロゴ SVG（アウトラインアイコン化）
+   ========================================================== */
+.brand__emoji{ display: none; }
+.brand__icon{
+  display: inline-block !important;
+  width: 24px !important;
+  height: 24px !important;
+  vertical-align: middle;
+  color: var(--forest-600, #2c8a5a);
+}
+
+/* ==========================================================
+   CTAボタン内 SVGアイコン
+   ========================================================== */
+.zoo-link .btn-icon,
+.baby-card__ticket .btn-icon{
+  width: 15px; height: 15px;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* ==========================================================
+   Twemoji — 絵文字画像の統一スタイル
+   ========================================================== */
+img.emoji{
+  height: 1.1em;
+  width: 1.1em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.15em;
+  display: inline-block;
 }

@@ -151,9 +151,11 @@ const ZOO_AFFILIATE_MAP = {
   }
 
   function cardHTML(x){
-    const title = x.name || '(no name)';
+    const title = x.name || '（名前未判明）';
     const zoo   = x.zoo_name || '';
-    const alt   = [x.name, x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
+    // 名前の中に既に種別が含まれている場合（例: 旧データの '赤ちゃん（マンドリル）'）は種別を重複表示しない
+    const showSpecies = x.species && !(x.name || '').includes(x.species);
+    const alt   = [x.name || '名前未判明', x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
     const soon  = x.birthday ? nextBirthdayDays(x.birthday) : Infinity;
     const isMonth = x.birthday ? (new Date(x.birthday).getMonth() === new Date().getMonth()) : false;
     const href  = `/babies/${x.id}/`;
@@ -163,6 +165,8 @@ const ZOO_AFFILIATE_MAP = {
       : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
 
     // ── アフィリエイト / 公式リンクボタン ──────────────────────────
+    const SVG_TICKET  = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-ticket"></use></svg>`;
+    const SVG_MAPPIN  = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-map-pin"></use></svg>`;
     const zooData = ZOO_AFFILIATE_MAP[zoo] || {};
     let ticketBtn = '';
     if (zooData.asoview_url) {
@@ -171,7 +175,7 @@ const ZOO_AFFILIATE_MAP = {
            target="_blank" rel="noopener sponsored"
            data-link-type="ticket"
            data-zoo-name="${zoo}"
-           data-animal-name="${x.name || ''}">🎟️ チケットを見る</a>
+           data-animal-name="${x.name || ''}">${SVG_TICKET} チケットを見る</a>
       </div>`;
     } else if (zooData.official_url) {
       ticketBtn = `<div class="baby-card__foot">
@@ -179,7 +183,7 @@ const ZOO_AFFILIATE_MAP = {
            target="_blank" rel="noopener noreferrer"
            data-link-type="official"
            data-zoo-name="${zoo}"
-           data-animal-name="${x.name || ''}">🗺️ 公式サイト</a>
+           data-animal-name="${x.name || ''}">${SVG_MAPPIN} 公式サイト</a>
       </div>`;
     }
 
@@ -189,7 +193,7 @@ const ZOO_AFFILIATE_MAP = {
           ${thumb}
           ${soon <= 14 ? `<span class="soon-dot" title="もうすぐお誕生日"></span>` : ''}
           <div class="pad">
-            <div class="title">${title}${x.species ? `（${x.species}）` : ''}</div>
+            <div class="title">${title}${showSpecies ? `（${x.species}）` : ''}</div>
             <div class="meta">
               ${sourcePillZoo(zoo)}
               ${pillBirthday(x.birthday)}

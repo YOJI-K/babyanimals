@@ -7,10 +7,11 @@ SUPABASE_URL = "https://hvhpfrksyytthupboaeo.supabase.co"  # ← あなたのURL
 
 [triggers]
 crons = [
-  "0 * * * *",    # runNewsJob        — RSS/YouTube/GoogleNews → baby_events + news_items（毎時）
-  "5 * * * *",    # runSiteNewsJob    — 公式サイト一覧 → 記事抽出 → baby_events（毎時）
-  "30 18 * * *",  # runZoosJob        — 動物園マスタ更新（毎日 JST 03:30 相当）
-  "10 * * * *"    # resolveBabyEntitiesJob — イベント → babies 確定/更新（毎時）
+  "0 * * * *",    # runNewsJob              — RSS/YouTube/GoogleNews → baby_events + news_items（毎時）
+  "5 * * * *",    # runSiteNewsJob          — 公式サイト一覧 → 記事抽出 → baby_events（毎時）
+  "30 18 * * *",  # runZoosJob              — 動物園マスタ更新（毎日 JST 03:30 相当）
+  "10 * * * *",   # resolveBabyEntitiesJob  — イベント → babies 確定/更新（毎時）
+  "25 * * * *"    # runNameFillJob          — 名前未判明の babies を baby_events から補完（毎時）
 ]
 
 [observability]

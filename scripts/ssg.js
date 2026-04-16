@@ -111,6 +111,13 @@ function writeHtml(filePath, html) {
 // GA4 計測ID（CF Pages ビルド環境変数 GA_MEASUREMENT_ID が優先、未設定時はプレースホルダ）
 const GA_ID = process.env.GA_MEASUREMENT_ID || 'G-YRQJXRMEN2';
 
+// Google AdSense（CF Pages 環境変数 ADSENSE_CLIENT / ADSENSE_SLOT_BABY で有効化）
+// 承認後: Cloudflare Pages のダッシュボードで環境変数を設定し再デプロイ
+const ADSENSE_CLIENT    = process.env.ADSENSE_CLIENT    || 'ca-pub-XXXXXXXXXXXXXXXXX';
+const ADSENSE_SLOT_BABY = process.env.ADSENSE_SLOT_BABY || 'XXXXXXXXXX';
+// プレースホルダーのままなら広告を非表示（XXXXX が含まれる場合は未設定とみなす）
+const ADSENSE_ENABLED   = !/X{5}/.test(ADSENSE_CLIENT);
+
 function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   const og = ogImage || `${SITE_BASE}/assets/img/og.png`;
   return `<head>
@@ -140,6 +147,8 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
     gtag('js', new Date());
     gtag('config', '${GA_ID}');
   </script>
+  ${ADSENSE_ENABLED ? `<!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}" crossorigin="anonymous"></script>` : '<!-- Google AdSense: 環境変数 ADSENSE_CLIENT を設定すると有効化されます -->'}
   <script type="application/ld+json">${jsonLd}</script>
 </head>`;
 }
@@ -148,7 +157,6 @@ function siteHeader() {
   return `<header class="site-header site-header--candy">
   <div class="site-header__left">
     <a class="brand" href="/" aria-label="ホームへ">
-      <span class="brand__emoji" aria-hidden="true">🐾</span>
       <svg class="brand__icon" aria-hidden="true" focusable="false">
         <use href="/assets/icons/icons.svg#icon-logo"></use>
       </svg>
@@ -160,16 +168,16 @@ function siteHeader() {
 
 function siteNav(activeHref) {
   const tabs = [
-    { href: '/',          emoji: '🏕️', label: 'ホーム'       },
-    { href: '/news/',     emoji: '🗞️', label: 'ニュース'     },
-    { href: '/babies/',   emoji: '🐣', label: '赤ちゃん'     },
-    { href: '/zoos/',     emoji: '🏛️', label: '動物園'       },
-    { href: '/calendar/', emoji: '🗓️', label: 'カレンダー'   },
+    { href: '/',          icon: 'icon-home',      label: 'ホーム'       },
+    { href: '/news/',     icon: 'icon-newspaper', label: 'ニュース'     },
+    { href: '/babies/',   icon: 'icon-paw',       label: '赤ちゃん'     },
+    { href: '/zoos/',     icon: 'icon-landmark',  label: '動物園'       },
+    { href: '/calendar/', icon: 'icon-calendar',  label: 'カレンダー'   },
   ];
   const links = tabs.map(t => {
     const active = t.href === activeHref ? ' is-active" aria-current="page' : '';
     return `  <a class="tabbar__link${active}" href="${t.href}" title="${t.label}">
-    <span class="tab-emoji" aria-hidden="true">${t.emoji}</span>
+    <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#${t.icon}"></use></svg>
     <span class="tabbar__text">${t.label}</span>
   </a>`;
   }).join('\n');
@@ -181,7 +189,9 @@ function siteFooter() {
   <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
 </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
-        data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>`;
+        data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>`;
 }
 
 // ─── 動物園アフィリエイトデータ ──────────────────────────────────────
@@ -198,6 +208,9 @@ function zooLinksHtml(zooName, animalName) {
   const safeAnimal = esc(animalName);
   const buttons = [];
 
+  const svgTicket = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-ticket"></use></svg>`;
+  const svgMapPin = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-map-pin"></use></svg>`;
+
   if (data.asoview_url) {
     buttons.push(`<a class="zoo-link zoo-link--ticket"
          href="${esc(data.asoview_url)}"
@@ -205,7 +218,7 @@ function zooLinksHtml(zooName, animalName) {
          data-link-type="ticket"
          data-zoo-name="${safeZoo}"
          data-animal-name="${safeAnimal}">
-      🎟️ チケットを見る
+      ${svgTicket} チケットを見る
     </a>`);
   }
   if (data.official_url) {
@@ -215,7 +228,7 @@ function zooLinksHtml(zooName, animalName) {
          data-link-type="official"
          data-zoo-name="${safeZoo}"
          data-animal-name="${safeAnimal}">
-      🗺️ アクセス・営業時間
+      ${svgMapPin} アクセス・営業時間
     </a>`);
   }
   if (!buttons.length) return '';
@@ -289,6 +302,16 @@ ${siteNav('/babies/')}
       </div>
     </div>
   </article>
+
+  <!-- Google AdSense 広告（コンテンツ下部）-->
+  ${ADSENSE_ENABLED ? `<div class="ad-wrap ad-wrap--labeled" aria-label="広告">
+    <ins class="adsbygoogle adsense-slot"
+         data-ad-client="${ADSENSE_CLIENT}"
+         data-ad-slot="${ADSENSE_SLOT_BABY}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>` : ''}
 
 </main>
 ${siteFooter()}
@@ -391,20 +414,22 @@ ${siteFooter()}
  * 動物園の赤ちゃんカードHTML（一覧ページの赤ちゃんカードと同デザイン）
  */
 function zooBabyCardHtml(b) {
-  const name     = b.name || '赤ちゃん';
+  const name     = b.name || '（名前未判明）';
   const species  = b.species || '';
+  // 名前の中に既に種別が含まれている場合（旧データの '赤ちゃん（X）'）は種別を重複表示しない
+  const showSpecies = species && !(b.name || '').includes(species);
   const bdayFmt  = fmtDate(b.birthday);
   const age      = ageText(b.birthday);
   const href     = `/babies/${b.id}/`;
   const thumb    = b.thumbnail_url
-    ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}${species ? `（${esc(species)}）` : ''}"></div>`
+    ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}"></div>`
     : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
 
   return `<div class="baby-card">
     <a href="${href}" class="baby-card__link">
       ${thumb}
       <div class="pad">
-        <div class="title">${esc(name)}${species ? `（${esc(species)}）` : ''}</div>
+        <div class="title">${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}</div>
         <div class="meta">
           <span class="pill">🎂 ${esc(bdayFmt) || '—'}</span>
           <span class="pill pill--age-${ageSuffix(b.birthday)}">${esc(age)}</span>
@@ -446,6 +471,8 @@ function zooHtml(zoo, babies) {
   });
 
   // アフィリエイト / 公式リンク
+  const svgTicket2 = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-ticket"></use></svg>`;
+  const svgMapPin2 = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-map-pin"></use></svg>`;
   const ticketBtn = zoo.asoview_url
     ? `<a class="zoo-link zoo-link--ticket"
            href="${esc(zoo.asoview_url)}"
@@ -461,7 +488,7 @@ function zooHtml(zoo, babies) {
            target="_blank" rel="noopener noreferrer"
            data-link-type="official"
            data-zoo-name="${esc(zoo.db_name)}">
-        🗺️ 公式サイトはこちら
+        ${svgMapPin2} 公式サイトはこちら
       </a>`
     : '';
 
@@ -500,7 +527,7 @@ ${siteNav('/zoos/')}
   ${zoo.description ? `
   <section class="card zoo-section">
     <header class="panel-head">
-      <div class="panel-icon" aria-hidden="true">📝</div>
+      <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="/assets/icons/icons.svg#icon-pencil"></use></svg></div>
       <div>
         <h2 class="panel-title">${esc(zoo.name)}について</h2>
       </div>
@@ -510,7 +537,7 @@ ${siteNav('/zoos/')}
 
   <section class="card zoo-section" aria-labelledby="zoo-babies-title">
     <header class="panel-head">
-      <div class="panel-icon" aria-hidden="true">🐣</div>
+      <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="/assets/icons/icons.svg#icon-paw"></use></svg></div>
       <div>
         <h2 id="zoo-babies-title" class="panel-title">${esc(zoo.name)}の赤ちゃん一覧</h2>
         <p class="panel-desc">${count}頭の赤ちゃん</p>
@@ -521,7 +548,7 @@ ${siteNav('/zoos/')}
 
   <section class="card zoo-section" aria-labelledby="zoo-info-title">
     <header class="panel-head">
-      <div class="panel-icon" aria-hidden="true">ℹ️</div>
+      <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="/assets/icons/icons.svg#icon-info"></use></svg></div>
       <div>
         <h2 id="zoo-info-title" class="panel-title">基本情報・アクセス</h2>
       </div>

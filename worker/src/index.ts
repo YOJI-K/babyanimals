@@ -314,12 +314,24 @@ const SPECIES_MAP = new Map<string, string>([
 ]);
 
 const NAME_PATTERNS: RegExp[] = [
-  /命名[「『"](?!\s)(?<name>[^」』"\s]{1,12})[」』"]/,
-  /名前[は：:\s]*[「『"]?(?<name>[^」』"\s]{1,12})[」』"]?/,
-  /[「『"](?!\s)(?<name>[^」』"\s]{1,12})[」』"][にへ]?決定/,
-  /赤ちゃん[「『"](?!\s)(?<name>[^」』"\s]{1,12})[」』"]/,
-  /['"“”‘’](?<name>[^'"“”‘’\s]{1,12})['"“”‘’]/,
-  /(?<![ぁ-んァ-ヴーa-zA-Z0-9])(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(ちゃん|くん)(?![ぁ-んァ-ヴーA-Za-z0-9])/,
+  // --- 明示的命名パターン ---
+  /命名[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”]/,
+  /[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”][にへ]?(?:と)?命名/,
+  /[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”][にへ]?決定/,
+  /(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})と名付[けら]/,
+  /(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(?:という名前|という名)/,
+  // --- 「名前は〜」系 ---
+  /名前[は：:\s]*[「『”]?(?<name>[^」』”\s]{1,12})[」』”]/,
+  /名前が(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})[にへとはでも。！]/,
+  /名前を(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})[にへとはでも。！]/,
+  // --- 「赤ちゃん」直後のクォート ---
+  /赤ちゃん[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”]/,
+  // --- 英語クォート系 ---
+  /[‘”””’’](?<name>[^’”””’’\s]{1,12})[‘”””’’]/,
+  // --- 「〜ちゃん」「〜くん」（和名・英名対応） ---
+  /(?<![ぁ-んァ-ヴーa-zA-Z0-9])(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(ちゃん|くん|君)(?![ぁ-んァ-ヴーA-Za-z0-9])/,
+  // --- 個体名の後に「誕生」「生まれ」が来る形 ---
+  /[「『”](?!\s)(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})[」』”](?:が|の)?(?:誕生|生まれ)/,
 ];
 
 function extractBabyName(text: string): string | null {
@@ -353,10 +365,15 @@ function decideBirthdayByAge(title: string, fallbackISO?: string | null): string
   return refDate.toISOString().slice(0, 10);
 }
 
-function ensureBabyName(givenName?: string | null, hint?: string | null) {
+function ensureBabyName(givenName?: string | null): string | null {
   if (givenName && givenName.trim()) return givenName.trim().slice(0, 100);
-  if (hint) return `赤ちゃん（${hint}）`;
-  return '赤ちゃん';
+  return null; // 名前未判明の場合は NULL を返す（DB に '赤ちゃん（X）' を書かない）
+}
+
+// 名前が未判明かどうか判定（NULL または '赤ちゃん' で始まるプレースホルダー）
+function isUnnamedBaby(name: string | null | undefined): boolean {
+  if (!name) return true;
+  return name.startsWith('赤ちゃん');
 }
 
 // -------------------------------
@@ -846,15 +863,15 @@ async function resolveBabyEntitiesJob(env: Env) {
         continue;
       }
       // babies 新規作成（個体IDが必要なのでここは単発 POST）
-      const nameHint = ev.species || '';
-      const displayName = ensureBabyName(ev.signal_name, nameHint);
-      const row = {
-        name: displayName,
+      const resolvedName = ensureBabyName(ev.signal_name);
+      const row: Record<string, unknown> = {
         species: ev.species,
         birthday: bday,
         thumbnail_url: ev.thumbnail_url,
         zoo_id: zooIdForEvent,
       };
+      // 名前が判明している場合のみ name をセット（未判明は NULL のまま）
+      if (resolvedName) row['name'] = resolvedName;
       const res = await sbPost(env, '/rest/v1/babies', [row], { 'Prefer': 'return=representation' });
       const createdRows = await res.json().catch(()=>[]) as any[];
       const newId = createdRows?.[0]?.id as string | undefined;
@@ -883,6 +900,90 @@ async function resolveBabyEntitiesJob(env: Env) {
     job: 'resolve_babies', ok: true, started_at: started, finished_at: new Date(),
     processed, linked, created
   });
+}
+
+// -------------------------------
+// 名前補完ジョブ: 名前が未判明の babies を対象に、
+//   リンクされた baby_events の title から再抽出して UPDATE
+// -------------------------------
+const NAME_FILL_BATCH = 50; // 1回に処理する未命名 baby 数
+
+async function runNameFillJob(env: Env) {
+  const started = new Date();
+  let checked = 0, filled = 0, skipped = 0;
+
+  try {
+    // 1) 名前が NULL または '赤ちゃん%' の babies を取得
+    const unnamed: Array<{ id: string; name: string | null; species: string | null }> = await sbGet(
+      env,
+      `/rest/v1/babies` +
+      `?select=id,name,species` +
+      `&or=(name.is.null,name.like.赤ちゃん*)` +
+      `&order=id.asc` +
+      `&limit=${NAME_FILL_BATCH}`
+    );
+
+    if (!Array.isArray(unnamed) || unnamed.length === 0) {
+      console.log('NAME_FILL: 未命名の babies なし');
+      await logJob(env, { job: 'name_fill', ok: true, started_at: started, finished_at: new Date(), checked: 0, filled: 0, skipped: 0 });
+      return;
+    }
+
+    for (const baby of unnamed) {
+      checked++;
+
+      // 2) この baby にリンクされた baby_events の title を取得
+      const links: Array<{ baby_events: { title: string | null; signal_name: string | null } }> = await sbGet(
+        env,
+        `/rest/v1/baby_links` +
+        `?select=baby_events(title,signal_name)` +
+        `&baby_id=eq.${baby.id}` +
+        `&limit=20`
+      );
+
+      if (!Array.isArray(links) || links.length === 0) {
+        skipped++;
+        continue;
+      }
+
+      // 3) 各イベントのタイトルから名前を再抽出
+      let foundName: string | null = null;
+      for (const link of links) {
+        const ev = link.baby_events;
+        if (!ev) continue;
+
+        // まず signal_name を優先（すでに抽出済みの可能性）
+        if (ev.signal_name && !isUnnamedBaby(ev.signal_name)) {
+          foundName = ev.signal_name.trim().slice(0, 100);
+          break;
+        }
+        // なければタイトルから再抽出
+        if (ev.title) {
+          const extracted = extractBabyName(ev.title);
+          if (extracted && !isUnnamedBaby(extracted)) {
+            foundName = extracted;
+            break;
+          }
+        }
+      }
+
+      if (!foundName) {
+        skipped++;
+        continue;
+      }
+
+      // 4) 名前が取れた → babies.name を UPDATE
+      await sbPatch(env, `/rest/v1/babies?id=eq.${baby.id}`, { name: foundName });
+      console.log(`NAME_FILL: ${baby.id} (${baby.species || '?'}) → "${foundName}"`);
+      filled++;
+    }
+
+    console.log('NAME_FILL STATS', { checked, filled, skipped });
+    await logJob(env, { job: 'name_fill', ok: true, started_at: started, finished_at: new Date(), checked, filled, skipped });
+  } catch (e) {
+    await logJob(env, { job: 'name_fill', ok: false, started_at: started, finished_at: new Date(), error: String(e) });
+    throw e;
+  }
 }
 
 // -------------------------------
@@ -945,6 +1046,8 @@ export default {
         await runZoosJob(env);
       } else if (event.cron === '10 * * * *') {
         await resolveBabyEntitiesJob(env);
+      } else if (event.cron === '25 * * * *') {
+        await runNameFillJob(env);
       } else {
         console.log('unknown cron', event.cron);
       }
@@ -966,10 +1069,11 @@ export default {
 
     const started = new Date();
     try {
-      if (job === 'news')         await runNewsJob(env);
-      else if (job === 'site')    await runSiteNewsJob(env);
-      else if (job === 'zoos')    await runZoosJob(env);
-      else if (job === 'resolve') await resolveBabyEntitiesJob(env);
+      if (job === 'news')           await runNewsJob(env);
+      else if (job === 'site')      await runSiteNewsJob(env);
+      else if (job === 'zoos')      await runZoosJob(env);
+      else if (job === 'resolve')   await resolveBabyEntitiesJob(env);
+      else if (job === 'name_fill') await runNameFillJob(env);
       else return new Response(JSON.stringify({ ok:false, error:'bad job', job }), { status:400, headers:{'content-type':'application/json'} });
 
       await logJob(env, { job, ok: true, started_at: started, finished_at: new Date() });
