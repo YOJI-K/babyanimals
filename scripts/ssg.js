@@ -452,7 +452,7 @@ function zooHtml(zoo, babies) {
            target="_blank" rel="noopener sponsored"
            data-link-type="ticket"
            data-zoo-name="${esc(zoo.db_name)}">
-        🎟️ チケットを予約する
+        🎟️ チケットをアソビューで予約する →
       </a>`
     : '';
   const officialBtn = zoo.official_url
@@ -583,6 +583,8 @@ function zooIndexHtml(babies) {
     url: canonical,
   });
 
+  const prefSlug = pref => pref.replace(/[都道府県]/g, '').replace(/\s/g, '');
+
   const sections = groups.map(g => {
     const cards = g.zoos.map(z => {
       const n = countByDbName.get(z.db_name) || 0;
@@ -595,11 +597,15 @@ function zooIndexHtml(babies) {
         </div>
       </a>`;
     }).join('');
-    return `<section class="zoo-prefecture">
+    return `<section class="zoo-prefecture" id="pref-${prefSlug(g.prefecture)}">
       <h2 class="zoo-prefecture__title">${esc(g.prefecture)}</h2>
       <div class="zoo-card-grid">${cards}</div>
     </section>`;
   }).join('');
+
+  const jumpLinks = groups.map(g =>
+    `<a class="zoo-jump__link" href="#pref-${prefSlug(g.prefecture)}">${esc(g.prefecture)}</a>`
+  ).join('');
 
   return `<!doctype html>
 <html lang="ja">
@@ -613,6 +619,10 @@ ${siteNav('/zoos/')}
     <h1 class="page-title">動物園一覧（都道府県別）</h1>
     <p class="page-subtitle">全国 ${ZOOS.length} 園の動物園を掲載中</p>
   </section>
+
+  <nav class="zoo-jump" aria-label="都道府県ジャンプ">
+    ${jumpLinks}
+  </nav>
 
   ${sections}
 

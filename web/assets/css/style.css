@@ -1463,3 +1463,28 @@ body {
   margin: 6px 0 0;
   font-weight: 500;
 }
+
+/* 都道府県クイックジャンプナビ */
+.zoo-jump{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 0 8px;
+  margin-bottom: 8px;
+}
+.zoo-jump__link{
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  text-decoration: none;
+  color: var(--forest-700, #1b6b42);
+  background: var(--forest-50, #f0fdf4);
+  transition: background .12s ease, box-shadow .12s ease;
+  white-space: nowrap;
+}
+.zoo-jump__link:hover{
+  background: var(--forest-100, #dcfce7);
+  box-shadow: var(--shadow);
+}
