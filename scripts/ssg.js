@@ -660,7 +660,271 @@ ${siteFooter()}
 </html>`;
 }
 
-// ─── サイトマップ ────────────────────────────────────────────────────
+// ─── 赤ちゃん一覧ページ（SSG） ──────────────────────────────────────
+
+/**
+ * /babies/index.html — クローラー向けに最大48件を事前レンダリング
+ * 通常ユーザーはJS（babies.js）が最新データで上書きするため動的体験は維持される
+ */
+function babiesIndexHtml(babies) {
+  const preview = babies.slice(0, 48);
+  const total   = babies.length;
+
+  const title    = `赤ちゃん一覧（全${total}頭）| どうベビ`;
+  const desc     = `日本の動物園にいる赤ちゃん動物を一覧表示。現在${total}頭を掲載中。名前・種・誕生日・所属動物園で検索できます。`;
+  const canonical = `${SITE_BASE}/babies/`;
+  const jsonLd   = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: '赤ちゃん一覧',
+    description: desc,
+    url: canonical,
+    numberOfItems: total,
+  });
+
+  const cards = preview.map(b => {
+    const name       = b.name || '（名前未判明）';
+    const species    = b.species || '';
+    const zoo        = b.zoo_name || '';
+    const showSpecies = species && !name.includes(species);
+    const thumb = b.thumbnail_url
+      ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}"></div>`
+      : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
+    return `<div class="baby-card">
+        <a href="/babies/${esc(b.id)}/" class="baby-card__link" aria-label="${esc(name)}（${esc(species || '種別不明')}、${esc(zoo || '園情報なし')}）の詳細">
+          ${thumb}
+          <div class="pad">
+            <div class="title">${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}</div>
+            <div class="meta">
+              <span class="pill">${esc(zoo)}</span>
+              <span class="pill">🎂 ${fmtDate(b.birthday) || '—'}</span>
+            </div>
+          </div>
+        </a>
+      </div>`;
+  }).join('\n      ');
+
+  return `<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${esc(title)}</title>
+  <meta name="description" content="${esc(desc)}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${esc(title)}" />
+  <meta property="og:description" content="${esc(desc)}" />
+  <meta property="og:url" content="${esc(canonical)}" />
+  <meta property="og:image" content="${SITE_BASE}/assets/img/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="${esc(canonical)}" />
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" />
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');</script>
+  <script type="application/ld+json">${jsonLd}</script>
+  <style>
+    .baby-grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    @media (min-width:600px){ .baby-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (min-width:1024px){ .baby-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    .baby-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; position:relative; display:flex; flex-direction:column; }
+    .baby-card:hover{ transform:translateY(-2px); }
+    .baby-card__link{ display:block; text-decoration:none; color:inherit; flex:1; }
+    .baby-card .thumb{ position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#f2f2f2; }
+    .baby-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; max-height:none !important; }
+    .baby-card .thumb.is-placeholder{ background:var(--forest-50); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:32px; }
+    .baby-card .pad{ padding:10px 12px 12px; }
+    .baby-card .title{ font-size:15px; line-height:1.5; font-weight:900; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .baby-card .meta{ font-size:12px; color:#666; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .baby-card__foot{ padding:0 10px 10px; }
+    .baby-card__ticket{ display:flex; align-items:center; justify-content:center; gap:5px; padding:8px 12px; background:var(--grad); color:#fff; border-radius:999px; font-size:12px; font-weight:800; text-decoration:none; width:100%; }
+    .controls.sticky{ position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border); padding:8px 12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:center; }
+    .controls.sticky > *{ min-width:0; }
+    .controls.sticky input[type="search"], .controls.sticky select{ width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff; }
+    .age-filter{ display:flex; gap:8px; padding:8px 12px; overflow:auto; -webkit-overflow-scrolling:touch; }
+    .age-filter .segmented__btn{ height:32px; padding:6px 12px; font-size:13px; }
+    @media (max-width:599px){ .controls.sticky{ grid-template-columns:1fr 1fr; } .controls.sticky #sort{ grid-column:1 / -1; } }
+  </style>
+</head>
+<body class="theme" data-page-size="12">
+${siteHeader()}
+${siteNav('/babies/')}
+<main class="container">
+  <section class="page-hero"><h1 class="page-title">赤ちゃん一覧 ― いま会いに行ける</h1></section>
+
+  <div id="controls" class="controls sticky" role="region" aria-label="検索と絞り込み">
+    <input id="q" type="search" placeholder="名前・動物種・園名で検索" aria-label="名前・動物種・園名で検索">
+    <select id="zoo" aria-label="所属動物園で絞り込み"><option value="">すべての動物園</option></select>
+    <select id="sort" aria-label="並び替え">
+      <option value="desc" selected>誕生日が新しい順</option>
+      <option value="asc">誕生日が古い順</option>
+      <option value="near">誕生日が近い順</option>
+    </select>
+  </div>
+
+  <div class="age-filter segmented" role="radiogroup" aria-label="年齢で絞り込み">
+    <button type="button" class="segmented__btn is-selected" data-age="" aria-checked="true" role="radio">すべて</button>
+    <button type="button" class="segmented__btn" data-age="0" aria-checked="false" role="radio">0歳</button>
+    <button type="button" class="segmented__btn" data-age="1" aria-checked="false" role="radio">1歳</button>
+    <button type="button" class="segmented__btn" data-age="2" aria-checked="false" role="radio">2歳</button>
+    <button type="button" class="segmented__btn" data-age="3" aria-checked="false" role="radio">3歳</button>
+  </div>
+
+  <!-- SSG事前レンダリング: JS読み込み後は babies.js が最新データで上書き -->
+  <div id="skeleton-babies" class="baby-grid" aria-hidden="true" style="display:none"></div>
+  <div id="error" role="alert" style="display:none"></div>
+  <div id="list" class="baby-grid" aria-live="polite" data-ssg-count="${preview.length}">
+    ${cards}
+  </div>
+  <div id="empty" style="display:none;">
+    <div class="empty-state">
+      <p class="empty-state__title">赤ちゃんが見つかりませんでした</p>
+      <p class="empty-state__desc">検索条件を変えて試してみてください</p>
+    </div>
+  </div>
+  <div class="more-wrap"><button id="more" type="button" style="display:none;">もっと読む</button></div>
+</main>
+${siteFooter()}
+<script defer src="/assets/js/app.js"></script>
+<script defer src="/assets/js/babies.js"></script>
+<script defer src="/assets/js/analytics.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
+</body>
+</html>`;
+}
+
+// ─── ニュース一覧ページ（SSG） ──────────────────────────────────────
+
+/**
+ * /news/index.html — クローラー向けに最大36件を事前レンダリング
+ */
+function newsIndexHtml(newsItems) {
+  const preview = newsItems.slice(0, 36);
+  const total   = newsItems.length;
+
+  const title    = `ニュース一覧（${total}件）| どうベビ`;
+  const desc     = `日本の動物園の赤ちゃん動物ニュースを一覧でチェック。公式サイト・ブログ・YouTubeなどをまとめて表示します。現在${total}件掲載中。`;
+  const canonical = `${SITE_BASE}/news/`;
+  const jsonLd   = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'ニュース一覧',
+    description: desc,
+    url: canonical,
+    numberOfItems: total,
+  });
+
+  const fmtShort = iso => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' });
+  };
+
+  const cards = preview.map(item => {
+    const thumbHtml = item.thumbnail_url
+      ? `<img src="${esc(item.thumbnail_url)}" alt="" loading="lazy" decoding="async">`
+      : '';
+    const date = fmtShort(item.published_at);
+    return `<a class="news-card" href="${esc(item.url || '#')}" target="_blank" rel="noopener noreferrer">
+        <div class="thumb">${thumbHtml}</div>
+        <div class="pad">
+          <div class="title">${esc(item.title || '(無題)')}</div>
+          <div class="meta">
+            <span>${esc(date)}</span>
+            ${item.source_name ? `<span class="dot"></span><span>${esc(item.source_name)}</span>` : ''}
+          </div>
+        </div>
+      </a>`;
+  }).join('\n      ');
+
+  return `<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${esc(title)}</title>
+  <meta name="description" content="${esc(desc)}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${esc(title)}" />
+  <meta property="og:description" content="${esc(desc)}" />
+  <meta property="og:url" content="${esc(canonical)}" />
+  <meta property="og:image" content="${SITE_BASE}/assets/img/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="${esc(canonical)}" />
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" />
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');</script>
+  <script type="application/ld+json">${jsonLd}</script>
+  <style>
+    .news-grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    @media (min-width:600px){ .news-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (min-width:1024px){ .news-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    .news-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; text-decoration:none; color:inherit; }
+    .news-card:hover{ transform:translateY(-2px); }
+    .news-card .thumb{ position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#f2f2f2; }
+    .news-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .news-card .pad{ padding:10px 12px 12px; }
+    .news-card .title{ font-size:14.5px; line-height:1.5; font-weight:900; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .news-card .meta{ font-size:12px; color:#666; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .news-card .meta .dot::before{ content:"・"; color:#aaa; }
+    .controls.sticky{ position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border); padding:8px 12px; display:grid; grid-template-columns:1fr 160px 120px; gap:8px; }
+    .controls.sticky > *{ min-width:0; }
+    .controls.sticky input[type="search"], .controls.sticky select{ width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff; }
+    @media (max-width:599px){ .controls.sticky{ grid-template-columns:1fr 1fr; } .controls.sticky #sort{ grid-column:1 / -1; } }
+  </style>
+</head>
+<body class="theme" data-news-v2="1" data-page-size="12">
+${siteHeader()}
+${siteNav('/news/')}
+<main class="container">
+  <section class="page-hero"><h1 class="page-title">ニュース一覧</h1></section>
+
+  <div class="controls sticky" role="region" aria-label="検索と絞り込み">
+    <input id="q" type="search" placeholder="タイトル / ソース名で検索">
+    <select id="source">
+      <option value="">すべてのソース</option>
+      <option value="YouTube">YouTube</option>
+      <option value="blog">ブログ/ニュース</option>
+      <option value="公式記事">公式記事（このサイト）</option>
+    </select>
+    <select id="sort"><option value="desc" selected>新着順</option><option value="asc">古い順</option></select>
+  </div>
+
+  <!-- SSG事前レンダリング: JS読み込み後は news.js が最新データで上書き -->
+  <div id="skeleton-news" class="news-grid" aria-hidden="true" style="display:none"></div>
+  <div id="error" role="alert" style="display:none"></div>
+  <div id="list" class="news-grid" aria-live="polite" data-ssg-count="${preview.length}">
+    ${cards}
+  </div>
+  <div id="empty" style="display:none;">
+    <div class="empty-state">
+      <p class="empty-state__title">ニュースが見つかりませんでした</p>
+      <p class="empty-state__desc">検索条件を変えて試してみてください</p>
+    </div>
+  </div>
+  <div class="more-wrap"><button id="more" type="button">もっと読む</button></div>
+</main>
+${siteFooter()}
+<script defer src="/assets/js/app.js"></script>
+<script defer src="/assets/js/news.js"></script>
+<script defer src="/assets/js/analytics.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
+</body>
+</html>`;
+}
+
+
 
 function buildSitemap(babies, newsItems) {
   const today = new Date().toISOString().slice(0, 10);
@@ -809,6 +1073,16 @@ async function main() {
   console.log(`\n🏛️  動物園一覧ページ生成中...`);
   writeHtml(path.join(WEB_DIR, 'zoos', 'index.html'), zooIndexHtml(babies));
   console.log(`   ✅ /zoos/ 出力`);
+
+  // ── 赤ちゃん一覧ページ（SSG） ──
+  console.log(`\n🐣 赤ちゃん一覧ページ生成中...`);
+  writeHtml(path.join(WEB_DIR, 'babies', 'index.html'), babiesIndexHtml(babies));
+  console.log(`   ✅ /babies/ 出力（${Math.min(babies.length, 48)}件 事前レンダリング）`);
+
+  // ── ニュース一覧ページ（SSG） ──
+  console.log(`\n🗞️  ニュース一覧ページ生成中...`);
+  writeHtml(path.join(WEB_DIR, 'news', 'index.html'), newsIndexHtml(newsItems));
+  console.log(`   ✅ /news/ 出力（${Math.min(newsItems.length, 36)}件 事前レンダリング）`);
 
   // ── サイトマップ ──
   console.log('\n🗺️  sitemap.xml 生成中...');
