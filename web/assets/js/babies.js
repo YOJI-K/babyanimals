@@ -304,7 +304,73 @@ const ZOO_AFFILIATE_MAP = {
     if ($error) { $error.style.display = 'block'; $error.textContent = msg; }
   }
 
-  // ====== イベント ======
+  // ====== 個別ページ（クライアントサイドフォールバック） ======
+  function escHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  async function renderDetailPage(id){
+    const $main = document.getElementById('main');
+    if (!$main) return;
+
+    // スケルトン表示
+    $main.innerHTML = `<div class="ssg-detail" style="padding:40px 18px;text-align:center;color:#aaa;">読み込み中…</div>`;
+
+    let b;
+    try{
+      const rows = await fetchJSON(`/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_name&id=eq.${encodeURIComponent(id)}&limit=1`);
+      b = rows && rows[0];
+      if (!b) throw new Error('not found');
+    }catch(e){
+      console.warn('[detail fallback]', e);
+      // 取得失敗 → 一覧にリダイレクト
+      location.replace('/babies/');
+      return;
+    }
+
+    const name      = b.name || '赤ちゃん';
+    const species   = b.species || '動物';
+    const zoo       = b.zoo_name || '';
+    const bdayFmt   = Site.fmtDate(b.birthday);
+    const ageInfo   = calcAgeYMD(b.birthday);
+    const ageLabel  = ageInfo ? `${ageInfo.y}歳${ageInfo.y===0&&ageInfo.m>0?`（${ageInfo.m}か月）`:''}` : '年齢不明';
+    const ageSuf    = ageInfo ? Math.min(ageInfo.y, 3) : '';
+
+    document.title = `${name}（${species}）の赤ちゃん | どうベビ`;
+
+    const thumb = b.thumbnail_url
+      ? `<img class="ssg-detail__img" src="${escHtml(b.thumbnail_url)}" alt="${escHtml(name)}" loading="eager" decoding="async">`
+      : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`;
+
+    const zooData = ZOO_AFFILIATE_MAP[zoo] || {};
+    let zooBtn = '';
+    if (zooData.asoview_url)
+      zooBtn = `<a class="btn btn--primary" href="${escHtml(zooData.asoview_url)}" target="_blank" rel="noopener sponsored" data-link-type="ticket">🎟️ チケットを見る</a>`;
+    else if (zooData.official_url)
+      zooBtn = `<a class="btn" href="${escHtml(zooData.official_url)}" target="_blank" rel="noopener noreferrer" data-link-type="official">🏛️ 公式サイト</a>`;
+
+    $main.innerHTML = `
+      <nav class="ssg-breadcrumb" aria-label="パンくず">
+        <a href="/">ホーム</a> › <a href="/babies/">赤ちゃん一覧</a> › <span>${escHtml(name)}</span>
+      </nav>
+      <article class="ssg-detail">
+        ${thumb}
+        <div class="ssg-detail__body">
+          <h1 class="ssg-detail__name">${escHtml(name)}<span class="ssg-detail__species">（${escHtml(species)}）</span></h1>
+          <div class="ssg-detail__pills">
+            ${zoo ? `<span class="pill pill--zoo">🏛️ ${escHtml(zoo)}</span>` : ''}
+            <span class="pill">🎂 ${escHtml(bdayFmt)||'—'}</span>
+            <span class="pill pill--age-${ageSuf}">🎈 ${escHtml(ageLabel)}</span>
+          </div>
+          <p class="ssg-detail__desc">
+            ${zoo?escHtml(zoo)+'で生まれた':''}${escHtml(species)}の赤ちゃんです。
+            誕生日は${escHtml(bdayFmt)||'不明'}、現在${escHtml(ageLabel)}。
+          </p>
+          <div class="ssg-detail__actions">
+            ${zooBtn}
+            <a class="btn btn--primary" href="/babies/">← 赤ちゃん一覧へ戻る</a>
+          </div>
+        </div>
+      </article>`;
+  }
   function setupAgeFilter(){
     const btns = $$('.age-filter .segmented__btn');
     btns.forEach(btn=>{
@@ -322,6 +388,13 @@ const ZOO_AFFILIATE_MAP = {
   (async function init(){
     if (window.__BABIES_V3_INITED) return;
     window.__BABIES_V3_INITED = true;
+
+    // /babies/{id}/ 形式ならクライアントサイドで個別ページを描画
+    // （SSG生成 HTML が存在しない場合の _redirects フォールバック対応）
+    const detailMatch = location.pathname.match(/^\/babies\/(\w+)\/?$/);
+    if (detailMatch) {
+      return renderDetailPage(detailMatch[1]);
+    }
 
     try{
       $skel.style.display = 'grid';

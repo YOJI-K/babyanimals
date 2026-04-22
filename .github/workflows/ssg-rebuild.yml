@@ -1,0 +1,44 @@
+name: SSG Rebuild
+
+on:
+  # 毎日 JST 06:00 (UTC 21:00) に自動実行
+  schedule:
+    - cron: '0 21 * * *'
+  # 手動トリガー（GitHub Actions 画面から実行可能）
+  workflow_dispatch:
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 直前の SSG コミットを取得するため fetch-depth: 0 は不要
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: SSG 実行
+        run: node scripts/ssg.js
+        env:
+          # anon キーはフロントエンドコードに既出の公開値
+          SUPABASE_URL: https://hvhpfrksyytthupboaeo.supabase.co
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY
+
+      - name: 差分をコミット & プッシュ
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/
+          # 差分がなければスキップ
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "build: SSG 自動再生成 [skip ci]"
+          git push origin main
