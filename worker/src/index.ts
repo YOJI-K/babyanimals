@@ -1004,7 +1004,8 @@ async function runZoosJob(env: Env) {
     });
     if (!res.ok) throw new Error(`wikipedia -> ${res.status}`);
     const json: any = await res.json();
-    const members: any[] = json?.query?.categorymembers || [];
+    // ns=0 のみ（通常記事）に絞る。ns=14 はサブカテゴリ（"Category:XXX"）で zoos に不要
+    const members: any[] = (json?.query?.categorymembers || []).filter((m: any) => m.ns === 0);
     total = members.length;
 
     const nameSet = new Set<string>();
