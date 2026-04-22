@@ -1,0 +1,257 @@
+[
+  {
+    "db_name": "上野動物園",
+    "name": "恩賜上野動物園",
+    "prefecture": "東京都"
+  },
+  {
+    "db_name": "多摩動物公園",
+    "name": "多摩動物公園",
+    "prefecture": "東京都"
+  },
+  {
+    "db_name": "旭山動物園",
+    "name": "旭川市旭山動物園",
+    "prefecture": "北海道"
+  },
+  {
+    "db_name": "札幌市円山動物園",
+    "name": "札幌市円山動物園",
+    "prefecture": "北海道"
+  },
+  {
+    "db_name": "ズーラシア",
+    "name": "よこはま動物園ズーラシア",
+    "prefecture": "神奈川県"
+  },
+  {
+    "db_name": "東山動植物園",
+    "name": "東山動植物園",
+    "prefecture": "愛知県"
+  },
+  {
+    "db_name": "天王寺動物園",
+    "name": "天王寺動物園",
+    "prefecture": "大阪府"
+  },
+  {
+    "db_name": "神戸どうぶつ王国",
+    "name": "神戸どうぶつ王国",
+    "prefecture": "兵庫県"
+  },
+  {
+    "db_name": "釧路市動物園",
+    "name": "釧路市動物園",
+    "prefecture": "北海道"
+  },
+  {
+    "db_name": "盛岡市動物公園",
+    "name": "盛岡市動物公園ZOOMO",
+    "prefecture": "岩手県"
+  },
+  {
+    "db_name": "仙台市八木山動物公園",
+    "name": "仙台市八木山動物公園",
+    "prefecture": "宮城県"
+  },
+  {
+    "db_name": "日立市かみね動物園",
+    "name": "日立市かみね動物園",
+    "prefecture": "茨城県"
+  },
+  {
+    "db_name": "宇都宮動物園",
+    "name": "宇都宮動物園",
+    "prefecture": "栃木県"
+  },
+  {
+    "db_name": "那須どうぶつ王国",
+    "name": "那須どうぶつ王国",
+    "prefecture": "栃木県"
+  },
+  {
+    "db_name": "群馬サファリパーク",
+    "name": "群馬サファリパーク",
+    "prefecture": "群馬県"
+  },
+  {
+    "db_name": "埼玉県こども動物自然公園",
+    "name": "埼玉県こども動物自然公園",
+    "prefecture": "埼玉県"
+  },
+  {
+    "db_name": "大宮公園小動物園",
+    "name": "大宮公園小動物園",
+    "prefecture": "埼玉県"
+  },
+  {
+    "db_name": "千葉市動物公園",
+    "name": "千葉市動物公園",
+    "prefecture": "千葉県"
+  },
+  {
+    "db_name": "市川市動植物園",
+    "name": "市川市動植物園",
+    "prefecture": "千葉県"
+  },
+  {
+    "db_name": "井の頭自然文化園",
+    "name": "井の頭自然文化園",
+    "prefecture": "東京都"
+  },
+  {
+    "db_name": "羽村市動物公園",
+    "name": "羽村市動物公園",
+    "prefecture": "東京都"
+  },
+  {
+    "db_name": "生物園（足立区生物園）",
+    "name": "足立区生物園",
+    "prefecture": "東京都"
+  },
+  {
+    "db_name": "野毛山動物園",
+    "name": "横浜市立野毛山動物園",
+    "prefecture": "神奈川県"
+  },
+  {
+    "db_name": "金沢動物園",
+    "name": "横浜市立金沢動物園",
+    "prefecture": "神奈川県"
+  },
+  {
+    "db_name": "フジサファリパーク",
+    "name": "フジサファリパーク",
+    "prefecture": "静岡県"
+  },
+  {
+    "db_name": "日本平動物園",
+    "name": "静岡市立日本平動物園",
+    "prefecture": "静岡県"
+  },
+  {
+    "db_name": "浜松市動物園",
+    "name": "浜松市動物園",
+    "prefecture": "静岡県"
+  },
+  {
+    "db_name": "伊豆アニマルキングダム",
+    "name": "伊豆アニマルキングダム",
+    "prefecture": "静岡県"
+  },
+  {
+    "db_name": "のんほいパーク",
+    "name": "のんほいパーク（豊橋総合動植物公園）",
+    "prefecture": "愛知県"
+  },
+  {
+    "db_name": "東山動植物園",
+    "name": "名古屋市東山動植物園",
+    "prefecture": "愛知県"
+  },
+  {
+    "db_name": "石川県立いしかわ動物園",
+    "name": "いしかわ動物園",
+    "prefecture": "石川県"
+  },
+  {
+    "db_name": "富山市ファミリーパーク",
+    "name": "富山市ファミリーパーク",
+    "prefecture": "富山県"
+  },
+  {
+    "db_name": "京都市動物園",
+    "name": "京都市動物園",
+    "prefecture": "京都府"
+  },
+  {
+    "db_name": "王子動物園",
+    "name": "神戸市立王子動物園",
+    "prefecture": "兵庫県"
+  },
+  {
+    "db_name": "姫路市立動物園",
+    "name": "姫路市立動物園",
+    "prefecture": "兵庫県"
+  },
+  {
+    "db_name": "アドベンチャーワールド",
+    "name": "アドベンチャーワールド",
+    "prefecture": "和歌山県"
+  },
+  {
+    "db_name": "奈良市ならまちにぎわい動物公園",
+    "name": "奈良市ならまちにぎわい動物公園",
+    "prefecture": "奈良県"
+  },
+  {
+    "db_name": "池田動物園",
+    "name": "池田動物園",
+    "prefecture": "岡山県"
+  },
+  {
+    "db_name": "広島市安佐動物公園",
+    "name": "広島市安佐動物公園",
+    "prefecture": "広島県"
+  },
+  {
+    "db_name": "徳島市立富田動物園",
+    "name": "徳島市立富田動物園",
+    "prefecture": "徳島県"
+  },
+  {
+    "db_name": "愛媛県立とべ動物園",
+    "name": "愛媛県立とべ動物園",
+    "prefecture": "愛媛県"
+  },
+  {
+    "db_name": "のいち動物公園",
+    "name": "のいち動物公園",
+    "prefecture": "高知県"
+  },
+  {
+    "db_name": "福岡市動物園",
+    "name": "福岡市動物園",
+    "prefecture": "福岡県"
+  },
+  {
+    "db_name": "北九州市いのちのたび博物館（自然史・歴史博物館）",
+    "name": "スペースワールド跡地 → いのちのたび博物館",
+    "prefecture": "福岡県"
+  },
+  {
+    "db_name": "大牟田市動物園",
+    "name": "大牟田市動物園",
+    "prefecture": "福岡県"
+  },
+  {
+    "db_name": "長崎バイオパーク",
+    "name": "長崎バイオパーク",
+    "prefecture": "長崎県"
+  },
+  {
+    "db_name": "熊本市動植物園",
+    "name": "熊本市動植物園",
+    "prefecture": "熊本県"
+  },
+  {
+    "db_name": "アフリカンサファリ",
+    "name": "アフリカンサファリ（九州自然動物公園）",
+    "prefecture": "大分県"
+  },
+  {
+    "db_name": "宮崎市フェニックス自然動物園",
+    "name": "フェニックス自然動物園",
+    "prefecture": "宮崎県"
+  },
+  {
+    "db_name": "鹿児島市平川動物公園",
+    "name": "平川動物公園",
+    "prefecture": "鹿児島県"
+  },
+  {
+    "db_name": "沖縄こどもの国",
+    "name": "沖縄こどもの国",
+    "prefecture": "沖縄県"
+  }
+]

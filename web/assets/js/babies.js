@@ -113,9 +113,22 @@ const ZOO_AFFILIATE_MAP = {
 
   async function loadZoos(){
     try{
-      ZOOS = await fetchJSON('/rest/v1/zoos?select=id,name&order=name.asc');
+      const res = await fetch('/assets/data/zoos.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const master = await res.json(); // [{db_name, name, prefecture}] in zoos-data.js order
+      ZOOS = master;
       if ($zoo) {
-        $zoo.innerHTML = `<option value="">すべての動物園</option>` + ZOOS.map(z => `<option value="${z.id}">${z.name}</option>`).join('');
+        const byPref = new Map();
+        const prefOrder = [];
+        for (const z of master) {
+          if (!byPref.has(z.prefecture)) { prefOrder.push(z.prefecture); byPref.set(z.prefecture, []); }
+          byPref.get(z.prefecture).push(z);
+        }
+        const groupsHtml = prefOrder.map(pref => {
+          const opts = byPref.get(pref).map(z => `<option value="${z.db_name}">${z.name}</option>`).join('');
+          return `<optgroup label="${pref}">${opts}</optgroup>`;
+        }).join('');
+        $zoo.innerHTML = `<option value="">すべての動物園</option>${groupsHtml}`;
       }
     }catch(e){
       console.warn('[zoos] fallback: continue without zoo list', e);
@@ -227,7 +240,7 @@ const ZOO_AFFILIATE_MAP = {
   // ====== フィルタ & ソート ======
   function filteredData(){
     const q = ($q?.value || '').trim().toLowerCase();
-    const zooId = $zoo?.value || '';
+    const zooDbName = $zoo?.value || '';
     let data = BABIES.slice();
 
     if (q) {
@@ -237,8 +250,8 @@ const ZOO_AFFILIATE_MAP = {
         (x.zoo_name || '').toLowerCase().includes(q)
       );
     }
-    if (zooId) {
-      data = data.filter(x => String(x.zoo_id || '') === String(zooId));
+    if (zooDbName) {
+      data = data.filter(x => (x.zoo_name || '') === zooDbName);
     }
     if (AGE_FILTER !== '') {
       data = data.filter(x => {

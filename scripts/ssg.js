@@ -1035,6 +1035,13 @@ async function main() {
   writeHtml(path.join(WEB_DIR, 'zoos', 'index.html'), zooIndexHtml(babies));
   console.log(`   ✅ /zoos/ 出力`);
 
+  // ── 動物園マスターデータ JSON（babies.js の動物園フィルタ用） ──
+  const zoosJsonPath = path.join(WEB_DIR, 'assets', 'data', 'zoos.json');
+  fs.mkdirSync(path.dirname(zoosJsonPath), { recursive: true });
+  const zoosJson = ZOOS.map(z => ({ db_name: z.db_name, name: z.name, prefecture: z.prefecture }));
+  fs.writeFileSync(zoosJsonPath, JSON.stringify(zoosJson, null, 2) + '\n', 'utf-8');
+  console.log(`   ✅ /assets/data/zoos.json 出力（${zoosJson.length}園）`);
+
   // ── 赤ちゃん一覧ページ（SSG） ──
   console.log(`\n🐣 赤ちゃん一覧ページ生成中...`);
   writeHtml(path.join(WEB_DIR, 'babies', 'index.html'), babiesIndexHtml(babies));
