@@ -4,25 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>どうベビ | 誕生日カレンダー</title>
-  <meta name="description" content="どうベビ（動物園ベビー情報）— 0〜3歳の誕生日を年齢バッジで表示するカレンダー。" />
-
-  <!-- フォント -->
+  <meta name="description" content="どうベビ（動物園ベビー情報）— 0〜3歳の誕生日を月カレンダーで表示。日付タップで詳細を確認。" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
-  <!-- Main CSS -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="../assets/css/style.css" />
-
-  <!-- Favicon / OGP（任意） -->
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
   <meta property="og:image" content="../assets/img/og.png">
-  <!-- Google Search Console verification -->
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
-  <!-- Google tag (gtag.js) — GA4 -->
-  <!-- TODO: G-YRQJXRMEN2 を実際の計測IDに置き換えてください -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YRQJXRMEN2"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -30,122 +19,86 @@
     gtag('js', new Date());
     gtag('config', 'G-YRQJXRMEN2');
   </script>
-  <!-- Cloudflare Web Analytics -->
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
-  <!-- End Cloudflare Web Analytics -->
   <link rel="canonical" href="https://babyanimals.pages.dev/calendar/">
 </head>
 <body class="theme">
-  <!-- Header -->
   <header class="site-header site-header--candy">
     <div class="site-header__left">
       <a class="brand" href="../index.html" aria-label="ホームへ">
-        <span class="brand__emoji" aria-hidden="true">🐾</span>
-        <!-- SVGロゴはフェールセーフとして残す（CSSで非表示） -->
-        <svg class="brand__icon" aria-hidden="true" focusable="false">
-          <use href="../assets/icons/icons.svg#icon-logo"></use>
-        </svg>
-        <span class="brand__title" title="動物園ベビー情報">どうベビ</span>
+        <span class="brand__title">どうベビ</span>
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録">
-        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-heart"></use></svg>
-      </button>
       <button class="pill-btn search-btn" aria-label="検索" title="検索">
-        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-search"></use></svg>
-      </button>
-      <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ">
-        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-bell"></use></svg>
-        <span class="badge" aria-hidden="true">!</span>
+        <svg class="btn-icon" aria-hidden="true" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
       </button>
     </div>
   </header>
 
-  <!-- Global Tabbar（SP/PCともスタック＋絵文字） -->
   <nav class="tabbar tabbar--stack" aria-label="メイン">
     <a class="tabbar__link" href="../index.html" aria-label="ホーム" title="ホーム">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-home"></use></svg>
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       <span class="tabbar__text">ホーム</span>
     </a>
     <a class="tabbar__link" href="../news/index.html" aria-label="ニュース" title="ニュース">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-newspaper"></use></svg>
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"/><path d="M14 4v4h6M8 12h8M8 16h5"/></svg>
       <span class="tabbar__text">ニュース</span>
     </a>
     <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-paw"></use></svg>
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M8 14c-3 1-5 3-5 5h18c0-2-2-4-5-5"/></svg>
       <span class="tabbar__text">赤ちゃん</span>
     </a>
     <a class="tabbar__link" href="../zoos/index.html" aria-label="動物園" title="動物園">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-landmark"></use></svg>
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span class="tabbar__text">動物園</span>
     </a>
     <a class="tabbar__link is-active" href="./index.html" aria-label="カレンダー" aria-current="page" title="カレンダー">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="../assets/icons/icons.svg#icon-calendar"></use></svg>
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/></svg>
       <span class="tabbar__text">カレンダー</span>
     </a>
   </nav>
 
   <main class="container" id="main">
-    <!-- Page Title -->
-    <section class="page-hero">
-      <h1 class="page-title">誕生日カレンダー</h1>
-    </section>
+    <!-- Month navigation header -->
+    <div class="cal-header">
+      <div class="cal-month" id="cal-title">—</div>
+      <div class="cal-nav" role="group" aria-label="月移動">
+        <button id="prev-month" aria-label="前の月へ">‹</button>
+        <button id="today-month" aria-label="今月へ" style="width:auto;padding:0 10px;font-size:12px;font-weight:600">今</button>
+        <button id="next-month" aria-label="次の月へ">›</button>
+      </div>
+    </div>
 
-    <!-- Birthday Calendar -->
-    <section id="calendar" class="card calendar" aria-labelledby="cal-title">
-      <div class="calendar-head">
-        <h2 id="cal-title" class="panel-title">yyyy年m月の誕生日カレンダー</h2>
-        <div class="calendar-nav" role="group" aria-label="月移動">
-          <button class="nav-icon" id="prev-month" aria-label="前の月へ">‹</button>
-          <button class="nav-icon" id="today-month" aria-label="今月へ">今</button>
-          <button class="nav-icon" id="next-month" aria-label="次の月へ">›</button>
-        </div>
-      </div>
-      <div class="calendar__weekday" aria-hidden="true">
-        <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
-      </div>
-      <div id="cal-grid" class="calendar__grid" role="grid" aria-readonly="true"></div>
-      <div class="legend" aria-hidden="true">
-        <span><span class="dot dot--future"></span>今後の誕生日</span>
-        <span><span class="dot dot--past"></span>過ぎた誕生日</span>
-        <span>● バッジ数字＝その年齢（0〜3）</span>
-      </div>
-    </section>
+    <!-- Weekday headers -->
+    <div class="cal-grid" aria-hidden="true">
+      <div class="cal-dow sun">日</div>
+      <div class="cal-dow">月</div>
+      <div class="cal-dow">火</div>
+      <div class="cal-dow">水</div>
+      <div class="cal-dow">木</div>
+      <div class="cal-dow">金</div>
+      <div class="cal-dow sat">土</div>
+    </div>
 
-    <!-- Monthly Birthdays List -->
-    <section class="card card--panel">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true">🎁</div>
-        <div>
-          <h2 class="panel-title"><span id="month-label-list">—</span> の誕生日（0〜3歳）</h2>
-        </div>
-      </header>
-      <div id="js-birthdayList" class="bday-list" role="list" aria-live="polite">
-        <!-- JS がカードを描画 -->
-      </div>
-    </section>
+    <!-- Calendar grid (populated by app.js) -->
+    <div id="cal-grid" class="cal-grid" role="grid" aria-readonly="true"></div>
 
-    <!-- Celebration Message -->
-    <section class="card card--message">
-      <div class="message-head">
-        <span class="icon-heart" aria-hidden="true">🌿</span>
-        <h3>次の訪問のヒントに</h3>
-      </div>
-      <p>
-        誕生日前後は特別展示やイベントが行われることも。カレンダーを確認して、お気に入りの赤ちゃんに会いに行こう。
-      </p>
-    </section>
+    <hr class="cal-divider">
+
+    <!-- Selected day's events / monthly list -->
+    <div class="cal-day-title" id="month-label-list">—</div>
+    <div id="js-birthdayList" role="list" aria-live="polite"></div>
+
   </main>
 
   <footer class="site-footer" aria-label="フッター">
-    <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
+    <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;">プライバシーポリシー</a></small>
   </footer>
 
-  <!-- Page JS（calendar.js は不要。app.js に統合） -->
   <script src="../assets/js/app.js" defer></script>
   <script defer src="../assets/js/analytics.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
-  <script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
 </body>
 </html>

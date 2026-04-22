@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>どうベビ | ホーム</title>
-  <meta name="description" content="どうベビ（動物園ベビー情報）— 今月お誕生日の赤ちゃん（0〜3歳）をチェック。ニュース／赤ちゃん一覧／誕生日カレンダーへすぐ移動。">
-  <link rel="icon" href="./assets/img/favicon.svg" type="image/svg+xml">
+  <title>どうベビ | 動物園の赤ちゃんを追いかけよう</title>
+  <meta name="description" content="どうベビ（動物園ベビー情報）— 今月お誕生日の赤ちゃん（0〜3歳）をチェック。ニュース／赤ちゃん一覧／動物園／カレンダーへすぐ移動。" />
+  <link rel="icon" href="./assets/img/favicon.svg" type="image/svg+xml" />
   <meta property="og:title" content="どうベビ" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="./assets/img/og.png" />
-  <meta property="og:url" content="/" />
+  <meta property="og:url" content="https://babyanimals.pages.dev/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="./assets/css/style.css" />
-  <!-- Google Search Console verification -->
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
-  <!-- Google tag (gtag.js) — GA4 -->
-  <!-- TODO: G-YRQJXRMEN2 を実際の計測IDに置き換えてください -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YRQJXRMEN2"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -22,211 +22,149 @@
     gtag('js', new Date());
     gtag('config', 'G-YRQJXRMEN2');
   </script>
-  <!-- Cloudflare Web Analytics -->
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
-  <!-- End Cloudflare Web Analytics -->
-  <link rel="canonical" href="https://babyanimals.pages.dev/">
+  <link rel="canonical" href="https://babyanimals.pages.dev/" />
 </head>
 <body class="theme">
-  <!-- Header（Candy × Emoji） -->
+  <!-- ヘッダー（sticky / glass） -->
   <header class="site-header site-header--candy">
     <div class="site-header__left">
       <a class="brand" href="./index.html" aria-label="ホームへ">
-        <span class="brand__emoji" aria-hidden="true">🐾</span>
-        <!-- SVGロゴはフェールセーフとして残す（CSSで非表示でもOK） -->
-        <svg class="brand__icon" aria-hidden="true" focusable="false">
-          <use href="./assets/icons/icons.svg#icon-logo"></use>
-        </svg>
         <span class="brand__title">どうベビ</span>
       </a>
     </div>
     <div class="site-header__right">
-      <button class="pill-btn like-btn" aria-label="お気に入り" aria-pressed="false" title="お気に入りに登録">
-        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-heart"></use></svg>
-      </button>
       <button class="pill-btn search-btn" aria-label="検索" title="検索">
-        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-search"></use></svg>
-      </button>
-      <button class="pill-btn bell-btn" aria-label="お知らせ" title="お知らせ">
-        <svg class="btn-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-bell"></use></svg>
-        <span class="badge" aria-hidden="true">!</span>
+        <svg class="btn-icon" aria-hidden="true" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
       </button>
     </div>
   </header>
 
-  <!-- Global Tabbar（PC/SPともスタック＋絵文字） -->
-  <nav class="tabbar tabbar--stack" aria-label="メイン">
-    <a class="tabbar__link is-active" href="./index.html" aria-label="ホーム" aria-current="page" title="ホーム">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-home"></use></svg>
-      <span class="tabbar__text">ホーム</span>
-    </a>
-    <a class="tabbar__link" href="./news/index.html" aria-label="ニュース" title="ニュース">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-newspaper"></use></svg>
-      <span class="tabbar__text">ニュース</span>
-    </a>
-    <a class="tabbar__link" href="./babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-paw"></use></svg>
-      <span class="tabbar__text">赤ちゃん</span>
-    </a>
-    <a class="tabbar__link" href="./zoos/index.html" aria-label="動物園" title="動物園">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-landmark"></use></svg>
-      <span class="tabbar__text">動物園</span>
-    </a>
-    <a class="tabbar__link" href="./calendar/index.html" aria-label="カレンダー" title="カレンダー">
-      <svg class="tab-icon" aria-hidden="true" focusable="false"><use href="./assets/icons/icons.svg#icon-calendar"></use></svg>
-      <span class="tabbar__text">カレンダー</span>
-    </a>
-  </nav>
-
   <main class="container" id="main">
 
-    <!-- ヒーロー（写真付き zoo-stage・コンパクト） -->
-    <section class="zoo-stage zoo-stage--compact" aria-label="どうベビへようこそ">
-      <div class="zoo-stage__bg" aria-hidden="true">
-        <img src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80"
-             alt=""
-             loading="lazy">
-      </div>
-      <div class="zoo-stage__overlay" aria-hidden="true"></div>
-      <div class="zoo-stage__copy">
-        <p class="zoo-stage__eyebrow">Zoo Baby Info</p>
-        <h1 class="zoo-stage__title">動物園の赤ちゃんを追いかけよう</h1>
-        <a class="btn zoo-stage__cta" href="./babies/index.html">赤ちゃんを探す →</a>
+    <!-- ヒーロー（フル画像 + グラデーション） -->
+    <section class="dbb-hero" aria-label="どうベビへようこそ">
+      <img src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80"
+           alt="" loading="eager">
+      <div class="dbb-hero__grad" aria-hidden="true"></div>
+      <div class="dbb-hero__body">
+        <div class="dbb-chip">🌿 今月のお誕生日をチェック</div>
+        <h1 class="dbb-hero__title">動物園の<br>赤ちゃんを<br>追いかけよう</h1>
+        <a class="dbb-cta" href="./babies/index.html">赤ちゃんを探す →</a>
       </div>
     </section>
 
     <!-- 今月お誕生日（0〜3歳） -->
-    <section class="card hero" aria-labelledby="hero-title">
-      <header class="panel-head hero__head">
-        <div class="panel-icon hero__badge" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="./assets/icons/icons.svg#icon-cake"></use></svg></div>
-        <div class="hero__titles">
-          <h2 id="hero-title" class="panel-title hero__title">今月お誕生日の赤ちゃん（0〜3歳）</h2>
-          <p class="panel-desc">先月・来月も1タップでチェックできます</p>
+    <section class="dbb-sec" aria-labelledby="hero-title">
+      <div class="dbb-sech">
+        <div>
+          <h2 id="hero-title" class="dbb-sect">
+            <span class="dbb-dot" style="background:var(--ac)"></span>お誕生日の赤ちゃん
+          </h2>
+          <p class="dbb-sec__sub" id="hero-month-label">0〜3歳 · 今月生まれ</p>
         </div>
-        <div class="hero__nav" role="group" aria-label="月移動">
-          <button class="pill pill--nav" id="hero-prev" aria-label="先月へ">‹</button>
-          <span id="hero-month-label" class="pill pill--label" aria-live="polite">—</span>
-          <button class="pill pill--nav" id="hero-next" aria-label="来月へ">›</button>
-        </div>
-      </header>
-      <div id="hero-skel" class="hero__skeleton" aria-hidden="true">
-        <div class="hero-card hero-card--skel"></div>
-        <div class="hero-card hero-card--skel"></div>
-        <div class="hero-card hero-card--skel"></div>
+        <a class="dbb-sec__more" href="./calendar/index.html">一覧 ›</a>
       </div>
-      <div id="hero-list" class="hero__list hero__list--rail" role="list"></div>
-      <div id="hero-empty" class="hero__empty" hidden>
-        今月は対象がいません。
-        <button class="pill pill--nav" id="hero-show-next" type="button">来月を見る ›</button>
+      <!-- 月切り替えタブ（pill） -->
+      <div class="dbb-mtabs" role="tablist" aria-label="月切り替え">
+        <button class="dbb-mtab" id="hero-prev" type="button" role="tab" aria-label="先月へ">‹ 先月</button>
+        <button class="dbb-mtab is-on" type="button" role="tab" aria-current="page" id="hero-month-pill" disabled>今月</button>
+        <button class="dbb-mtab" id="hero-next" type="button" role="tab" aria-label="来月へ">来月 ›</button>
       </div>
-      <div id="hero-error" class="hero__error" role="alert" hidden>
-        読み込みに失敗しました。時間をおいて再度お試しください。
+      <div id="hero-skel" class="dbb-rail" aria-hidden="true">
+        <div class="dbb-bc"><div class="dbb-bc__img is-placeholder">🐾</div><div class="dbb-bc__body"><div class="dbb-bc__name">&nbsp;</div></div></div>
+        <div class="dbb-bc"><div class="dbb-bc__img is-placeholder">🐾</div><div class="dbb-bc__body"><div class="dbb-bc__name">&nbsp;</div></div></div>
+        <div class="dbb-bc"><div class="dbb-bc__img is-placeholder">🐾</div><div class="dbb-bc__body"><div class="dbb-bc__name">&nbsp;</div></div></div>
+      </div>
+      <div id="hero-list" class="dbb-rail" role="list"></div>
+      <div id="hero-empty" class="empty-state" hidden>
+        <p class="empty-state__desc">今月は対象がいません。</p>
+        <button class="dbb-mtab is-on" id="hero-show-next" type="button" style="margin-top:8px">来月を見る ›</button>
+      </div>
+      <div id="hero-error" class="empty-state" role="alert" hidden>
+        <p class="empty-state__desc">読み込みに失敗しました。時間をおいて再度お試しください。</p>
       </div>
     </section>
 
     <!-- 新着の赤ちゃん -->
-    <section class="card recent-section" aria-labelledby="recent-title">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="./assets/icons/icons.svg#icon-paw"></use></svg></div>
-        <div>
-          <h2 id="recent-title" class="panel-title">新着の赤ちゃん</h2>
-          <p class="panel-desc">最近登録された赤ちゃん情報</p>
-        </div>
-      </header>
-      <div id="recent-list" class="recent-list" role="list" aria-live="polite">
-        <div class="recent-skel" aria-hidden="true">
-          <div class="recent-card recent-card--skel"></div>
-          <div class="recent-card recent-card--skel"></div>
-          <div class="recent-card recent-card--skel"></div>
-        </div>
+    <section class="dbb-sec" aria-labelledby="recent-title" style="margin-top:22px">
+      <div class="dbb-sech">
+        <h2 id="recent-title" class="dbb-sect">
+          <span class="dbb-dot" style="background:#E8963A"></span>新着の赤ちゃん
+        </h2>
+        <a class="dbb-sec__more" href="./babies/index.html">もっと見る ›</a>
       </div>
-      <a class="btn btn--primary recent-more" href="./babies/index.html">もっと見る →</a>
+      <div id="recent-list" class="dbb-blist" role="list" aria-live="polite">
+        <!-- skeleton -->
+        <div class="dbb-brow"><div class="dbb-brow__thumb">🐾</div><div class="dbb-brow__info"><div class="dbb-brow__name">&nbsp;</div></div></div>
+        <div class="dbb-brow"><div class="dbb-brow__thumb">🐾</div><div class="dbb-brow__info"><div class="dbb-brow__name">&nbsp;</div></div></div>
+        <div class="dbb-brow"><div class="dbb-brow__thumb">🐾</div><div class="dbb-brow__info"><div class="dbb-brow__name">&nbsp;</div></div></div>
+      </div>
     </section>
 
-    <!-- 最新ニュース（プレビュー3件） -->
-    <section class="card news-preview-section" aria-labelledby="news-preview-title">
-      <header class="panel-head">
-        <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="./assets/icons/icons.svg#icon-newspaper"></use></svg></div>
-        <div>
-          <h2 id="news-preview-title" class="panel-title">最新ニュース</h2>
-          <p class="panel-desc">動物園の最新情報</p>
-        </div>
-      </header>
-      <div id="news-preview-list" class="news-preview-list" role="list" aria-live="polite">
-        <div class="news-preview-skel" aria-hidden="true">
-          <div class="news-preview-card news-preview-card--skel"></div>
-          <div class="news-preview-card news-preview-card--skel"></div>
-          <div class="news-preview-card news-preview-card--skel"></div>
-        </div>
+    <!-- チケットバナー（アソビューアフィリエイト） -->
+    <a class="dbb-tkt"
+       href="https://www.asoview.com/"
+       target="_blank"
+       rel="noopener sponsored"
+       data-link-type="affiliate">
+      <div class="dbb-tkt__icon">🎟️</div>
+      <div class="dbb-tkt__body">
+        <p class="dbb-tkt__title">チケットを事前予約</p>
+        <div class="dbb-tkt__sub">当日券より安く・スムーズ入園</div>
       </div>
-      <a class="btn btn--primary news-preview-more" href="./news/index.html">もっとニュースを読む →</a>
-    </section>
+      <div class="dbb-tkt__arrow">›</div>
+    </a>
 
-    <!-- ============================================================
-         広告・アフィリエイト枠
-         ここに GoogleAdSense スクリプト や バナー広告 を挿入します。
-         アソビュー アフィリエイトID取得後、href を本番URLに変更してください。
-         ============================================================ -->
-    <section class="ad-section" aria-label="スポンサー">
-
-      <!-- ① アソビュー アフィリエイトバナー
-           TODO: アフィリエイトID取得後に href を本番アフィリリンクに差し替え
-           例: https://www.asoview.com/?affiliate_id=YOUR_ID
-      -->
-      <div class="aff-banner">
-        <a class="aff-banner__link"
-           href="https://www.asoview.com/"
-           target="_blank"
-           rel="noopener sponsored"
-           data-link-type="affiliate">
-          <div class="aff-banner__content">
-            <span class="aff-banner__icon" aria-hidden="true">🎟️</span>
-            <div class="aff-banner__text">
-              <p class="aff-banner__title">動物園のチケットをアソビューで予約</p>
-              <p class="aff-banner__desc">当日券より安い！事前予約でスムーズ入園</p>
-            </div>
-            <span class="aff-banner__arrow" aria-hidden="true">›</span>
-          </div>
-        </a>
+    <!-- 最新ニュースプレビュー（3件） -->
+    <section class="dbb-sec" aria-labelledby="news-preview-title">
+      <div class="dbb-sech">
+        <h2 id="news-preview-title" class="dbb-sect">
+          <span class="dbb-dot" style="background:#5B8AC4"></span>最新ニュース
+        </h2>
+        <a class="dbb-sec__more" href="./news/index.html">一覧 ›</a>
       </div>
-
-      <!-- ② Google AdSense（パブリッシャーID取得後に有効化）
-      <ins class="adsbygoogle adsense-slot"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
-           data-ad-slot="XXXXXXXXXX"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-
+      <div id="news-preview-list" class="dbb-nlist" role="list" aria-live="polite">
+        <!-- skeleton -->
+        <div class="dbb-nitem"><div class="dbb-nitem__icon">🐾</div><div class="dbb-nitem__body"><div class="dbb-nitem__title">&nbsp;</div></div></div>
+        <div class="dbb-nitem"><div class="dbb-nitem__icon">🐾</div><div class="dbb-nitem__body"><div class="dbb-nitem__title">&nbsp;</div></div></div>
+        <div class="dbb-nitem"><div class="dbb-nitem__icon">🐾</div><div class="dbb-nitem__body"><div class="dbb-nitem__title">&nbsp;</div></div></div>
+      </div>
     </section>
-
-    <!-- クイックナビ -->
-    <nav class="quick-nav" aria-label="クイックナビ">
-      <a class="quick-nav__item" href="./news/index.html">
-        <span class="quick-nav__icon" aria-hidden="true">🗞️</span>
-        <span class="quick-nav__label">ニュース</span>
-      </a>
-      <a class="quick-nav__item" href="./babies/index.html">
-        <span class="quick-nav__icon" aria-hidden="true">🐣</span>
-        <span class="quick-nav__label">赤ちゃん一覧</span>
-      </a>
-      <a class="quick-nav__item" href="./calendar/index.html">
-        <span class="quick-nav__icon" aria-hidden="true">🗓️</span>
-        <span class="quick-nav__label">カレンダー</span>
-      </a>
-    </nav>
 
   </main>
 
+  <!-- グローバルタブバー（ボトム） -->
+  <nav class="tabbar tabbar--stack" aria-label="メイン">
+    <a class="tabbar__link is-active" href="./index.html" aria-label="ホーム" aria-current="page" title="ホーム">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="tabbar__text">ホーム</span>
+    </a>
+    <a class="tabbar__link" href="./news/index.html" aria-label="ニュース" title="ニュース">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"/><path d="M14 4v4h6M8 12h8M8 16h5"/></svg>
+      <span class="tabbar__text">ニュース</span>
+    </a>
+    <a class="tabbar__link" href="./babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M8 14c-3 1-5 3-5 5h18c0-2-2-4-5-5"/></svg>
+      <span class="tabbar__text">赤ちゃん</span>
+    </a>
+    <a class="tabbar__link" href="./zoos/index.html" aria-label="動物園" title="動物園">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="tabbar__text">動物園</span>
+    </a>
+    <a class="tabbar__link" href="./calendar/index.html" aria-label="カレンダー" title="カレンダー">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/></svg>
+      <span class="tabbar__text">カレンダー</span>
+    </a>
+  </nav>
+
   <footer class="site-footer" aria-label="フッター">
-    <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
+    <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;">プライバシーポリシー</a></small>
   </footer>
 
   <script src="./assets/js/app.js" defer></script>
   <script src="./assets/js/analytics.js" defer></script>
-  <!-- Twemoji — 絵文字をプラットフォーム非依存のSVGに統一 -->
-  <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
-  <script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
 </body>
 </html>

@@ -188,23 +188,24 @@ function pickEmoji(baby){
     listEl.innerHTML = '';
     if (!items?.length){
       listEl.insertAdjacentHTML('beforeend',
-        `<p style="color:#6b6b6b;font-size:13px;margin:0">今月のお誕生日（0〜3歳）の登録がありません。</p>`);
+        `<div class="empty-state"><p class="empty-state__desc">今月のお誕生日（0〜3歳）の登録がありません。</p></div>`);
       return;
     }
     for (const b of items){
-      const zooLabel = b.zoo?.name ? ` ｜ ${esc(b.zoo.name)}` : '';
-      const card = document.createElement('div');
-      card.className = 'bday-card';
-      card.setAttribute('role','listitem');
-      card.innerHTML = `
-        <div class="bday-card__avatar" aria-hidden="true">${pickEmoji(b)}</div>
+      const zooName = b.zoo?.name || '';
+      const row = document.createElement('a');
+      row.className = 'cal-event';
+      row.href = `/babies/${encodeURIComponent(b.id)}/`;
+      row.setAttribute('role','listitem');
+      row.innerHTML = `
+        <div class="cal-event__bar" style="background:var(--cal-event-birth)"></div>
         <div>
-          <p class="bday-card__title">${esc(b.name)}（${esc(b.species)}）</p>
-          <p class="bday-card__meta">誕生日 ${esc(b.birthday)}${zooLabel}</p>
+          <div class="cal-event__type" style="color:var(--ac)">誕生日 · ${b.age}歳</div>
+          <div class="cal-event__title">${esc(b.name)}（${esc(b.species)}）${b.age}歳のお誕生日</div>
+          ${zooName ? `<div class="cal-event__zoo">📍 ${esc(zooName)}</div>` : ''}
         </div>
-        <span class="bday-chip">${b.age}歳</span>
       `;
-      listEl.appendChild(card);
+      listEl.appendChild(row);
     }
   }
 
@@ -265,55 +266,46 @@ function pickEmoji(baby){
     try { monthly = await loadMonthAges0to3(Y, M); } catch(e){ console.error(e); monthly = []; }
 
     const calTitle = $('#cal-title');
-    if (calTitle) calTitle.textContent = `${Y}年${M}月の誕生日カレンダー`;
+    if (calTitle) calTitle.textContent = `${Y}年${M}月`;
 
     const first = new Date(Y, M-1, 1);
     const startIdx = first.getDay();
     const lastDate = new Date(Y, M, 0).getDate();
     const today = stripTime(new Date());
+    const isToday = (d) => d.getFullYear()===today.getFullYear() && d.getMonth()===today.getMonth() && d.getDate()===today.getDate();
 
-    for(let i=0;i<startIdx;i++){
+    // 前月の末尾（other-month）を埋める
+    const prevMonthLast = new Date(Y, M-1, 0).getDate();
+    for(let i=startIdx-1; i>=0; i--){
       const d = document.createElement('div');
-      d.className = 'cal-day cal-day--muted';
-      d.setAttribute('aria-disabled','true');
+      d.className = 'cal-day other-month';
+      d.innerHTML = `<span class="cal-dn">${prevMonthLast - i}</span>`;
+      d.setAttribute('aria-hidden','true');
       grid.appendChild(d);
     }
 
     for(let day=1; day<=lastDate; day++){
       const cellDate = new Date(Y, M-1, day);
+      const dow = cellDate.getDay(); // 0=日,6=土
       const cell = document.createElement('div');
-      cell.className = 'cal-day';
+      let cls = 'cal-day';
+      if (dow === 0) cls += ' sun';
+      if (dow === 6) cls += ' sat';
+      if (isToday(cellDate)) cls += ' today';
+      cell.className = cls;
       cell.setAttribute('role','gridcell');
-      cell.innerHTML = `<span class="cal-day__date">${day}</span>`;
+      cell.innerHTML = `<span class="cal-dn">${day}</span><div class="cal-dots"></div>`;
 
       const hits = monthly.filter(b => b.day === day);
       if (hits.length){
-        const wrap = document.createElement('div');
-        wrap.className = 'badge-wrap';
-        const isPast = stripTime(cellDate) < today;
-
-        const makeBadge = (age, past) => {
-          const b = document.createElement('span');
-          b.textContent = String(age);
-          b.className = 'age-badge' + (past ? ' age-badge--past' : '');
-          return b;
-        };
-
-        hits.slice(0,2).forEach(h => wrap.appendChild(makeBadge(h.age, isPast)));
-        if (hits.length > 2){
-          const more = document.createElement('span');
-          more.textContent = `+${hits.length - 2}`;
-          more.style.fontSize = '11px';
-          more.style.color = '#6b6b6b';
-          wrap.appendChild(more);
-        }
-        cell.appendChild(wrap);
+        const dots = cell.querySelector('.cal-dots');
+        hits.slice(0, 3).forEach(() => {
+          const dot = document.createElement('span');
+          dot.className = 'cal-dot cal-dot--birth';
+          dots.appendChild(dot);
+        });
 
         const ariaAges = hits.map(h=>`${h.age}歳`).join(', ');
-        cell.title = hits.map(h=>{
-          const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
-          return `${h.name}（${h.species}${zoo}）: ${h.age}歳`;
-        }).join(' / ');
         cell.style.cursor = 'pointer';
         cell.addEventListener('click', () => openDay(hits, cellDate, Y, M, day));
         cell.setAttribute('aria-label', `${Y}年${M}月${day}日、${hits.length}件の誕生日（${ariaAges}）`);
@@ -321,6 +313,17 @@ function pickEmoji(baby){
         cell.setAttribute('aria-label', `${Y}年${M}月${day}日`);
       }
       grid.appendChild(cell);
+    }
+
+    // 翌月の頭（other-month）で6行を埋める
+    const totalCells = startIdx + lastDate;
+    const trailing = (7 - (totalCells % 7)) % 7;
+    for(let i=1; i<=trailing; i++){
+      const d = document.createElement('div');
+      d.className = 'cal-day other-month';
+      d.innerHTML = `<span class="cal-dn">${i}</span>`;
+      d.setAttribute('aria-hidden','true');
+      grid.appendChild(d);
     }
 
     renderMonthlyList(Y, M, monthly);
@@ -597,21 +600,24 @@ async function fetchJSON(path){
     const sp   = x.species || '不明';
     const date = x.birthday ? fmtMD(x.birthday) : '-';
     const zoo  = x.zoo_name || '園情報なし';
+    const href = `/babies/${encodeURIComponent(x.id)}/`;
+    const thumb = x.thumbnail_url
+      ? `<img src="${x.thumbnail_url}" alt="${name}" loading="lazy" onerror="this.parentNode.classList.add('is-placeholder');this.remove();">`
+      : emoji;
+    const thumbCls = x.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
     return `
-      <div class="hero-card" role="listitem" aria-label="${name}（${sp}）">
-        <div class="hero-card__avatar" aria-hidden="true">${emoji}</div>
-        <div>
-          <p class="hero-card__title">${name}（${sp}）</p>
-          <div class="hero-card__meta">
-            <span class="meta-chip meta-chip--date">📅 ${date}</span>
-            <span class="meta-chip meta-chip--zoo">🏛 ${zoo}</span>
-            ${a!=null ? `<span class="meta-chip meta-chip--age">🎉 ${a}歳</span>` : ''}
-          </div>
+      <a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${sp}）">
+        <div class="${thumbCls}">${thumb}${a!=null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
+        <div class="dbb-bc__body">
+          <div class="dbb-bc__name">${name}</div>
+          <div class="dbb-bc__species">${sp}</div>
+          <div class="dbb-bc__zoo">📍 ${zoo}</div>
+          <div class="dbb-bc__bday">🎂 ${date}</div>
         </div>
-      </div>`;
+      </a>`;
   }
   function setState({skel=false, empty=false, err=false}={}){
-    if($skel)  $skel.style.display = skel?'grid':'none';
+    if($skel)  $skel.style.display = skel?'flex':'none';
     if($empty) $empty.hidden       = !empty;
     if($err)   $err.hidden         = !err;
     $list.style.display = (!skel && !empty && !err) ? '' : 'none';
@@ -731,27 +737,41 @@ async function fetchJSON(path){
     $list.innerHTML = '';
     if (!rows || !rows.length) return;
 
+    // 経過日数を "N日前 / N週間前 / N月前" 表記に
+    const agoLabel = iso => {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
+      if (diffDays < 1) return '今日';
+      if (diffDays < 7) return `${diffDays}日前`;
+      if (diffDays < 30) return `${Math.floor(diffDays/7)}週間前`;
+      if (diffDays < 365) return `${Math.floor(diffDays/30)}ヶ月前`;
+      return `${Math.floor(diffDays/365)}年前`;
+    };
+
     for (const b of rows) {
       const name = b.name || '（名前未設定）';
       const zoo  = b.zoo_name || '';
-      const bday = b.birthday ? b.birthday.slice(0, 10).replace(/-/g, '/') : '—';
       const href = `/babies/${encodeURIComponent(b.id)}/`;
       const emoji = pickE(b);
       const thumbHtml = b.thumbnail_url
-        ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" onerror="this.parentNode.innerHTML='<span aria-hidden=\\'true\\'>${emoji}</span>'">`
-        : `<span aria-hidden="true">${emoji}</span>`;
+        ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" onerror="this.parentNode.textContent='${emoji}'">`
+        : emoji;
+      const badge = agoLabel(b.birthday);
 
       const a = document.createElement('a');
-      a.className = 'recent-card';
+      a.className = 'dbb-brow';
       a.href = href;
       a.setAttribute('role', 'listitem');
       a.innerHTML = `
-        <div class="recent-card__thumb">${thumbHtml}</div>
-        <div class="recent-card__body">
-          <p class="recent-card__name">${esc(name)}（${esc(b.species || '不明')}）</p>
-          ${zoo ? `<p class="recent-card__meta">🏛 ${esc(zoo)}</p>` : ''}
-          <p class="recent-card__bday">🎂 ${esc(bday)}</p>
-        </div>`;
+        <div class="dbb-brow__thumb">${thumbHtml}</div>
+        <div class="dbb-brow__info">
+          <div class="dbb-brow__name">${esc(name)}</div>
+          <div class="dbb-brow__species">${esc(b.species || '不明')}</div>
+          ${zoo ? `<div class="dbb-brow__zoo">📍 ${esc(zoo)}</div>` : ''}
+        </div>
+        ${badge ? `<div class="dbb-brow__badge">${badge}</div>` : ''}`;
       $list.appendChild(a);
     }
   }
@@ -801,24 +821,32 @@ async function fetchJSON(path){
     return res.json();
   }
 
+  // タイトルから簡易的にカテゴリ（誕生/イベント/お知らせ/訃報）を推定
+  function categorize(title){
+    const t = String(title || '');
+    if (/(誕生|生まれ|赤ちゃん|出産|公開デビュー)/.test(t)) return { tag:'誕生', icon:'🐾', bg:'var(--news-tag-birth-bg)', color:'var(--ac)' };
+    if (/(死去|逝去|亡くなり|訃報|死亡)/.test(t))               return { tag:'訃報', icon:'💐', bg:'var(--news-tag-death-bg)', color:'var(--news-tag-death-text)' };
+    if (/(イベント|祭り|ナイト|ふれあい|GW|夏休み|開催)/.test(t)) return { tag:'イベント', icon:'🎉', bg:'var(--news-tag-event-bg)', color:'#E8963A' };
+    return { tag:'お知らせ', icon:'🏛️', bg:'var(--news-tag-info-bg)', color:'#5B8AC4' };
+  }
+
   load().then(rows => {
     $list.innerHTML = '';
     if (!rows?.length) return;
     for (const item of rows) {
+      const cat = categorize(item.title);
       const a = document.createElement('a');
-      a.className = 'news-preview-card';
+      a.className = 'dbb-nitem';
       a.href = item.url || '#';
       a.target = '_blank';
       a.rel = 'noopener';
       a.setAttribute('role', 'listitem');
-      const thumbHtml = item.thumbnail_url
-        ? `<img src="${esc(item.thumbnail_url)}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='🗞️'">`
-        : '🗞️';
       a.innerHTML = `
-        <div class="news-preview-card__thumb">${thumbHtml}</div>
-        <div class="news-preview-card__body">
-          <p class="news-preview-card__title">${esc(item.title || '(無題)')}</p>
-          <p class="news-preview-card__meta">${fmtDate(item.published_at)}${item.source_name ? ' · ' + esc(item.source_name) : ''}</p>
+        <div class="dbb-nitem__icon" style="background:${cat.bg}">${cat.icon}</div>
+        <div class="dbb-nitem__body">
+          <div class="dbb-nitem__tag" style="color:${cat.color}">${cat.tag}</div>
+          <p class="dbb-nitem__title">${esc(item.title || '(無題)')}</p>
+          <div class="dbb-nitem__date">${fmtDate(item.published_at)}${item.source_name ? ' · ' + esc(item.source_name) : ''}</div>
         </div>`;
       $list.appendChild(a);
     }

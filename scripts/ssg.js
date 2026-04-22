@@ -137,7 +137,7 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="/assets/css/style.css" />
   <!-- Google tag (gtag.js) — GA4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
@@ -722,33 +722,11 @@ function babiesIndexHtml(babies) {
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="/assets/css/style.css" />
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');</script>
   <script type="application/ld+json">${jsonLd}</script>
-  <style>
-    .baby-grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
-    @media (min-width:600px){ .baby-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-    @media (min-width:1024px){ .baby-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
-    .baby-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; position:relative; display:flex; flex-direction:column; }
-    .baby-card:hover{ transform:translateY(-2px); }
-    .baby-card__link{ display:block; text-decoration:none; color:inherit; flex:1; }
-    .baby-card .thumb{ position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#f2f2f2; }
-    .baby-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; max-height:none !important; }
-    .baby-card .thumb.is-placeholder{ background:var(--forest-50); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:32px; }
-    .baby-card .pad{ padding:10px 12px 12px; }
-    .baby-card .title{ font-size:15px; line-height:1.5; font-weight:900; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .baby-card .meta{ font-size:12px; color:#666; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-    .baby-card__foot{ padding:0 10px 10px; }
-    .baby-card__ticket{ display:flex; align-items:center; justify-content:center; gap:5px; padding:8px 12px; background:var(--grad); color:#fff; border-radius:999px; font-size:12px; font-weight:800; text-decoration:none; width:100%; }
-    .controls.sticky{ position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border); padding:8px 12px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:center; }
-    .controls.sticky > *{ min-width:0; }
-    .controls.sticky input[type="search"], .controls.sticky select{ width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff; }
-    .age-filter{ display:flex; gap:8px; padding:8px 12px; overflow:auto; -webkit-overflow-scrolling:touch; }
-    .age-filter .segmented__btn{ height:32px; padding:6px 12px; font-size:13px; }
-    @media (max-width:599px){ .controls.sticky{ grid-template-columns:1fr 1fr; } .controls.sticky #sort{ grid-column:1 / -1; } }
-  </style>
 </head>
 <body class="theme" data-page-size="12">
 ${siteHeader()}
@@ -860,28 +838,11 @@ function newsIndexHtml(newsItems) {
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="/assets/css/style.css" />
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');</script>
   <script type="application/ld+json">${jsonLd}</script>
-  <style>
-    .news-grid{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
-    @media (min-width:600px){ .news-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-    @media (min-width:1024px){ .news-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
-    .news-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); transition:transform .12s ease; text-decoration:none; color:inherit; }
-    .news-card:hover{ transform:translateY(-2px); }
-    .news-card .thumb{ position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#f2f2f2; }
-    .news-card .thumb > img{ width:100%; height:100%; object-fit:cover; display:block; }
-    .news-card .pad{ padding:10px 12px 12px; }
-    .news-card .title{ font-size:14.5px; line-height:1.5; font-weight:900; margin:6px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .news-card .meta{ font-size:12px; color:#666; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-    .news-card .meta .dot::before{ content:"・"; color:#aaa; }
-    .controls.sticky{ position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border); padding:8px 12px; display:grid; grid-template-columns:1fr 160px 120px; gap:8px; }
-    .controls.sticky > *{ min-width:0; }
-    .controls.sticky input[type="search"], .controls.sticky select{ width:100%; padding:8px 10px; border:1px solid #ddd; border-radius:8px; font-size:14px; background:#fff; }
-    @media (max-width:599px){ .controls.sticky{ grid-template-columns:1fr 1fr; } .controls.sticky #sort{ grid-column:1 / -1; } }
-  </style>
 </head>
 <body class="theme" data-news-v2="1" data-page-size="12">
 ${siteHeader()}
