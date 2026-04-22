@@ -619,7 +619,7 @@ async function fetchJSON(path){
 
   let currentMonth = startOfMonth(new Date());
 
-  async function renderMonth(d){
+  async function renderMonth(d, attempt=0){
     try{
       setState({ skel:true });
       if ($label) $label.textContent = fmtMonthJP(d);
@@ -636,7 +636,10 @@ async function fetchJSON(path){
         return a!=null && a>=0 && a<=3;
       });
 
-      if(!filtered.length){ $list.innerHTML=''; setState({empty:true}); return; }
+      if(!filtered.length){
+        if(attempt < 5){ currentMonth = addMonths(d,-1); return renderMonth(currentMonth, attempt+1); }
+        $list.innerHTML=''; setState({empty:true}); return;
+      }
       $list.innerHTML = filtered.slice(0, heroLimit()).map(x=>cardHTML(x, d)).join('');
       setState({});
     }catch(e){
@@ -706,18 +709,18 @@ async function fetchJSON(path){
 
   async function load() {
     let rows = [];
-    // 1) babies_public（created_at 降順）
+    // 1) babies_public（誕生日降順）
     try {
       rows = await sbGet(
         '/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_name' +
-        '&order=created_at.desc.nullslast&limit=3'
+        '&order=birthday.desc.nullslast,id.desc&limit=3'
       );
     } catch (_) {
       // 2) フォールバック: babies + zoo embed
       try {
         const raw = await sbGet(
           '/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo:zoos(name)' +
-          '&order=created_at.desc.nullslast&limit=3'
+          '&order=birthday.desc.nullslast,id.desc&limit=3'
         );
         rows = (raw || []).map(x => ({ ...x, zoo_name: x.zoo?.name || '' }));
       } catch (e2) {
