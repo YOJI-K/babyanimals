@@ -41,8 +41,12 @@
   async function fetchFromSupabase() {
     const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
     const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
-    const SUPA_URL = (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL)) || metaUrl;
-    const ANON     = (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY)) || metaKey;
+    const SUPA_URL = (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL))
+      || metaUrl
+      || 'https://hvhpfrksyytthupboaeo.supabase.co';
+    const ANON     = (window.SUPABASE && (window.SUPABASE.ANON || window.SUPABASE.SUPABASE_ANON_KEY))
+      || metaKey
+      || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY';
 
     if (!SUPA_URL || !ANON) throw new Error('Supabase の URL / ANON KEY が設定されていません。');
 
