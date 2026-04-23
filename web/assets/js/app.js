@@ -602,8 +602,8 @@ async function fetchJSON(path){
     const zoo  = x.zoo_name || '園情報なし';
     const href = `/babies/${encodeURIComponent(x.id)}/`;
     const thumb = x.thumbnail_url
-      ? `<img src="${x.thumbnail_url}" alt="${name}" loading="lazy" onerror="this.parentNode.classList.add('is-placeholder');this.remove();">`
-      : emoji;
+      ? `<img src="${x.thumbnail_url}" alt="${name}" loading="lazy" decoding="async">`
+      : '';
     const thumbCls = x.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
     return `
       <a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${sp}）">
@@ -616,6 +616,16 @@ async function fetchJSON(path){
         </div>
       </a>`;
   }
+  function bindHeroImageFallback(scope){
+    (scope || document).querySelectorAll('.dbb-bc__img img').forEach(img=>{
+      img.addEventListener('error', ()=>{
+        const wrap = img.closest('.dbb-bc__img'); if (!wrap) return;
+        wrap.classList.add('is-placeholder');
+        img.remove();
+      }, { once:true, passive:true });
+    });
+  }
+
   function setState({skel=false, empty=false, err=false}={}){
     if($skel)  $skel.style.display = skel?'flex':'none';
     if($empty) $empty.hidden       = !empty;
@@ -647,6 +657,7 @@ async function fetchJSON(path){
         $list.innerHTML=''; setState({empty:true}); return;
       }
       $list.innerHTML = filtered.slice(0, heroLimit()).map(x=>cardHTML(x, d)).join('');
+      bindHeroImageFallback($list);
       setState({});
     }catch(e){
       console.error('[hero]', e);
