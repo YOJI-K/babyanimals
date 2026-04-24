@@ -2316,3 +2316,10 @@ body.theme{ background: var(--bg); }
   font-size: 14px; color: #555; line-height: 1.7;
   margin: 0 0 16px;
 }
+
+/* 関連赤ちゃんセクション（個別ページ内）*/
+.ssg-related{ margin: 0 0 24px; }
+.ssg-related__title{
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  margin: 0 0 10px; padding: 0;
+}

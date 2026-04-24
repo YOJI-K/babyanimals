@@ -83,6 +83,8 @@ const ZOO_AFFILIATE_MAP = {
   let AGE_FILTER = ''; // '', '0','1','2','3'
   let BABIES = [];
   let ZOOS = [];
+  let ID_TO_SLUG = {}; // id → slug
+  let SLUG_TO_ID = {}; // slug → id
 
   // ====== Supabase ======
   function getSupabaseEnv(){
@@ -157,6 +159,13 @@ const ZOO_AFFILIATE_MAP = {
     BABIES = (data||[]).map(x => ({ ...x, zoo_name:'' }));
   }
 
+  async function loadSlugMap(){
+    try{
+      const arr = await fetch('/assets/data/baby-slugs.json').then(r=>r.json());
+      arr.forEach(({id,slug})=>{ ID_TO_SLUG[id]=slug; SLUG_TO_ID[slug]=id; });
+    }catch(e){ /* slug map なくても UUID フォールバックで動作する */ }
+  }
+
   // ====== ビュー ======
   function sourcePillZoo(name){ return `<span class="pill pill--zoo">🏛️ ${name || '園情報なし'}</span>`; }
   function pillBirthday(iso){ return `<span class="pill">🎂 ${Site.fmtDate(iso) || '—'}</span>`; }
@@ -175,7 +184,7 @@ const ZOO_AFFILIATE_MAP = {
     const alt   = [x.name || '名前未判明', x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
     const soon  = x.birthday ? nextBirthdayDays(x.birthday) : Infinity;
     const isMonth = x.birthday ? (new Date(x.birthday).getMonth() === new Date().getMonth()) : false;
-    const href  = `/babies/${x.id}/`;
+    const href  = `/babies/${ID_TO_SLUG[x.id] || x.id}/`;
 
     const thumb = x.thumbnail_url
       ? `<div class="thumb"><img src="${x.thumbnail_url}" loading="lazy" decoding="async" alt="${alt}"></div>`
@@ -307,12 +316,15 @@ const ZOO_AFFILIATE_MAP = {
   // ====== 個別ページ（クライアントサイドフォールバック） ======
   function escHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  async function renderDetailPage(id){
+  async function renderDetailPage(slugOrId){
     const $main = document.getElementById('main');
     if (!$main) return;
 
     // スケルトン表示
     $main.innerHTML = `<div class="ssg-detail" style="padding:40px 18px;text-align:center;color:#aaa;">読み込み中…</div>`;
+
+    // slug → UUID の逆引き（baby-slugs.json ロード済みの場合）
+    const id = SLUG_TO_ID[slugOrId] || slugOrId;
 
     let b;
     try{
@@ -334,7 +346,7 @@ const ZOO_AFFILIATE_MAP = {
     const ageLabel  = ageInfo ? `${ageInfo.y}歳${ageInfo.y===0&&ageInfo.m>0?`（${ageInfo.m}か月）`:''}` : '年齢不明';
     const ageSuf    = ageInfo ? Math.min(ageInfo.y, 3) : '';
 
-    document.title = `${name}（${species}）の赤ちゃん | どうベビ`;
+    document.title = `${name}（${species}）の赤ちゃん｜${zoo || 'どうベビ'}`;
 
     const thumb = b.thumbnail_url
       ? `<img class="ssg-detail__img" src="${escHtml(b.thumbnail_url)}" alt="${escHtml(name)}" loading="eager" decoding="async">`
@@ -389,18 +401,19 @@ const ZOO_AFFILIATE_MAP = {
     if (window.__BABIES_V3_INITED) return;
     window.__BABIES_V3_INITED = true;
 
-    // /babies/{id}/ 形式ならクライアントサイドで個別ページを描画
+    // /babies/{slug-or-id}/ 形式ならクライアントサイドで個別ページを描画
     // （SSG生成 HTML が存在しない場合の _redirects フォールバック対応）
-    const detailMatch = location.pathname.match(/^\/babies\/(\w+)\/?$/);
+    const detailMatch = location.pathname.match(/^\/babies\/([^/]+)\/?$/);
     if (detailMatch) {
-      return renderDetailPage(detailMatch[1]);
+      await loadSlugMap(); // slug→UUID 逆引き用に先にロード
+      return renderDetailPage(decodeURIComponent(detailMatch[1]));
     }
 
     try{
       $skel.style.display = 'grid';
       $error.style.display = 'none';
 
-      await loadZoos();
+      await Promise.all([loadSlugMap(), loadZoos()]);
       await loadBabies();
 
       PAGE = 1;
