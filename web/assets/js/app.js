@@ -36,6 +36,14 @@
     return res.json();
   }
 
+  /* ===== slug map ===== */
+  const babySlugMap = {}; // id → slug
+  fetch('/assets/data/baby-slugs.json')
+    .then(r => r.json())
+    .then(arr => arr.forEach(({id, slug}) => { babySlugMap[id] = slug; }))
+    .catch(() => {});
+  const babyHref = (id) => `/babies/${babySlugMap[id] || id}/`;
+
   /* ===== 取得 & キャッシュ ===== */
   const zooCache = new Map();    // zoo_id -> zoo
   const monthCache = new Map();  // `${Y}-${M}` -> items
@@ -195,7 +203,7 @@ function pickEmoji(baby){
       const zooName = b.zoo?.name || '';
       const row = document.createElement('a');
       row.className = 'cal-event';
-      row.href = `/babies/${encodeURIComponent(b.id)}/`;
+      row.href = babyHref(b.id);
       row.setAttribute('role','listitem');
       row.innerHTML = `
         <div class="cal-event__bar" style="background:var(--cal-event-birth)"></div>
@@ -600,7 +608,7 @@ async function fetchJSON(path){
     const sp   = x.species || '不明';
     const date = x.birthday ? fmtMD(x.birthday) : '-';
     const zoo  = x.zoo_name || '園情報なし';
-    const href = `/babies/${encodeURIComponent(x.id)}/`;
+    const href = babyHref(x.id);
     const thumb = x.thumbnail_url
       ? `<img src="${x.thumbnail_url}" alt="${name}" loading="lazy" decoding="async">`
       : '';
@@ -764,7 +772,7 @@ async function fetchJSON(path){
     for (const b of rows) {
       const name = b.name || '（名前未設定）';
       const zoo  = b.zoo_name || '';
-      const href = `/babies/${encodeURIComponent(b.id)}/`;
+      const href = babyHref(b.id);
       const emoji = pickE(b);
       const thumbHtml = b.thumbnail_url
         ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" onerror="this.parentNode.textContent='${emoji}'">`

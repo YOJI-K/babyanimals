@@ -85,6 +85,36 @@ function ageSuffix(birthday) {
   return String(Math.min(y ?? 0, 3));
 }
 
+// ─── slug ユーティリティ ────────────────────────────────────────────
+
+function slugify(str) {
+  if (!str) return '';
+  return str
+    .replace(/[（(]/g, '-').replace(/[）)]/g, '')
+    .replace(/[　 　・]+/g, '-')
+    .replace(/[「」『』【】。、！？〜～／＊]/g, '')
+    .replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+function makeBabySlug(b, usedSlugs) {
+  const base = [slugify(b.name), slugify(b.species), slugify(b.zoo_name)]
+    .filter(Boolean).join('-');
+  if (!usedSlugs.has(base)) { usedSlugs.add(base); return base; }
+  const fallback = `${base}-${b.id.replace(/-/g, '').slice(0, 8)}`;
+  usedSlugs.add(fallback);
+  return fallback;
+}
+
+function buildSlugMap(babies) {
+  const usedSlugs = new Set();
+  const map = new Map();
+  for (const b of babies) {
+    if (!b.id) continue;
+    map.set(b.id, makeBabySlug(b, usedSlugs));
+  }
+  return map;
+}
+
 // ─── Supabase REST ──────────────────────────────────────────────────
 
 async function sbFetch(urlPath) {
@@ -238,21 +268,22 @@ function zooLinksHtml(zooName, animalName) {
 
 // ─── 赤ちゃん個別ページ ─────────────────────────────────────────────
 
-function babyHtml(b) {
+function babyHtml(b, slug, allBabies, slugMap) {
   const name     = b.name    || '赤ちゃん';
   const species  = b.species || '動物';
   const zoo      = b.zoo_name || '（動物園不明）';
   const bdayFmt  = fmtDate(b.birthday);
   const age      = ageText(b.birthday);
-  const canonical = `${SITE_BASE}/babies/${b.id}/`;
+  const birthdayYear = b.birthday ? new Date(b.birthday).getFullYear() : null;
+  const canonical = `${SITE_BASE}/babies/${slug}/`;
 
-  const title = `${name}（${species}）の赤ちゃん | どうベビ`;
-  const desc  = `${zoo}で生まれた${species}の赤ちゃん「${name}」。誕生日は${bdayFmt || '不明'}、現在${age}。動物園ファン向けベビー情報サイト「どうベビ」でチェック。`;
+  const title = `${name}（${species}）の赤ちゃん｜${zoo}`;
+  const desc  = `${zoo}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${species}の赤ちゃん「${name}」。誕生日は${bdayFmt || '不明'}、現在${age}。どうベビで動物園の赤ちゃん情報をチェック。`;
 
-  const jsonLd = JSON.stringify({
+  const articleLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: `${name}（${species}）の赤ちゃん情報`,
+    headline: `${name}（${species}）の赤ちゃん｜${zoo}`,
     description: desc,
     image: b.thumbnail_url || `${SITE_BASE}/assets/img/og.png`,
     url: canonical,
@@ -260,14 +291,50 @@ function babyHtml(b) {
     publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
   });
 
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '赤ちゃん一覧', item: `${SITE_BASE}/babies/` },
+      { '@type': 'ListItem', position: 3, name: `${name}（${species}）の赤ちゃん`, item: canonical },
+    ],
+  });
+
   const thumbHtml = b.thumbnail_url
     ? `<img class="ssg-detail__img" src="${esc(b.thumbnail_url)}" alt="${esc(name)}（${esc(species)}）" loading="eager" decoding="async">`
     : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`;
 
+  // 同じ動物園の赤ちゃん（最大6件）
+  const sameZoo = (allBabies || [])
+    .filter(x => x.zoo_name === b.zoo_name && x.id !== b.id)
+    .slice(0, 6);
+
+  // 同じ種別の赤ちゃん（同動物園は除外、最大6件）
+  const sameSpecies = (allBabies || [])
+    .filter(x => x.species === b.species && x.id !== b.id && x.zoo_name !== b.zoo_name)
+    .slice(0, 6);
+
+  const sameZooHtml = sameZoo.length ? `
+  <section class="ssg-related">
+    <h2 class="ssg-related__title">🏛️ ${esc(zoo)}の赤ちゃん</h2>
+    <div class="baby-grid">
+      ${sameZoo.map(x => zooBabyCardHtml(x, slugMap)).join('\n      ')}
+    </div>
+  </section>` : '';
+
+  const sameSpeciesHtml = sameSpecies.length ? `
+  <section class="ssg-related">
+    <h2 class="ssg-related__title">🐾 ほかの${esc(species)}の赤ちゃん</h2>
+    <div class="baby-grid">
+      ${sameSpecies.map(x => zooBabyCardHtml(x, slugMap)).join('\n      ')}
+    </div>
+  </section>` : '';
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd })}
+${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd: articleLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/babies/')}
@@ -293,7 +360,7 @@ ${siteNav('/babies/')}
         <span class="pill pill--age-${ageSuffix(b.birthday)}">🎈 ${esc(age)}</span>
       </div>
       <p class="ssg-detail__desc">
-        ${esc(zoo)}で生まれた${esc(species)}の赤ちゃんです。
+        ${esc(zoo)}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${esc(species)}の赤ちゃん「${esc(name)}」の情報ページです。
         誕生日は${esc(bdayFmt) || '不明'}、現在${esc(age)}。
       </p>
       ${zooLinksHtml(zoo, name)}
@@ -302,6 +369,9 @@ ${siteNav('/babies/')}
       </div>
     </div>
   </article>
+
+  ${sameZooHtml}
+  ${sameSpeciesHtml}
 
   <!-- Google AdSense 広告（コンテンツ下部）-->
   ${ADSENSE_ENABLED ? `<div class="ad-wrap ad-wrap--labeled" aria-label="広告">
@@ -330,6 +400,18 @@ ${siteFooter()}
 </script>
 </body>
 </html>`;
+}
+
+function babyRedirectHtml(slug) {
+  const target = `${SITE_BASE}/babies/${slug}/`;
+  return `<!doctype html><html lang="ja"><head>
+<meta charset="utf-8">
+<link rel="canonical" href="${target}">
+<meta http-equiv="refresh" content="0;url=/babies/${slug}/">
+<title>移動しました | どうベビ</title>
+</head><body>
+<p><a href="/babies/${slug}/">こちら</a>へ移動しました。</p>
+</body></html>`;
 }
 
 // ─── ニュース個別ページ ─────────────────────────────────────────────
@@ -413,14 +495,15 @@ ${siteFooter()}
 /**
  * 動物園の赤ちゃんカードHTML（一覧ページの赤ちゃんカードと同デザイン）
  */
-function zooBabyCardHtml(b) {
+function zooBabyCardHtml(b, slugMap = null) {
   const name     = b.name || '（名前未判明）';
   const species  = b.species || '';
   // 名前の中に既に種別が含まれている場合（旧データの '赤ちゃん（X）'）は種別を重複表示しない
   const showSpecies = species && !(b.name || '').includes(species);
   const bdayFmt  = fmtDate(b.birthday);
   const age      = ageText(b.birthday);
-  const href     = `/babies/${b.id}/`;
+  const slug     = slugMap?.get(b.id) || b.id;
+  const href     = `/babies/${slug}/`;
   const thumb    = b.thumbnail_url
     ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}"></div>`
     : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
@@ -442,7 +525,7 @@ function zooBabyCardHtml(b) {
 /**
  * 動物園個別ページ HTML
  */
-function zooHtml(zoo, babies) {
+function zooHtml(zoo, babies, slugMap = null) {
   const zooBabies = babies.filter(b => b.zoo_name === zoo.db_name);
   const count = zooBabies.length;
   const sampleNames = zooBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
@@ -493,7 +576,7 @@ function zooHtml(zoo, babies) {
     : '';
 
   const babiesGrid = count > 0
-    ? `<div class="baby-grid">${zooBabies.map(zooBabyCardHtml).join('')}</div>`
+    ? `<div class="baby-grid">${zooBabies.map(b => zooBabyCardHtml(b, slugMap)).join('')}</div>`
     : `<div class="empty-state">
          <p class="empty-state__title">現在、${esc(zoo.name)}の赤ちゃん情報はありません</p>
          <p class="empty-state__desc">また新しい情報が入り次第掲載します。</p>
@@ -666,7 +749,7 @@ ${siteFooter()}
  * /babies/index.html — クローラー向けに最大48件を事前レンダリング
  * 通常ユーザーはJS（babies.js）が最新データで上書きするため動的体験は維持される
  */
-function babiesIndexHtml(babies) {
+function babiesIndexHtml(babies, slugMap = null) {
   const preview = babies.slice(0, 48);
   const total   = babies.length;
 
@@ -690,8 +773,9 @@ function babiesIndexHtml(babies) {
     const thumb = b.thumbnail_url
       ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}"></div>`
       : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
+    const bSlug = slugMap?.get(b.id) || b.id;
     return `<div class="baby-card">
-        <a href="/babies/${esc(b.id)}/" class="baby-card__link" aria-label="${esc(name)}（${esc(species || '種別不明')}、${esc(zoo || '園情報なし')}）の詳細">
+        <a href="/babies/${esc(bSlug)}/" class="baby-card__link" aria-label="${esc(name)}（${esc(species || '種別不明')}、${esc(zoo || '園情報なし')}）の詳細">
           ${thumb}
           <div class="pad">
             <div class="title">${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}</div>
@@ -887,7 +971,7 @@ ${siteFooter()}
 
 
 
-function buildSitemap(babies, newsItems) {
+function buildSitemap(babies, newsItems, slugMap) {
   const today = new Date().toISOString().slice(0, 10);
 
   const staticUrls = [
@@ -906,7 +990,7 @@ function buildSitemap(babies, newsItems) {
   }));
 
   const babyUrls = babies.map(b => ({
-    loc:        `${SITE_BASE}/babies/${b.id}/`,
+    loc:        `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`,
     priority:   '0.7',
     changefreq: 'monthly',
     lastmod:    b.birthday ? b.birthday.slice(0, 10) : today,
@@ -999,16 +1083,23 @@ async function main() {
     console.warn(`   ⚠️  ニュース取得失敗: ${e.message}`);
   }
 
-  // ── 赤ちゃん個別ページ ──
+  // ── slug マップ構築 ──
+  const slugMap = buildSlugMap(babies);
+
+  // ── 赤ちゃん個別ページ（slug URL + UUID リダイレクトスタブ）──
   console.log(`\n🐣 赤ちゃん個別ページ生成中 (${babies.length} 件)...`);
   let babyCount = 0;
   for (const b of babies) {
     if (!b.id) continue;
-    writeHtml(path.join(WEB_DIR, 'babies', String(b.id), 'index.html'), babyHtml(b));
+    const slug = slugMap.get(b.id);
+    // slug URL に正規ページを生成
+    writeHtml(path.join(WEB_DIR, 'babies', slug, 'index.html'), babyHtml(b, slug, babies, slugMap));
+    // UUID URL にリダイレクトスタブを生成（既存リンクの後方互換）
+    writeHtml(path.join(WEB_DIR, 'babies', String(b.id), 'index.html'), babyRedirectHtml(slug));
     babyCount++;
     if (babyCount % 100 === 0) process.stdout.write(`   ${babyCount}/${babies.length}\n`);
   }
-  console.log(`   ✅ ${babyCount} 件完了`);
+  console.log(`   ✅ ${babyCount} 件完了（slug + UUID スタブ 各${babyCount}件）`);
 
   // ── ニュース個別ページ ──
   console.log(`\n🗞️  ニュース個別ページ生成中 (${newsItems.length} 件)...`);
@@ -1025,7 +1116,7 @@ async function main() {
   console.log(`\n🏛️  動物園個別ページ生成中 (${ZOOS.length} 園)...`);
   let zooCount = 0;
   for (const zoo of ZOOS) {
-    writeHtml(path.join(WEB_DIR, 'zoos', zoo.slug, 'index.html'), zooHtml(zoo, babies));
+    writeHtml(path.join(WEB_DIR, 'zoos', zoo.slug, 'index.html'), zooHtml(zoo, babies, slugMap));
     zooCount++;
   }
   console.log(`   ✅ ${zooCount} 園完了`);
@@ -1044,7 +1135,7 @@ async function main() {
 
   // ── 赤ちゃん一覧ページ（SSG） ──
   console.log(`\n🐣 赤ちゃん一覧ページ生成中...`);
-  writeHtml(path.join(WEB_DIR, 'babies', 'index.html'), babiesIndexHtml(babies));
+  writeHtml(path.join(WEB_DIR, 'babies', 'index.html'), babiesIndexHtml(babies, slugMap));
   console.log(`   ✅ /babies/ 出力（${Math.min(babies.length, 48)}件 事前レンダリング）`);
 
   // ── ニュース一覧ページ（SSG） ──
@@ -1054,8 +1145,16 @@ async function main() {
 
   // ── サイトマップ ──
   console.log('\n🗺️  sitemap.xml 生成中...');
-  writeHtml(path.join(WEB_DIR, 'sitemap.xml'), buildSitemap(babies, newsItems));
+  writeHtml(path.join(WEB_DIR, 'sitemap.xml'), buildSitemap(babies, newsItems, slugMap));
   console.log(`   ✅ ${babyCount + newsCount + zooCount + 5} URL を出力`);
+
+  // ── baby-slugs.json（JS 側のリンク生成に使用） ──
+  const slugsJsonPath = path.join(WEB_DIR, 'assets', 'data', 'baby-slugs.json');
+  const slugsJson = babies
+    .filter(b => b.id && slugMap.has(b.id))
+    .map(b => ({ id: b.id, slug: slugMap.get(b.id) }));
+  fs.writeFileSync(slugsJsonPath, JSON.stringify(slugsJson) + '\n', 'utf-8');
+  console.log(`   ✅ /assets/data/baby-slugs.json 出力（${slugsJson.length}件）`);
 
   // ── 静的 HTML の GA4 ID 差し替え ──────────────────────────────────
   // SSG で生成したページは既に GA_ID を埋め込み済み。
