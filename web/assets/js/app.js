@@ -4,6 +4,14 @@
 // - カレンダー：0〜3歳の年齢バッジ（日付セル）＋ 当月リスト（共通レンダラー）
 // - zoo_id -> /zoos の name を付与（メモリキャッシュ）
 
+/* ===== slug map（全 IIFE で共有） ===== */
+const babySlugMap = {};
+fetch('/assets/data/baby-slugs.json')
+  .then(r => r.json())
+  .then(arr => arr.forEach(({id, slug}) => { babySlugMap[id] = slug; }))
+  .catch(() => {});
+const babyHref = (id) => `/babies/${babySlugMap[id] || id}/`;
+
 (() => {
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
@@ -35,14 +43,6 @@
     }
     return res.json();
   }
-
-  /* ===== slug map ===== */
-  const babySlugMap = {}; // id → slug
-  fetch('/assets/data/baby-slugs.json')
-    .then(r => r.json())
-    .then(arr => arr.forEach(({id, slug}) => { babySlugMap[id] = slug; }))
-    .catch(() => {});
-  const babyHref = (id) => `/babies/${babySlugMap[id] || id}/`;
 
   /* ===== 取得 & キャッシュ ===== */
   const zooCache = new Map();    // zoo_id -> zoo
