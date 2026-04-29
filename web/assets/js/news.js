@@ -11,7 +11,6 @@
     return d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
   const domain = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
-  const today = () => new Date();
 
   function getPageSize() {
     const sp = new URLSearchParams(location.search);
@@ -73,6 +72,14 @@
   }
 
   // ===== View helpers =====
+  function categorize(title) {
+    const t = String(title || '');
+    if (/(誕生|生まれ|赤ちゃん|出産|公開デビュー)/.test(t)) return { tag:'誕生',    color:'var(--ac)',                  border:'#86efac' };
+    if (/(死去|逝去|亡くなり|訃報|死亡)/.test(t))           return { tag:'訃報',    color:'var(--news-tag-death-text)', border:'#fca5a5' };
+    if (/(イベント|祭り|ナイト|ふれあい|GW|夏休み|開催)/.test(t)) return { tag:'イベント', color:'#E8963A',                    border:'#fde68a' };
+    return { tag:'お知らせ', color:'#5B8AC4', border:'#bfdbfe' };
+  }
+
   function sourcePill(item){
     const base = (cls, text) => `<span class="pill ${cls}">${text}</span>`;
     const isYT = /youtube/i.test(item.source_name || item.url || '');
@@ -81,11 +88,6 @@
     if (zooish) return base('pill--zoo', '🏛️動物園公式');
     return base('pill--web', '🌐 Web');
   }
-  function isNew(pubISO){
-    const pub = new Date(pubISO);
-    const diff = (today() - pub) / 86400000;
-    return diff >= 0 && diff <= 7;
-  }
 
   function cardHTML(item) {
     const dateStr = fmtDate(item.published_at);
@@ -93,6 +95,7 @@
     const title = item.title || '(無題)';
     const href = item.url || item.source_url || '#';
     const hasImg = !!item.thumbnail_url;
+    const cat = categorize(title);
 
     return `
       <a href="${href}" class="news-card" target="_blank" rel="noopener" aria-label="${title.replace(/"/g,'&quot;')}">
@@ -103,7 +106,7 @@
           <div class="title">${title}</div>
           <div class="meta">
             <span>${dateStr}</span><span class="dot"></span><span>${host}</span><span class="dot"></span>${sourcePill(item)}
-            ${isNew(item.published_at) ? '<span class="pill pill--new">NEW</span>' : ''}
+            <span class="pill" style="color:${cat.color};border-color:${cat.border}">${cat.tag}</span>
           </div>
         </div>
       </a>
