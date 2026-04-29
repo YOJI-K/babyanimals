@@ -1018,6 +1018,253 @@ ${entries}
 `;
 }
 
+// ─── 静的ページ差分注入ヘルパー ────────────────────────────────────────
+
+/** SSGマーカー間のコンテンツを置換する */
+function patchSection(html, sectionName, newContent) {
+  const re = new RegExp(`<!--SSG:${sectionName}:start-->[\\s\\S]*?<!--SSG:${sectionName}:end-->`, 'g');
+  return html.replace(re, `<!--SSG:${sectionName}:start-->${newContent}<!--SSG:${sectionName}:end-->`);
+}
+
+/** 種別からemoji */
+function pickEmoji(species) {
+  const s = String(species || '').toLowerCase();
+  const MAP = [
+    ['🦊', ['レッサーパンダ', 'lesser panda', 'red panda']],
+    ['🐼', ['パンダ', 'panda']],
+    ['🐻‍❄️', ['ホッキョクグマ', 'polar bear', 'polar']],
+    ['🐻', ['ヒグマ', 'ツキノワグマ', 'bear']],
+    ['🐯', ['ホワイトタイガー', 'white tiger', 'アムールトラ', 'スマトラトラ', 'トラ', 'tiger']],
+    ['🦁', ['ライオン', 'lion']],
+    ['🐘', ['ゾウ', 'elephant']],
+    ['🦒', ['キリン', 'giraffe', 'オカピ', 'okapi']],
+    ['🦛', ['カバ', 'hippo']],
+    ['🦏', ['サイ', 'rhino']],
+    ['🐨', ['コアラ', 'koala']],
+    ['🦦', ['カワウソ', 'otter']],
+    ['🐧', ['ペンギン', 'penguin']],
+    ['🦍', ['ゴリラ', 'gorilla']],
+    ['🦧', ['オランウータン', 'orangutan']],
+    ['🐒', ['サル', 'monkey', 'ニホンザル', 'テングザル', 'ミーアキャット']],
+    ['🦫', ['ビーバー', 'beaver']],
+    ['🦨', ['コアリクイ', 'anteater']],
+    ['🐆', ['ヒョウ', 'leopard', 'ジャガー', 'jaguar']],
+    ['🦁', ['ライオン', 'lion']],
+    ['🦓', ['シマウマ', 'zebra']],
+    ['🦌', ['シカ', 'deer', 'エランド', 'eland']],
+    ['🦩', ['フラミンゴ', 'flamingo']],
+    ['🦭', ['アシカ', 'アザラシ', 'seal', 'sea lion']],
+  ];
+  for (const [emoji, keys] of MAP) {
+    if (keys.some(k => s.includes(k.toLowerCase()))) return emoji;
+  }
+  return '🐾';
+}
+
+/** 経過時間ラベル */
+function agoLabel(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (diffDays < 1)  return '今日';
+  if (diffDays < 7)  return `${diffDays}日前`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}週間前`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}ヶ月前`;
+  return `${Math.floor(diffDays / 365)}年前`;
+}
+
+/** ニュースカテゴリ判定 */
+function categorizeNews(title) {
+  const t = String(title || '');
+  if (/(誕生|生まれ|赤ちゃん|出産|公開デビュー)/.test(t)) return { tag: '誕生',    icon: '🐾', bg: 'var(--news-tag-birth-bg)', color: 'var(--ac)' };
+  if (/(死去|逝去|亡くなり|訃報|死亡)/.test(t))           return { tag: '訃報',    icon: '💐', bg: 'var(--news-tag-death-bg)', color: 'var(--news-tag-death-text)' };
+  if (/(イベント|祭り|ナイト|ふれあい|GW|夏休み|開催)/.test(t)) return { tag: 'イベント', icon: '🎉', bg: 'var(--news-tag-event-bg)', color: '#E8963A' };
+  return { tag: 'お知らせ', icon: '🏛️', bg: 'var(--news-tag-info-bg)', color: '#5B8AC4' };
+}
+
+/** MM/DD 形式 */
+function fmtMD(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+/**
+ * index.html の #recent-list と #news-preview-list を静的コンテンツで埋める
+ */
+function patchIndexHtml(babies, newsItems, slugMap) {
+  const indexPath = path.join(WEB_DIR, 'index.html');
+  if (!fs.existsSync(indexPath)) return;
+  let html = fs.readFileSync(indexPath, 'utf-8');
+
+  // 新着の赤ちゃん（誕生日降順 上位6件）
+  const recentBabies = [...babies]
+    .filter(b => b.birthday)
+    .sort((a, b) => b.birthday.localeCompare(a.birthday))
+    .slice(0, 6);
+
+  const recentHtml = recentBabies.map(b => {
+    const name    = esc(b.name || '（名前未設定）');
+    const species = esc(b.species || '不明');
+    const zoo     = esc(b.zoo_name || '');
+    const slug    = slugMap?.get(b.id) || b.id;
+    const href    = `/babies/${slug}/`;
+    const emoji   = pickEmoji(b.species);
+    const thumb   = b.thumbnail_url
+      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async">`
+      : emoji;
+    const ago     = agoLabel(b.birthday);
+    return `<a class="dbb-brow" href="${href}" role="listitem">
+  <div class="dbb-brow__thumb">${thumb}</div>
+  <div class="dbb-brow__info">
+    <div class="dbb-brow__name">${name}</div>
+    <div class="dbb-brow__species">${species}</div>
+    ${zoo ? `<div class="dbb-brow__zoo">📍 ${zoo}</div>` : ''}
+  </div>
+  ${ago ? `<div class="dbb-brow__badge">${ago}</div>` : ''}
+</a>`;
+  }).join('\n');
+
+  // 最新ニュース（上位3件）
+  const recentNews = newsItems.slice(0, 3);
+  const newsHtml = recentNews.map(item => {
+    const cat   = categorizeNews(item.title);
+    const title = esc(item.title || '(無題)');
+    const href  = esc(item.url || '#');
+    const date  = fmtDate(item.published_at);
+    const src   = item.source_name ? ` · ${esc(item.source_name)}` : '';
+    return `<a class="dbb-nitem" href="${href}" target="_blank" rel="noopener" role="listitem">
+  <div class="dbb-nitem__icon" style="background:${cat.bg}">${cat.icon}</div>
+  <div class="dbb-nitem__body">
+    <div class="dbb-nitem__tag" style="color:${cat.color}">${cat.tag}</div>
+    <p class="dbb-nitem__title">${title}</p>
+    <div class="dbb-nitem__date">${date}${src}</div>
+  </div>
+</a>`;
+  }).join('\n');
+
+  html = patchSection(html, 'recent', `\n${recentHtml}\n`);
+  html = patchSection(html, 'news', `\n${newsHtml}\n`);
+  fs.writeFileSync(indexPath, html, 'utf-8');
+}
+
+/**
+ * calendar/index.html をビルド時の月で静的コンテンツに差し替える
+ */
+function patchCalendarHtml(babies, slugMap) {
+  const calPath = path.join(WEB_DIR, 'calendar', 'index.html');
+  if (!fs.existsSync(calPath)) return;
+  let html = fs.readFileSync(calPath, 'utf-8');
+
+  const now   = new Date();
+  const Y     = now.getFullYear();
+  const M     = now.getMonth() + 1; // 1-12
+
+  // 当月に誕生日がある 0〜3歳の赤ちゃんを抽出
+  const monthBabies = babies.filter(b => {
+    if (!b.birthday) return false;
+    const bd  = new Date(b.birthday);
+    const age = Y - bd.getFullYear();
+    return bd.getMonth() + 1 === M && age >= 0 && age <= 3;
+  }).sort((a, b) => new Date(a.birthday).getDate() - new Date(b.birthday).getDate());
+
+  // --- カレンダーグリッド生成 ---
+  const first    = new Date(Y, M - 1, 1);
+  const startIdx = first.getDay(); // 0=日
+  const lastDate = new Date(Y, M, 0).getDate();
+  const prevLast = new Date(Y, M - 1, 0).getDate();
+  const todayD   = now.getDate();
+  const todayM   = now.getMonth() + 1;
+  const todayY   = now.getFullYear();
+
+  let cells = '';
+
+  // 前月末尾
+  for (let i = startIdx - 1; i >= 0; i--) {
+    cells += `<div class="cal-day other-month" aria-hidden="true"><span class="cal-dn">${prevLast - i}</span><div class="cal-dots"></div></div>`;
+  }
+
+  // 当月
+  for (let day = 1; day <= lastDate; day++) {
+    const dow   = new Date(Y, M - 1, day).getDay();
+    const isToday = (day === todayD && M === todayM && Y === todayY);
+    const hits  = monthBabies.filter(b => new Date(b.birthday).getDate() === day);
+    let cls = 'cal-day';
+    if (dow === 0) cls += ' sun';
+    if (dow === 6) cls += ' sat';
+    if (isToday)  cls += ' today';
+    const dots = hits.slice(0, 3).map(() => '<span class="cal-dot cal-dot--birth"></span>').join('');
+    const ariaLabel = hits.length
+      ? `${Y}年${M}月${day}日、${hits.length}件の誕生日`
+      : `${Y}年${M}月${day}日`;
+    cells += `<div class="${cls}" role="gridcell" aria-label="${ariaLabel}"><span class="cal-dn">${day}</span><div class="cal-dots">${dots}</div></div>`;
+  }
+
+  // 翌月頭
+  const trailing = (7 - ((startIdx + lastDate) % 7)) % 7;
+  for (let i = 1; i <= trailing; i++) {
+    cells += `<div class="cal-day other-month" aria-hidden="true"><span class="cal-dn">${i}</span><div class="cal-dots"></div></div>`;
+  }
+
+  // --- 誕生日リスト生成 ---
+  const listHtml = monthBabies.length === 0
+    ? '<p class="empty-state__desc">今月は対象がいません。</p>'
+    : monthBabies.map(b => {
+        const name    = esc(b.name || '（名前未設定）');
+        const species = esc(b.species || '');
+        const zoo     = esc(b.zoo_name || '');
+        const slug    = slugMap?.get(b.id) || b.id;
+        const href    = `/babies/${slug}/`;
+        const age     = Y - new Date(b.birthday).getFullYear();
+        const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
+        const thumb   = b.thumbnail_url
+          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async">`
+          : '';
+        const bday    = fmtMD(b.birthday);
+        return `<a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${species}）">
+  <div class="${thumbCls}">${thumb}<div class="dbb-bc__age">${age}歳</div></div>
+  <div class="dbb-bc__body">
+    <div class="dbb-bc__name">${name}</div>
+    <div class="dbb-bc__species">${species}</div>
+    ${zoo ? `<div class="dbb-bc__zoo">📍 ${zoo}</div>` : ''}
+    <div class="dbb-bc__bday">🎂 ${bday}</div>
+  </div>
+</a>`;
+      }).join('\n');
+
+  const monthLabel = `${Y}年${M}月`;
+  html = patchSection(html, 'cal-title',       monthLabel);
+  html = patchSection(html, 'cal-grid',        cells);
+  html = patchSection(html, 'cal-month-label', monthLabel);
+  html = patchSection(html, 'cal-list',        `\n${listHtml}\n`);
+  fs.writeFileSync(calPath, html, 'utf-8');
+}
+
+/**
+ * _redirects の UUID→slug 301セクションを更新する
+ */
+function updateRedirects(slugMap) {
+  const redirectsPath = path.join(WEB_DIR, '_redirects');
+  if (!fs.existsSync(redirectsPath)) return;
+  let content = fs.readFileSync(redirectsPath, 'utf-8');
+
+  const lines = [];
+  for (const [id, slug] of slugMap.entries()) {
+    lines.push(`/babies/${id}/ /babies/${slug}/ 301`);
+  }
+  const section = `# --- SSG:UUID-redirects:start ---\n${lines.join('\n')}\n# --- SSG:UUID-redirects:end ---`;
+
+  const re = /# --- SSG:UUID-redirects:start ---[\s\S]*?# --- SSG:UUID-redirects:end ---/;
+  if (re.test(content)) {
+    content = content.replace(re, section);
+  } else {
+    // マーカーがなければ先頭近くに挿入
+    content = content.replace('/sitemap.xml  /sitemap.xml  200\n', `/sitemap.xml  /sitemap.xml  200\n\n${section}\n`);
+  }
+  fs.writeFileSync(redirectsPath, content, 'utf-8');
+}
+
 // ─── データ取得（Supabase または モックファイル） ────────────────────
 
 const USE_MOCK = process.argv.includes('--mock');
@@ -1155,6 +1402,23 @@ async function main() {
     .map(b => ({ id: b.id, slug: slugMap.get(b.id) }));
   fs.writeFileSync(slugsJsonPath, JSON.stringify(slugsJson) + '\n', 'utf-8');
   console.log(`   ✅ /assets/data/baby-slugs.json 出力（${slugsJson.length}件）`);
+
+  // ── _redirects の UUID 301 セクション更新（本番 SSG のみ） ──
+  if (!USE_MOCK) {
+    console.log('\n🔀 _redirects UUID 301リダイレクト更新中...');
+    updateRedirects(slugMap);
+    console.log(`   ✅ ${slugMap.size} 件の UUID→slug 301リダイレクト更新`);
+  }
+
+  // ── index.html SSG注入（新着の赤ちゃん・最新ニュース） ──
+  console.log('\n🏠 index.html SSG注入中...');
+  patchIndexHtml(babies, newsItems, slugMap);
+  console.log('   ✅ index.html 新着セクション注入完了');
+
+  // ── calendar/index.html SSG注入 ──
+  console.log('\n📅 calendar/index.html SSG注入中...');
+  patchCalendarHtml(babies, slugMap);
+  console.log('   ✅ calendar/index.html 当月カレンダー注入完了');
 
   // ── 静的 HTML の GA4 ID 差し替え ──────────────────────────────────
   // SSG で生成したページは既に GA_ID を埋め込み済み。

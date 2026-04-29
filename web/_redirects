@@ -1,6 +1,60 @@
 /robots.txt   /robots.txt   200
 /sitemap.xml  /sitemap.xml  200
 
+# --- SSG:UUID-redirects:start ---
+/babies/2a4c2bd4-10bb-4925-8ee9-35b58569e99c/ /babies/ザリガニの赤-東山動植物園/ 301
+/babies/c5232089-35ba-4386-8ba7-c4c9fce80b3b/ /babies/ふく-ミナミコアリクイ-野毛山動物園/ 301
+/babies/5d45961c-f3ac-4061-ba84-c5c0e73f5972/ /babies/カロ-テングザル-よこはま動物園ズーラシア/ 301
+/babies/946cd7a2-3753-4197-99b1-96fc326f246e/ /babies/イロハ-コビトカバ-上野動物園/ 301
+/babies/6c2406df-3ecd-4661-9097-ddba8e63e155/ /babies/サンタロウ-ニシゴリラ-京都市動物園/ 301
+/babies/38f0af63-e70d-4109-866c-a367c7a291bf/ /babies/シュウマ-マサイキリン-宮崎市フェニックス自然動物園/ 301
+/babies/1e547586-9d6d-4ab9-8142-0aa4a9b5b527/ /babies/ネム-ケープハイラックス-よこはま動物園ズーラシア/ 301
+/babies/d342a275-031f-45fc-bb75-72e25cd41a35/ /babies/レオ-ケープハイラックス-よこはま動物園ズーラシア/ 301
+/babies/c0391a6c-1692-4994-b2ea-beea5f2e308d/ /babies/アオ-マルミミゾウ-広島市安佐動物公園/ 301
+/babies/9291281a-b80d-4af3-82dc-4ae1b499b634/ /babies/パンチ-ニホンザル-市川市動植物園/ 301
+/babies/2f29ff43-e022-42d9-b579-84a1d8c2130c/ /babies/フラハ-オカピ-よこはま動物園ズーラシア/ 301
+/babies/18b4fc4d-75e2-4de5-bae7-dab8aab2025b/ /babies/ウタ-コビトカバ-神戸どうぶつ王国/ 301
+/babies/e4f5a6b7-8c9d-5a01-2b3c-4d5e6f7081aa/ /babies/もも-フンボルトペンギン-静岡市立日本平動物園/ 301
+/babies/39e0f112-1234-5a56-7b8c-9d0e1f2346ff/ /babies/アカリ-エランド-札幌市円山動物園/ 301
+/babies/5eba8267-728c-4eb1-b272-3b8f7038838d/ /babies/コッペ-アメリカビーバー-高知県立のいち動物公園/ 301
+/babies/f2a6f3c9-9d2b-5c16-8d17-ae2f3a4b5c99/ /babies/ミルク-ホッキョクグマ-旭山動物園/ 301
+/babies/d96cede2-5013-4ad3-afbd-cae45e2ba0d0/ /babies/きさい-ミーアキャット-姫路市立動物園/ 301
+/babies/37b07233-e8f6-41ac-8df8-77655f1f9033/ /babies/さくら-ミーアキャット-姫路市立動物園/ 301
+/babies/eb4e3940-86c6-4b5e-b7dd-c452f12ea73c/ /babies/びぜん-ミーアキャット-姫路市立動物園/ 301
+/babies/a3cf93fa-d711-4219-bdae-bea17a8e2304/ /babies/ひし-ミーアキャット-姫路市立動物園/ 301
+/babies/0cc22120-0717-4f6d-bec7-e49ffc5800d5/ /babies/パイ-ミーアキャット-高知県立のいち動物公園/ 301
+/babies/92584fb8-a531-4397-a61b-977811ac987d/ /babies/ポー-ミーアキャット-高知県立のいち動物公園/ 301
+/babies/c0a8a6a2-0e7f-53f0-8b0a-0b2e4be0a9e0/ /babies/そら-ホッキョクグマ-八木山動物公園フジサキの杜/ 301
+/babies/f2a6f1f7-3e1a-5a96-a5b5-7d7b9a4f3d11/ /babies/うみ-ホッキョクグマ-八木山動物公園フジサキの杜/ 301
+/babies/dd14b57b-de42-45ab-8b5e-d551a0ea66d0/ /babies/ナツ-ミーアキャット-高知県立のいち動物公園/ 301
+/babies/9b2f93f6-9c7d-5f7a-89b0-a2c278f7d4a1/ /babies/ライ-ホッキョクグマ-よこはま動物園ズーラシア/ 301
+/babies/ce72c581-52c8-4dae-b028-c15dd28049c2/ /babies/ハク-ホワイトタイガー-東武動物公園/ 301
+/babies/d3956eed-bbf2-4a1c-b4b4-436465edd4ac/ /babies/コタ-ホワイトタイガー-東武動物公園/ 301
+/babies/5e6f7a8b-9c0d-5e1f-2a3b-4c5d6e7f8011/ /babies/ツキ-ホワイトタイガー-伊豆アニマルキングダム/ 301
+/babies/6f7a8b9c-0d1e-5f2a-3b4c-5d6e7f801222/ /babies/シグレ-ホワイトタイガー-伊豆アニマルキングダム/ 301
+/babies/20af1c25-9964-5525-937b-5e77334bb920/ /babies/デコポン-インドサイ-多摩動物公園/ 301
+/babies/0b1c2d3e-4f5a-5b6c-8d7e-9f0a1b2c3d66/ /babies/たけのこ-レッサーパンダ-羽村市動物公園/ 301
+/babies/f3a8e1d2-3b4c-58d2-8d7f-3e1a5b9c0d22/ /babies/おうき-コアラ-神戸市立王子動物園/ 301
+/babies/85ea8b6b-13fd-4e88-b52f-11a806afe3dc/ /babies/ココロ-カリフォルニアアシカ-愛媛県立とべ動物園/ 301
+/babies/28d9e0f1-0123-5a45-6b7c-8d9e0f1235ee/ /babies/レオナ-アムールトラ-旭山動物園/ 301
+/babies/b1e7d9c3-5a8f-5254-8c3e-09b5a9d1e5ab/ /babies/フタバ-アムールトラ-多摩動物公園/ 301
+/babies/5859d3cd-b8b2-4774-be73-e9f2b8a4a277/ /babies/つくし-ライオン-愛媛県立とべ動物園/ 301
+/babies/33f510f8-19c1-40cd-bb40-458df35d6aa4/ /babies/アネ-ライオン-愛媛県立とべ動物園/ 301
+/babies/185bcdfe-125e-42f2-a090-c914ca7b65ce/ /babies/モネ-ライオン-愛媛県立とべ動物園/ 301
+/babies/d431fc25-fd38-48c9-8699-c95da0d97c03/ /babies/アキ-アミメキリン-多摩動物公園/ 301
+/babies/c4944bf9-a081-46e0-a9f2-ec912ddb71de/ /babies/もなか-コアラ-東山動植物園/ 301
+/babies/17c8d9e0-f102-5a34-5b6c-7d8e9f0124dd/ /babies/ヒカリ-キリン-到津の森公園/ 301
+/babies/1a2b3c4d-5e6f-5a7b-8c9d-0e1f2a3b4c77/ /babies/しぶき-コツメカワウソ-周南市徳山動物園/ 301
+/babies/2b3c4d5e-6f7a-5b8c-9d0e-1f2a3b4c5d88/ /babies/みなも-コツメカワウソ-周南市徳山動物園/ 301
+/babies/4d5e6f7a-8b9c-5d0e-1f2a-3b4c5d6e7f00/ /babies/しずく-コツメカワウソ-周南市徳山動物園/ 301
+/babies/3c4d5e6f-7a8b-58c9-0d1e-2a3b4c5d6e99/ /babies/なぎ-コツメカワウソ-周南市徳山動物園/ 301
+/babies/ac436e03-d4dc-5a81-8c80-d61b63f7d356/ /babies/タオ-アジアゾウ-札幌市円山動物園/ 301
+/babies/a1b2c3d4-5e6f-59a8-8b9c-0d1e2f3a4b55/ /babies/えみ-レッサーパンダ-静岡市立日本平動物園/ 301
+/babies/44c42549-8c0b-4b68-b614-ce6a336fdd42/ /babies/杏香-レッサーパンダ-熊本市動植物園/ 301
+/babies/06b7c8d9-e0f1-5a23-4b5c-6d7e8f9013cc/ /babies/しずく-トラ別個体-アムールトラ-神戸市立王子動物園/ 301
+/babies/b4023edf-0af8-4e7a-ac4e-e40117dd7416/ /babies/アサ-スマトラトラ-上野動物園/ 301
+# --- SSG:UUID-redirects:end ---
+
 # 静的ファイルが存在する場合は優先して配信（SSG生成ページ）
 # 存在しない場合は各一覧ページへフォールバック
 /babies/*    /babies/index.html   200

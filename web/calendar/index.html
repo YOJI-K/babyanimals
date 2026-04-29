@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>どうベビ | 誕生日カレンダー</title>
-  <meta name="description" content="どうベビ（動物園ベビー情報）— 0〜3歳の誕生日を月カレンダーで表示。日付タップで詳細を確認。" />
+  <title>赤ちゃん動物 誕生日カレンダー | どうベビ</title>
+  <meta name="description" content="動物園の赤ちゃん動物の誕生日をカレンダーで確認。今月・来月生まれの赤ちゃんを一覧表示。" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
@@ -64,7 +64,7 @@
   <main class="container" id="main">
     <!-- Month navigation header -->
     <div class="cal-header">
-      <div class="cal-month" id="cal-title">—</div>
+      <div class="cal-month" id="cal-title"><!--SSG:cal-title:start-->2026年4月<!--SSG:cal-title:end--></div>
       <div class="cal-nav" role="group" aria-label="月移動">
         <button id="prev-month" aria-label="前の月へ">‹</button>
         <button id="today-month" aria-label="今月へ" style="width:auto;padding:0 10px;font-size:12px;font-weight:600">今</button>
@@ -83,14 +83,16 @@
       <div class="cal-dow sat">土</div>
     </div>
 
-    <!-- Calendar grid (populated by app.js) -->
-    <div id="cal-grid" class="cal-grid" role="grid" aria-readonly="true"></div>
+    <!-- Calendar grid (populated by app.js, pre-rendered by SSG) -->
+    <div id="cal-grid" class="cal-grid" role="grid" aria-readonly="true"><!--SSG:cal-grid:start--><div class="cal-day other-month" aria-hidden="true"><span class="cal-dn">29</span><div class="cal-dots"></div></div><div class="cal-day other-month" aria-hidden="true"><span class="cal-dn">30</span><div class="cal-dots"></div></div><div class="cal-day other-month" aria-hidden="true"><span class="cal-dn">31</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月1日"><span class="cal-dn">1</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月2日"><span class="cal-dn">2</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月3日"><span class="cal-dn">3</span><div class="cal-dots"></div></div><div class="cal-day sat" role="gridcell" aria-label="2026年4月4日"><span class="cal-dn">4</span><div class="cal-dots"></div></div><div class="cal-day sun" role="gridcell" aria-label="2026年4月5日"><span class="cal-dn">5</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月6日"><span class="cal-dn">6</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月7日"><span class="cal-dn">7</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月8日"><span class="cal-dn">8</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月9日"><span class="cal-dn">9</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月10日"><span class="cal-dn">10</span><div class="cal-dots"></div></div><div class="cal-day sat" role="gridcell" aria-label="2026年4月11日"><span class="cal-dn">11</span><div class="cal-dots"></div></div><div class="cal-day sun" role="gridcell" aria-label="2026年4月12日"><span class="cal-dn">12</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月13日"><span class="cal-dn">13</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月14日"><span class="cal-dn">14</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月15日"><span class="cal-dn">15</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月16日"><span class="cal-dn">16</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月17日"><span class="cal-dn">17</span><div class="cal-dots"></div></div><div class="cal-day sat" role="gridcell" aria-label="2026年4月18日"><span class="cal-dn">18</span><div class="cal-dots"></div></div><div class="cal-day sun" role="gridcell" aria-label="2026年4月19日"><span class="cal-dn">19</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月20日"><span class="cal-dn">20</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月21日"><span class="cal-dn">21</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月22日"><span class="cal-dn">22</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月23日"><span class="cal-dn">23</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月24日"><span class="cal-dn">24</span><div class="cal-dots"></div></div><div class="cal-day sat" role="gridcell" aria-label="2026年4月25日"><span class="cal-dn">25</span><div class="cal-dots"></div></div><div class="cal-day sun" role="gridcell" aria-label="2026年4月26日"><span class="cal-dn">26</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月27日"><span class="cal-dn">27</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月28日"><span class="cal-dn">28</span><div class="cal-dots"></div></div><div class="cal-day today" role="gridcell" aria-label="2026年4月29日"><span class="cal-dn">29</span><div class="cal-dots"></div></div><div class="cal-day" role="gridcell" aria-label="2026年4月30日"><span class="cal-dn">30</span><div class="cal-dots"></div></div><div class="cal-day other-month" aria-hidden="true"><span class="cal-dn">1</span><div class="cal-dots"></div></div><div class="cal-day other-month" aria-hidden="true"><span class="cal-dn">2</span><div class="cal-dots"></div></div><!--SSG:cal-grid:end--></div>
 
     <hr class="cal-divider">
 
     <!-- Selected day's events / monthly list -->
-    <div class="cal-day-title" id="month-label-list">—</div>
-    <div id="js-birthdayList" role="list" aria-live="polite"></div>
+    <div class="cal-day-title" id="month-label-list"><!--SSG:cal-month-label:start-->2026年4月<!--SSG:cal-month-label:end--></div>
+    <div id="js-birthdayList" role="list" aria-live="polite"><!--SSG:cal-list:start-->
+<p class="empty-state__desc">今月は対象がいません。</p>
+<!--SSG:cal-list:end--></div>
 
   </main>
 
