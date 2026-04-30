@@ -1005,7 +1005,7 @@ function buildSitemap(babies, newsItems, slugMap) {
 
   const allUrls = [...staticUrls, ...zooUrls, ...babyUrls, ...newsUrls];
   const entries = allUrls.map(u => `  <url>
-    <loc>${u.loc}</loc>
+    <loc>${encodeURI(u.loc)}</loc>
     <lastmod>${u.lastmod}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
