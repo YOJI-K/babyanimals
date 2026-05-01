@@ -1239,6 +1239,81 @@ body {
   vertical-align: middle;
 }
 
+/* ============================================================
+   種の紹介文セクション（赤ちゃん個別ページ）
+   ============================================================ */
+.species-info {
+  margin: 20px 0 8px;
+  padding: 16px 18px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  border-left: 4px solid var(--ac);
+}
+.species-info__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--forest-700, #166534);
+  margin: 0 0 10px;
+}
+.species-info__desc {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-2, #555);
+  margin: 0;
+}
+
+/* ============================================================
+   スペック表（赤ちゃん個別ページ）
+   ============================================================ */
+.baby-specs {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.baby-specs th,
+.baby-specs td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.baby-specs th {
+  width: 5.5em;
+  color: var(--text-2, #666);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.baby-specs td {
+  color: var(--text-1, #222);
+}
+.baby-specs__iucn {
+  font-weight: 600;
+  color: #b45309;
+}
+
+/* ============================================================
+   この子に会いに行こうセクション（visit-cta）
+   ============================================================ */
+.visit-cta {
+  margin: 20px 0 4px;
+  padding: 16px 18px 18px;
+  background: linear-gradient(135deg, #f0fdf4, #fefce8);
+  border-radius: 14px;
+  border: 1px solid #86efac;
+}
+.visit-cta__title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #15803d;
+  margin: 0 0 6px;
+}
+.visit-cta__lead {
+  font-size: 13px;
+  color: var(--text-2, #555);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
 /* ssg-detail__actions (個別ページ「一覧へ戻る」エリア) */
 .ssg-detail__actions {
   margin-top: 12px;
