@@ -40,7 +40,7 @@ export const ZOOS = [
     fees: '一般 600円／中学生 200円／65歳以上 300円／小学生以下 無料',
     description: 'ジャイアントパンダをはじめ約300種の動物を飼育する日本最古の動物園。双子パンダ「シャオシャオ」「レイレイ」で話題に。',
     official_url: 'https://www.tokyo-zoo.net/zoo/ueno/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F164335%2F',
     hero_emoji: '🐼',
   },
   {
@@ -56,7 +56,7 @@ export const ZOOS = [
     fees: '一般 600円／中学生 200円／65歳以上 300円／小学生以下 無料',
     description: '52ヘクタールの広大な敷地で動物たちを自然に近い環境で観察できる動物園。ライオンバスやコアラ舎が人気。',
     official_url: 'https://www.tokyo-zoo.net/zoo/tama/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F164338%2F',
     hero_emoji: '🦁',
   },
   // ── 北海道 ───────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ export const ZOOS = [
     fees: '大人 500円／中学生以下 無料',
     description: 'イケメンゴリラ「シャバーニ」で有名な、約500種の動物と約7,000種の植物を有する国内屈指の動植物園。',
     official_url: 'https://www.higashiyama.city.nagoya.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F160839%2F',
     hero_emoji: '🦍',
   },
   // ── 大阪 ─────────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ export const ZOOS = [
     fees: '大人 500円／小中学生 200円／未就学児 無料',
     description: '1915年開園の大阪を代表する都市型動物園。約180種の動物が飼育され、アフリカサバンナゾーンが人気。',
     official_url: 'https://www.tennojizoo.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F155400%2F',
     hero_emoji: '🦓',
   },
   // ── 兵庫 ─────────────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ export const ZOOS = [
     fees: '大人 2,200円／小学生 1,200円／幼児（4・5歳）500円',
     description: '天候に左右されない全天候型動物園。動物との距離が近く、カピバラやハシビロコウの観察・ふれあいが楽しめる。',
     official_url: 'https://www.kobe-oukoku.com/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F151141%2F',
     hero_emoji: '🦦',
   },
   // ── 北海道（追加） ─────────────────────────────────────────────────
@@ -224,7 +224,7 @@ export const ZOOS = [
     fees: '大人 520円／小中学生 100円／未就学児 無料',
     description: '太平洋を望む丘の上にある動物園。チンパンジーやキリン、レッサーパンダなど約80種を展示。',
     official_url: 'https://www.city.hitachi.lg.jp/zoo/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F159908%2F',
     hero_emoji: '🦒',
   },
   {
@@ -240,7 +240,7 @@ export const ZOOS = [
     fees: '大人 1,400円／3歳〜小学生 700円',
     description: '遊園地併設の民営動物園。ホワイトタイガーやキリン、ライオンへの餌やり体験が人気。',
     official_url: 'https://utsunomiya-zoo.com/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F150798%2F',
     hero_emoji: '🐯',
   },
   {
@@ -256,7 +256,7 @@ export const ZOOS = [
     fees: '大人 2,600円／3歳〜小学生 1,200円',
     description: '「王国タウン」と「王国ファーム」の2エリア構成。カピバラ・ハシビロコウ・スナネコなど希少動物との距離が近い。',
     official_url: 'https://www.nasu-oukoku.com/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F150443%2F',
     hero_emoji: '🦫',
   },
   {
@@ -272,7 +272,7 @@ export const ZOOS = [
     fees: '大人 2,800円／3歳〜中学生 1,400円',
     description: '車で園内を巡るサファリ形式の動物園。ライオン・ホワイトタイガー・ゾウなどを自然に近い環境で観察できる。',
     official_url: 'https://www.safari.co.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F154783%2F',
     hero_emoji: '🐆',
   },
   // ── 埼玉・千葉 ──────────────────────────────────────────────
@@ -289,7 +289,7 @@ export const ZOOS = [
     fees: '大人 710円／65歳以上 350円／中学生以下無料',
     description: 'コアラの飼育数が日本一。ニホンコウノトリなど希少種の保全にも取り組む自然豊かな動物園。',
     official_url: 'https://www.pref.saitama.lg.jp/saitamachildren-zoo/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F163051%2F',
     hero_emoji: '🐨',
   },
   {
@@ -321,7 +321,7 @@ export const ZOOS = [
     fees: '大人 700円／65歳以上 350円／中学生以下無料',
     description: '約150種1,100点の動物を飼育。レッサーパンダ「風太」で知られ、アフリカゾウ・ライオン・フラミンゴなど多彩な動物が揃う。',
     official_url: 'https://www.city-zoo.chiba.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F159690%2F',
     hero_emoji: '🐘',
   },
   {
@@ -354,7 +354,7 @@ export const ZOOS = [
     fees: '大人 400円／65歳以上 200円／中学生 150円',
     description: '都内唯一のゾウ「はな子」で知られた歴史ある動物園。現在もモルモット・リス・水生物を中心に展示。',
     official_url: 'https://www.tokyo-zoo.net/zoo/ino/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F164336%2F',
     hero_emoji: '🦦',
   },
   {
@@ -483,7 +483,7 @@ export const ZOOS = [
     fees: '大人 2,400円／小学生 1,400円／3〜5歳 500円',
     description: 'サバンナ式ふれあい動物園。カバ・シマウマ・チーターなどアフリカ動物と間近で触れ合える。',
     official_url: 'https://www.izu-ak.com/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F150150%2F',
     hero_emoji: '🦓',
   },
   // ── 愛知・石川・富山 ─────────────────────────────────────────
@@ -516,7 +516,7 @@ export const ZOOS = [
     fees: '大人 500円／中学生以下無料',
     description: '日本最多水準の動物種数を誇る国内最大規模の動物園。コアラ・ホッキョクグマ・ユキヒョウなどを飼育。',
     official_url: 'https://www.higashiyama.city.nagoya.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F160839%2F',
     hero_emoji: '🐨',
   },
   {
@@ -532,7 +532,7 @@ export const ZOOS = [
     fees: '大人 700円／小中学生 200円',
     description: 'スマトラトラ・ジャガー・ニシゴリラなど希少な肉食獣を多数飼育。白山を望む自然豊かな動物園。',
     official_url: 'https://www.ishikawazoo.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F164250%2F',
     hero_emoji: '🐅',
   },
   {
@@ -613,7 +613,7 @@ export const ZOOS = [
     fees: '大人 5,300円／小学生 3,800円／4〜5歳 2,500円',
     description: '世界最多のジャイアントパンダ繁殖数を誇る施設。サファリ・水族館・ショーを併設するリゾート型動物園。',
     official_url: 'https://www.aws-s.com/',
-    asoview_url: 'https://www.asoview.com/item/ticket/act0000059671/',
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F164046%2F',
     hero_emoji: '🐼',
   },
   {
@@ -662,7 +662,7 @@ export const ZOOS = [
     fees: '大人 510円／小中学生 30円',
     description: 'ミナミコアリクイ・アフリカゾウ・スマトラトラなどを飼育。動物の生態を重視した展示が評判。',
     official_url: 'https://www.asazoo.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F164174%2F',
     hero_emoji: '🐘',
   },
   {
@@ -775,7 +775,7 @@ export const ZOOS = [
     fees: '大人 1,850円／小中学生 930円',
     description: '放し飼いのカバ・フラミンゴ・アリクイなどと自由に触れ合える自然派動物園。餌やり体験が充実。',
     official_url: 'https://www.biopark.co.jp/',
-    asoview_url: 'https://www.asoview.com/item/ticket/act0000023814/',
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F156242%2F',
     hero_emoji: '🦛',
   },
   // ── 九州南部・沖縄 ──────────────────────────────────────────
@@ -844,6 +844,22 @@ export const ZOOS = [
     hero_emoji: '🦛',
   },
   {
+    slug: 'tobu',
+    db_name: '東武動物公園',
+    name: '東武動物公園',
+    prefecture: '埼玉県',
+    city: '南埼玉郡宮代町',
+    address: '〒345-0831 埼玉県南埼玉郡宮代町須賀110',
+    nearest_station: '東武動物公園駅（東武伊勢崎線・日光線）から徒歩5分',
+    hours: '10:00〜17:00（季節変動あり）',
+    closed_days: '木曜日（祝日の場合は翌日）・冬季休園あり',
+    fees: '大人 1,800円／小学生 600円／3歳以上 300円',
+    description: 'ホワイトタイガーをはじめ約120種の動物を飼育。遊園地・プールも併設する複合レジャー施設。',
+    official_url: 'https://www.tobuzoo.com/',
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F155350%2F',
+    hero_emoji: '🐯',
+  },
+  {
     slug: 'okinawa-kodomo',
     db_name: '沖縄こどもの国',
     name: '沖縄こどもの国',
@@ -856,7 +872,7 @@ export const ZOOS = [
     fees: '大人 500円／小中学生 200円',
     description: '亜熱帯の豊かな自然の中、オキナワイノシシ・リュウキュウイノシシなど琉球の固有種を含む約70種を飼育。',
     official_url: 'https://www.okzoo.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F154568%2F',
     hero_emoji: '🌺',
   },
 ];

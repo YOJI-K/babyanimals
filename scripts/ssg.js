@@ -248,7 +248,7 @@ function zooLinksHtml(zooName, animalName) {
          data-link-type="ticket"
          data-zoo-name="${safeZoo}"
          data-animal-name="${safeAnimal}">
-      ${svgTicket} チケットを見る
+      ${svgTicket} オンラインチケットを予約する <small class="zoo-link__pr">PR</small>
     </a>`);
   }
   if (data.official_url) {
@@ -562,7 +562,7 @@ function zooHtml(zoo, babies, slugMap = null) {
            target="_blank" rel="noopener sponsored"
            data-link-type="ticket"
            data-zoo-name="${esc(zoo.db_name)}">
-        🎟️ チケットをアソビューで予約する →
+        🎟️ オンラインチケットを予約する <small class="zoo-link__pr">PR</small>
       </a>`
     : '';
   const officialBtn = zoo.official_url

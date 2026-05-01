@@ -1225,6 +1225,12 @@ body {
   background: var(--forest-50);
   transform: translateY(-1px);
 }
+.zoo-link__pr {
+  font-size: 0.65em;
+  opacity: 0.75;
+  margin-left: 4px;
+  vertical-align: middle;
+}
 /* SP: 縦並び */
 @media (max-width: 480px) {
   .zoo-link { min-width: 0; width: 100%; }
