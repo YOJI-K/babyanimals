@@ -302,7 +302,7 @@ function babyHtml(b, slug, allBabies, slugMap) {
   });
 
   const thumbHtml = b.thumbnail_url
-    ? `<img class="ssg-detail__img" src="${esc(b.thumbnail_url)}" alt="${esc(name)}（${esc(species)}）" loading="eager" decoding="async">`
+    ? `<img class="ssg-detail__img" src="${esc(b.thumbnail_url)}" alt="${esc(name)}（${esc(species)}）" loading="eager" decoding="async" data-allow-big>`
     : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`;
 
   // 同じ動物園の赤ちゃん（最大6件）
