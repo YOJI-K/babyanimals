@@ -384,8 +384,8 @@ function isUnnamedBaby(name: string | null | undefined): boolean {
   if (/の赤$|の子$|仔$/.test(n)) return true;
   // 動物園・施設名を含む（場所の説明であり個体名ではない）
   if (/動物園|水族館|公園|で赤|初の赤|今年/.test(n)) return true;
-  // 助詞で終わる文章断片
-  if (/[でにはをがもへとから]$/.test(n)) return true;
+  // 助詞で終わる文章断片（も・か・ら は名前にも使われるため除外）
+  if (/[でにはをがへと]$/.test(n)) return true;
   return false;
 }
 
