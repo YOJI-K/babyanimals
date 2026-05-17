@@ -340,7 +340,8 @@ function extractBabyName(text: string): string | null {
     const m = t.match(re);
     const name = m?.groups?.name;
     if (!name) continue;
-    if (/赤ちゃん|命名|動画|shorts|まとめ|観察|様子/.test(name)) continue;
+    if (/赤ちゃん|命名|動画|shorts|まとめ|観察|様子|動物園|水族館|公園/.test(name)) continue;
+    if (/の赤$|の子$|仔$|ベビー$/.test(name)) continue;
     if (/^[一-龯ぁ-んァ-ヴーA-Za-z]{1,12}$/.test(name)) return name;
   }
   return null;
@@ -370,10 +371,22 @@ function ensureBabyName(givenName?: string | null): string | null {
   return null; // 名前未判明の場合は NULL を返す（DB に '赤ちゃん（X）' を書かない）
 }
 
-// 名前が未判明かどうか判定（NULL または '赤ちゃん' で始まるプレースホルダー）
+// 名前が未判明かどうか判定（プレースホルダー・文章断片を幅広く検出）
 function isUnnamedBaby(name: string | null | undefined): boolean {
   if (!name) return true;
-  return name.startsWith('赤ちゃん');
+  const n = name.trim();
+  if (n.length === 0) return true;
+  // 10文字超は固有名詞ではなく文章断片
+  if (n.length > 10) return true;
+  // 明示的なプレースホルダーワード
+  if (/赤ちゃん|ベビー/i.test(n)) return true;
+  // 「〜の赤」「〜の子」パターン（種名＋の赤/の子）
+  if (/の赤$|の子$|仔$/.test(n)) return true;
+  // 動物園・施設名を含む（場所の説明であり個体名ではない）
+  if (/動物園|水族館|公園|で赤|初の赤|今年/.test(n)) return true;
+  // 助詞で終わる文章断片
+  if (/[でにはをがもへとから]$/.test(n)) return true;
+  return false;
 }
 
 // -------------------------------
@@ -918,7 +931,7 @@ async function runNameFillJob(env: Env) {
       env,
       `/rest/v1/babies` +
       `?select=id,name,species` +
-      `&or=(name.is.null,name.like.赤ちゃん*)` +
+      `&or=(name.is.null,name.like.赤ちゃん*,name.like.*の赤,name.like.*の子,name.like.*ベビー,name.like.*動物園*,name.like.*水族館*)` +
       `&order=id.asc` +
       `&limit=${NAME_FILL_BATCH}`
     );
