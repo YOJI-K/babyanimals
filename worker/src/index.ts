@@ -877,14 +877,20 @@ async function resolveBabyEntitiesJob(env: Env) {
       }
       // babies 新規作成（個体IDが必要なのでここは単発 POST）
       const resolvedName = ensureBabyName(ev.signal_name);
+      // 名前が取れない場合はスキップ（DB NOT NULL制約のため）
+      // processed_at もセットしない → 次回実行で再度試みる
+      if (!resolvedName) {
+        processedIds.splice(processedIds.indexOf(ev.id), 1);
+        console.info('[resolve] name unknown, deferring:', ev.title?.slice(0, 60));
+        continue;
+      }
       const row: Record<string, unknown> = {
+        name: resolvedName,
         species: ev.species,
         birthday: bday,
         thumbnail_url: ev.thumbnail_url,
         zoo_id: zooIdForEvent,
       };
-      // 名前が判明している場合のみ name をセット（未判明は NULL のまま）
-      if (resolvedName) row['name'] = resolvedName;
       const res = await sbPost(env, '/rest/v1/babies', [row], { 'Prefer': 'return=representation' });
       const createdRows = await res.json().catch(()=>[]) as any[];
       const newId = createdRows?.[0]?.id as string | undefined;
