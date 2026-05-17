@@ -367,8 +367,10 @@ function decideBirthdayByAge(title: string, fallbackISO?: string | null): string
 }
 
 function ensureBabyName(givenName?: string | null): string | null {
-  if (givenName && givenName.trim()) return givenName.trim().slice(0, 100);
-  return null; // 名前未判明の場合は NULL を返す（DB に '赤ちゃん（X）' を書かない）
+  if (!givenName || !givenName.trim()) return null;
+  // isUnnamedBaby でプレースホルダー判定（「サルの赤」「赤ちゃん」等を除外）
+  if (isUnnamedBaby(givenName)) return null;
+  return givenName.trim().slice(0, 100);
 }
 
 // 名前が未判明かどうか判定（プレースホルダー・文章断片を幅広く検出）
