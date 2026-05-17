@@ -165,6 +165,7 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   <link rel="canonical" href="${esc(canonical)}" />
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
+  <meta name="google-adsense-account" content="ca-pub-7279120932069417">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" />
@@ -941,6 +942,7 @@ function babiesIndexHtml(babies, slugMap = null) {
   <link rel="canonical" href="${esc(canonical)}" />
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
+  <meta name="google-adsense-account" content="ca-pub-7279120932069417">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" />
@@ -1057,6 +1059,7 @@ function newsIndexHtml(newsItems) {
   <link rel="canonical" href="${esc(canonical)}" />
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
+  <meta name="google-adsense-account" content="ca-pub-7279120932069417">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" />
