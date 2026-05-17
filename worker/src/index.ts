@@ -29,7 +29,7 @@ const MAX_EVENTS_PER_SOURCE = 30;
 const MAX_UPSERT_CHUNK = 500;
 
 // resolve のサブリクエスト抑制用
-const RESOLVE_BATCH_LIMIT = 20;   // 1回に処理する未処理イベント数
+const RESOLVE_BATCH_LIMIT = 100;  // 1回に処理する未処理イベント数（20→100に変更 2026-05-17 AI CEO）
 const PATCH_CHUNK = 200;          // processed_at 更新の id チャンク
 const LINKS_CHUNK = 500;          // baby_links 一括 POST のチャンク
 
