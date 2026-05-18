@@ -12,6 +12,11 @@ export interface Env {
   SUPABASE_URL: string;                // 例: https://xxxxx.supabase.co
   SUPABASE_SERVICE_ROLE: string;       // Supabase Service Role key（Secret）
   RUN_TOKEN?: string;                  // GET /run 用の手動実行トークン（オプショナル）
+  // X (Twitter) API — Worker secrets で設定
+  X_API_KEY?: string;                  // Consumer Key
+  X_API_SECRET?: string;               // Consumer Secret
+  X_ACCESS_TOKEN?: string;             // Access Token (Read+Write)
+  X_ACCESS_TOKEN_SECRET?: string;      // Access Token Secret
 }
 
 // -------------------------------
@@ -1007,6 +1012,146 @@ async function runNameFillJob(env: Env) {
   }
 }
 
+
+// -------------------------------
+// SNS自動投稿ジョブ: 新着 babies を X (Twitter) へ自動ツイート
+// cron: 40 * * * * （毎時40分 — resolve/name_fill の後）
+// 必要 Secrets: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET
+// -------------------------------
+
+/** パーセントエンコード（RFC 3986） */
+function penc(s: string): string {
+  return encodeURIComponent(s)
+    .replace(/!/g, '%21').replace(/'/g, '%27').replace(/\(/g, '%28')
+    .replace(/\)/g, '%29').replace(/\*/g, '%2A');
+}
+
+/** OAuth 1.0a Authorization ヘッダーを生成 */
+async function buildOAuth1Header(
+  method: string,
+  url: string,
+  env: { X_API_KEY?: string; X_API_SECRET?: string; X_ACCESS_TOKEN?: string; X_ACCESS_TOKEN_SECRET?: string }
+): Promise<string> {
+  const nonce = crypto.randomUUID().replace(/-/g, '');
+  const ts    = String(Math.floor(Date.now() / 1000));
+
+  const oauthParams: Record<string, string> = {
+    oauth_consumer_key:     env.X_API_KEY!,
+    oauth_nonce:            nonce,
+    oauth_signature_method: 'HMAC-SHA1',
+    oauth_timestamp:        ts,
+    oauth_token:            env.X_ACCESS_TOKEN!,
+    oauth_version:          '1.0',
+  };
+
+  // Twitter API v2 + JSON body: ボディパラメータは署名に含めない
+  const paramStr = Object.entries(oauthParams)
+    .sort(([a], [b]) => a < b ? -1 : 1)
+    .map(([k, v]) => `${penc(k)}=${penc(v)}`)
+    .join('&');
+
+  const baseStr = `${method.toUpperCase()}&${penc(url)}&${penc(paramStr)}`;
+  const signingKey = `${penc(env.X_API_SECRET!)}&${penc(env.X_ACCESS_TOKEN_SECRET!)}`;
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(signingKey),
+    { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(baseStr));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
+
+  oauthParams['oauth_signature'] = sigB64;
+
+  const header = 'OAuth ' + Object.entries(oauthParams)
+    .sort(([a], [b]) => a < b ? -1 : 1)
+    .map(([k, v]) => `${penc(k)}="${penc(v)}"`)
+    .join(', ');
+
+  return header;
+}
+
+/** X API v2 でツイートを投稿 */
+async function postTweet(env: Env, text: string): Promise<void> {
+  const url = 'https://api.twitter.com/2/tweets';
+  const authHeader = await buildOAuth1Header('POST', url, env);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    throw new Error(`X API ${res.status}: ${t.slice(0, 200)}`);
+  }
+}
+
+/** 新着 babies を X へ自動投稿（毎時 :40 に実行） */
+async function runSocialJob(env: Env): Promise<void> {
+  const started = new Date();
+  // クレデンシャル未設定ならスキップ（設定前は無音）
+  if (!env.X_API_KEY || !env.X_API_SECRET || !env.X_ACCESS_TOKEN || !env.X_ACCESS_TOKEN_SECRET) {
+    console.log('SOCIAL: X credentials not set — skipping');
+    return;
+  }
+
+  // 直近 70 分以内に作成された babies を取得（cron 60 分 + バッファ 10 分）
+  const since = new Date(Date.now() - 70 * 60 * 1000).toISOString();
+  const newBabies: Array<{ id: string; name: string; species: string | null; zoo_id: string | null }> =
+    await sbGet(env,
+      `/rest/v1/babies?select=id,name,species,zoo_id` +
+      `&created_at=gte.${encodeURIComponent(since)}` +
+      `&order=created_at.asc&limit=3`
+    );
+
+  if (!Array.isArray(newBabies) || newBabies.length === 0) {
+    console.log('SOCIAL: 新着 babies なし');
+    await logJob(env, { job: 'social', ok: true, started_at: started, finished_at: new Date(), checked: 0, posted: 0 });
+    return;
+  }
+
+  // zoo_id → 動物園名をまとめて取得
+  const zooIds = [...new Set(newBabies.map(b => b.zoo_id).filter(Boolean))];
+  const zooMap: Record<string, string> = {};
+  if (zooIds.length) {
+    const zoos: Array<{ id: string; name: string }> = await sbGet(env,
+      `/rest/v1/zoos?select=id,name&id=in.(${zooIds.join(',')})`
+    );
+    for (const z of (zoos || [])) zooMap[z.id] = z.name;
+  }
+
+  let posted = 0;
+  for (const baby of newBabies) {
+    const zooName = (baby.zoo_id && zooMap[baby.zoo_id]) || '動物園';
+    const species  = baby.species || '動物';
+    const pageUrl  = `https://babyanimals.pages.dev/babies/${baby.id}/`;
+
+    const text = [
+      `🍼【誕生速報】`,
+      ``,
+      `${species}の赤ちゃん「${baby.name}」が生まれました！`,
+      ``,
+      `📍 ${zooName}`,
+      ``,
+      `詳細はこちら👇`,
+      pageUrl,
+      ``,
+      `#どうベビ #動物の赤ちゃん #${species}`,
+    ].join('\n');
+
+    try {
+      await postTweet(env, text);
+      console.log(`SOCIAL: tweeted [${baby.name}/${species}]`);
+      posted++;
+    } catch (e) {
+      console.error(`SOCIAL: tweet failed [${baby.name}]`, String(e));
+    }
+    // 投稿間隔（API レート制限対策）
+    if (posted < newBabies.length) await new Promise(r => setTimeout(r, 1500));
+  }
+
+  await logJob(env, { job: 'social', ok: true, started_at: started, finished_at: new Date(), checked: newBabies.length, posted });
+}
+
 // -------------------------------
 // 収集ジョブ: 動物園（Wikipedia）※現行維持
 // -------------------------------
@@ -1070,6 +1215,8 @@ export default {
         await resolveBabyEntitiesJob(env);
       } else if (event.cron === '25 * * * *') {
         await runNameFillJob(env);
+      } else if (event.cron === '40 * * * *') {
+        await runSocialJob(env);
       } else {
         console.log('unknown cron', event.cron);
       }
@@ -1096,6 +1243,7 @@ export default {
       else if (job === 'zoos')      await runZoosJob(env);
       else if (job === 'resolve')   await resolveBabyEntitiesJob(env);
       else if (job === 'name_fill') await runNameFillJob(env);
+      else if (job === 'social')    await runSocialJob(env);
       else return new Response(JSON.stringify({ ok:false, error:'bad job', job }), { status:400, headers:{'content-type':'application/json'} });
 
       await logJob(env, { job, ok: true, started_at: started, finished_at: new Date() });
