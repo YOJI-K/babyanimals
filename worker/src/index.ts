@@ -898,20 +898,30 @@ async function resolveBabyEntitiesJob(env: Env) {
         thumbnail_url: ev.thumbnail_url,
         zoo_id: zooIdForEvent,
       };
-      const res = await sbPost(env, '/rest/v1/babies?on_conflict=name,zoo_id', [row], { 'Prefer': 'resolution=ignore-duplicates,return=representation' });
-      const createdRows = await res.json().catch(()=>[]) as any[];
-      let newId = createdRows?.[0]?.id as string | undefined;
-      if (!newId) {
-        // 重複スキップ（既存baby）→ name+zoo_idで既存IDを取得してリンクだけ追加
+      // babies INSERT — 重複(409)は既存IDを引いてリンクのみ追加
+      const babyRes = await fetch(`${env.SUPABASE_URL}/rest/v1/babies`, {
+        method: 'POST',
+        headers: {
+          'apikey': env.SUPABASE_SERVICE_ROLE,
+          'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify([row]),
+      });
+      let newId: string | undefined;
+      if (babyRes.ok) {
+        const createdRows = await babyRes.json().catch(()=>[]) as any[];
+        newId = createdRows?.[0]?.id as string | undefined;
+        if (newId) { linkRows.push({ baby_id: newId, event_id: ev.id }); created++; }
+      } else if (babyRes.status === 409) {
+        // 重複キー → 既存babyのIDを検索してリンクだけ追加
         const existing = await sbGet(env, `/rest/v1/babies?name=eq.${encodeURIComponent(resolvedName)}&zoo_id=eq.${zooIdForEvent}&select=id&limit=1`);
         newId = Array.isArray(existing) ? existing[0]?.id as string | undefined : undefined;
-        if (newId) {
-          linkRows.push({ baby_id: newId, event_id: ev.id });
-          linked++;
-        }
+        if (newId) { linkRows.push({ baby_id: newId, event_id: ev.id }); linked++; }
       } else {
-        linkRows.push({ baby_id: newId, event_id: ev.id });
-        created++;
+        const t = await babyRes.text().catch(()=>'');
+        throw new Error(`Supabase POST /rest/v1/babies -> ${babyRes.status}: ${t}`);
       }
     }
     // 一致せず閾値未満: 何もしない（候補は将来拡張）
