@@ -898,7 +898,7 @@ async function resolveBabyEntitiesJob(env: Env) {
         thumbnail_url: ev.thumbnail_url,
         zoo_id: zooIdForEvent,
       };
-      const res = await sbPost(env, '/rest/v1/babies', [row], { 'Prefer': 'resolution=ignore-duplicates,return=representation' });
+      const res = await sbPost(env, '/rest/v1/babies?on_conflict=name,zoo_id', [row], { 'Prefer': 'resolution=ignore-duplicates,return=representation' });
       const createdRows = await res.json().catch(()=>[]) as any[];
       let newId = createdRows?.[0]?.id as string | undefined;
       if (!newId) {
