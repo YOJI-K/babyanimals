@@ -1120,7 +1120,7 @@ function speciesHtml(species, babies, slugMap) {
   const count = speciesBabies.length;
   const sampleNames = speciesBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
   const zooSet = new Set(speciesBabies.map(b => b.zoo_name).filter(Boolean));
-  const slug = encodeURIComponent(species);
+  const slug = encodeURI(species);  // 日本語URL用（% は二重エンコード防止のため使わない）
 
   const title = `${species}の赤ちゃん（${zooSet.size}園・${count}頭）| どうベビ`;
   const desc = (count > 0
@@ -1221,7 +1221,7 @@ function speciesIndexHtml(babies) {
   });
 
   const cards = entries.map(([sp, n]) => {
-    const slug = encodeURIComponent(sp);
+    const slug = encodeURI(sp);
     const emoji = pickEmoji(sp);
     return `<a class="species-card" href="/species/${slug}/" style="display:flex;align-items:center;gap:0.75rem;padding:1rem;background:rgba(255,255,255,0.7);border-radius:12px;text-decoration:none;color:inherit;transition:transform .15s;">
       <div style="font-size:2.4rem;">${emoji}</div>
@@ -1327,7 +1327,8 @@ function buildSitemap(babies, newsItems, slugMap) {
 
   const speciesSet = new Set(babies.map(b => b.species).filter(Boolean));
   const speciesUrls = Array.from(speciesSet).map(sp => ({
-    loc:        `${SITE_BASE}/species/${encodeURIComponent(sp)}/`,
+    // 生の日本語URL（sitemap側の encodeURI() が一度だけエンコードする）
+    loc:        `${SITE_BASE}/species/${sp}/`,
     priority:   '0.7',
     changefreq: 'weekly',
     lastmod:    today,
