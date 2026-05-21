@@ -1111,16 +1111,227 @@ ${siteFooter()}
 
 
 
+
+// ─── 動物種別ページ（SSG） ──────────────────────────────────────
+
+function speciesHtml(species, babies, slugMap) {
+  const info = SPECIES_INFO[species] || null;
+  const speciesBabies = babies.filter(b => b.species === species);
+  const count = speciesBabies.length;
+  const sampleNames = speciesBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
+  const zooSet = new Set(speciesBabies.map(b => b.zoo_name).filter(Boolean));
+  const slug = encodeURIComponent(species);
+
+  const title = `${species}の赤ちゃん（${zooSet.size}園・${count}頭）| どうベビ`;
+  const desc = (count > 0
+    ? `動物園にいる${species}の赤ちゃんをまとめて紹介。${sampleNames}${count > 3 ? 'など' : ''}${count}頭が全国${zooSet.size}園で暮らしています。${info ? info.desc.slice(0, 80) + '…' : ''}`
+    : `${species}の赤ちゃんを動物園で探す。${info ? info.desc.slice(0, 140) + '…' : ''}`
+  ).slice(0, 160);
+  const canonical = `${SITE_BASE}/species/${slug}/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${species}の赤ちゃん`,
+    description: desc,
+    url: canonical,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: speciesBabies.map((b, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`,
+        name: b.name || species,
+      })),
+    },
+  });
+
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '動物種別', item: `${SITE_BASE}/species/` },
+      { '@type': 'ListItem', position: 3, name: species, item: canonical },
+    ],
+  });
+
+  const cards = speciesBabies.map(b => zooBabyCardHtml(b, slugMap)).join('');
+  const zoosList = Array.from(zooSet).sort().map(zn => {
+    const z = ZOOS.find(x => x.db_name === zn);
+    if (!z) return `<li>${esc(zn)}</li>`;
+    return `<li><a href="/zoos/${esc(z.slug)}/">${esc(z.name)}</a></li>`;
+  }).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/babies/')}
+<main class="container" id="main">
+  <section class="page-hero">
+    <h1 class="page-title">${esc(species)}の赤ちゃん</h1>
+    <p class="page-subtitle">${count}頭・${zooSet.size}園で会える</p>
+  </section>
+
+  ${info ? `<section class="species-info" style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;">
+    <p style="margin:0 0 0.5rem;font-size:0.9rem;color:#666;">🌿 IUCNレッドリスト: <strong>${esc(info.iucn)}</strong></p>
+    <p style="margin:0;line-height:1.7;">${esc(info.desc)}</p>
+  </section>` : ''}
+
+  <section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">🐣 ${esc(species)}の赤ちゃん一覧</h2>
+    <div class="baby-grid">${cards || '<p>現在登録された赤ちゃん情報はありません。</p>'}</div>
+  </section>
+
+  ${zoosList ? `<section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">🏛️ ${esc(species)}に会える動物園</h2>
+    <ul style="list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.5rem;">${zoosList}</ul>
+  </section>` : ''}
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
+function speciesIndexHtml(babies) {
+  const grouped = new Map();
+  for (const b of babies) {
+    if (!b.species) continue;
+    grouped.set(b.species, (grouped.get(b.species) || 0) + 1);
+  }
+  const entries = Array.from(grouped.entries()).sort((a, b) => b[1] - a[1]);
+
+  const title = `動物の種類別 赤ちゃん一覧（全${entries.length}種）| どうベビ`;
+  const desc = `動物の種類別に赤ちゃんをまとめて紹介。コアラ・キリン・トラ・ペンギンなど${entries.length}種・${babies.length}頭を掲載。気になる動物の赤ちゃんがいる動物園がすぐにわかる。`;
+  const canonical = `${SITE_BASE}/species/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: '動物種別一覧',
+    description: desc,
+    url: canonical,
+  });
+
+  const cards = entries.map(([sp, n]) => {
+    const slug = encodeURIComponent(sp);
+    const emoji = pickEmoji(sp);
+    return `<a class="species-card" href="/species/${slug}/" style="display:flex;align-items:center;gap:0.75rem;padding:1rem;background:rgba(255,255,255,0.7);border-radius:12px;text-decoration:none;color:inherit;transition:transform .15s;">
+      <div style="font-size:2.4rem;">${emoji}</div>
+      <div>
+        <h3 style="margin:0;font-size:1.05rem;">${esc(sp)}</h3>
+        <p style="margin:0.25rem 0 0;font-size:0.85rem;color:#666;">🐣 ${n}頭の赤ちゃん</p>
+      </div>
+    </a>`;
+  }).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/babies/')}
+<main class="container" id="main">
+  <section class="page-hero">
+    <h1 class="page-title">動物の種類別 赤ちゃん一覧</h1>
+    <p class="page-subtitle">${entries.length}種・${babies.length}頭の赤ちゃんを掲載中</p>
+  </section>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;margin:1rem 0;">${cards}</div>
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
+// ─── 春の特集ページ ──────────────────────────────────────
+
+function springSpecialHtml(babies, slugMap) {
+  // 2025年9月〜2026年5月生まれの赤ちゃん（2026年春時点で0〜0.7歳程度）
+  const springBabies = babies.filter(b => {
+    if (!b.birthday) return false;
+    const m = b.birthday.match(/^(\d{4})-(\d{2})-/);
+    if (!m) return false;
+    const y = Number(m[1]); const mo = Number(m[2]);
+    return (y === 2026 && mo >= 1 && mo <= 5) || (y === 2025 && mo >= 9);
+  }).sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)));
+
+  const title = '2026年春の動物園赤ちゃんラッシュ — 全国の最新ベビー特集｜どうベビ';
+  const desc = `2026年春の動物園は赤ちゃん大集合！全国の動物園から${springBabies.length}頭の最新ベビーをピックアップ。コアラ・キリン・トラ・ペンギンなど人気の動物が新たな命を迎えました。会いに行きたい動物園が見つかる完全ガイド。`.slice(0, 200);
+  const canonical = `${SITE_BASE}/specials/spring-2026/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: '2026年春の動物園赤ちゃんラッシュ',
+    description: desc,
+    url: canonical,
+    datePublished: '2026-05-21',
+    dateModified: new Date().toISOString().slice(0, 10),
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: canonical,
+  });
+
+  const cards = springBabies.map(b => zooBabyCardHtml(b, slugMap)).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+  <section class="page-hero">
+    <h1 class="page-title">🌸 2026年春の<br>動物園赤ちゃんラッシュ</h1>
+    <p class="page-subtitle">全国の動物園から ${springBabies.length}頭 の最新ベビーをピックアップ</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.8;">
+    <p>春は動物園にとって新たな命が誕生する季節。<strong>コアラ、キリン、トラ、ペンギン</strong>──全国の動物園では今、たくさんの赤ちゃんたちが元気に育っています。</p>
+    <p>このページでは、<strong>2025年秋から2026年春にかけて誕生</strong>した赤ちゃんたちを、最新のお誕生日順にご紹介。お近くの動物園で会いに行く参考にどうぞ。</p>
+  </section>
+
+  <section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">📅 春に会える赤ちゃんたち（${springBabies.length}頭）</h2>
+    <div class="baby-grid">${cards || '<p>赤ちゃん情報を準備中です。</p>'}</div>
+  </section>
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 function buildSitemap(babies, newsItems, slugMap) {
   const today = new Date().toISOString().slice(0, 10);
 
   const staticUrls = [
-    { loc: `${SITE_BASE}/`,           priority: '1.0', changefreq: 'daily',   lastmod: today },
-    { loc: `${SITE_BASE}/babies/`,    priority: '0.9', changefreq: 'daily',   lastmod: today },
-    { loc: `${SITE_BASE}/news/`,      priority: '0.9', changefreq: 'daily',   lastmod: today },
-    { loc: `${SITE_BASE}/zoos/`,      priority: '0.9', changefreq: 'weekly',  lastmod: today },
-    { loc: `${SITE_BASE}/calendar/`,  priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/`,                          priority: '1.0', changefreq: 'daily',   lastmod: today },
+    { loc: `${SITE_BASE}/babies/`,                   priority: '0.9', changefreq: 'daily',   lastmod: today },
+    { loc: `${SITE_BASE}/news/`,                     priority: '0.9', changefreq: 'daily',   lastmod: today },
+    { loc: `${SITE_BASE}/zoos/`,                     priority: '0.9', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/calendar/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/species/`,                  priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/spring-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
   ];
+
+  const speciesSet = new Set(babies.map(b => b.species).filter(Boolean));
+  const speciesUrls = Array.from(speciesSet).map(sp => ({
+    loc:        `${SITE_BASE}/species/${encodeURIComponent(sp)}/`,
+    priority:   '0.7',
+    changefreq: 'weekly',
+    lastmod:    today,
+  }));
 
   const zooUrls = ZOOS.map(z => ({
     loc:        `${SITE_BASE}/zoos/${z.slug}/`,
@@ -1143,7 +1354,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     lastmod:    n.published_at ? n.published_at.slice(0, 10) : today,
   }));
 
-  const allUrls = [...staticUrls, ...zooUrls, ...babyUrls, ...newsUrls];
+  const allUrls = [...staticUrls, ...zooUrls, ...speciesUrls, ...babyUrls, ...newsUrls];
   const entries = allUrls.map(u => `  <url>
     <loc>${encodeURI(u.loc)}</loc>
     <lastmod>${u.lastmod}</lastmod>
@@ -1529,6 +1740,22 @@ async function main() {
   console.log(`\n🗞️  ニュース一覧ページ生成中...`);
   writeHtml(path.join(WEB_DIR, 'news', 'index.html'), newsIndexHtml(newsItems));
   console.log(`   ✅ /news/ 出力（${Math.min(newsItems.length, 36)}件 事前レンダリング）`);
+
+  // ── 動物種別ページ ──
+  console.log('\n🐾 動物種別ページ生成中...');
+  const speciesSetForPages = new Set(babies.map(b => b.species).filter(Boolean));
+  let speciesCount = 0;
+  for (const sp of speciesSetForPages) {
+    writeHtml(path.join(WEB_DIR, 'species', sp, 'index.html'), speciesHtml(sp, babies, slugMap));
+    speciesCount++;
+  }
+  writeHtml(path.join(WEB_DIR, 'species', 'index.html'), speciesIndexHtml(babies));
+  console.log(`   ✅ ${speciesCount}種 + 一覧1`);
+
+  // ── 春の特集ページ ──
+  console.log('\n🌸 2026年春特集ページ生成中...');
+  writeHtml(path.join(WEB_DIR, 'specials', 'spring-2026', 'index.html'), springSpecialHtml(babies, slugMap));
+  console.log(`   ✅ /specials/spring-2026/ 出力`);
 
   // ── サイトマップ ──
   console.log('\n🗺️  sitemap.xml 生成中...');
