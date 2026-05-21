@@ -387,8 +387,9 @@ function isUnnamedBaby(name: string | null | undefined): boolean {
   if (n.length > 10) return true;
   // 明示的なプレースホルダーワード
   if (/赤ちゃん|ベビー/i.test(n)) return true;
-  // 「〜の赤」「〜の子」パターン（種名＋の赤/の子）
-  if (/の赤$|の子$|仔$/.test(n)) return true;
+  // 「〜の赤」「〜の子」「〜赤」パターン（種名＋の赤/の子）
+  // 「赤」末尾は短い断片（に赤・の赤・サル赤等）も含めて広く除外
+  if (/赤$|の子$|仔$/.test(n)) return true;
   // 動物園・施設名を含む（場所の説明であり個体名ではない）
   if (/動物園|水族館|公園|で赤|初の赤|今年/.test(n)) return true;
   // 助詞で終わる文章断片（も・か・ら は名前にも使われるため除外）
