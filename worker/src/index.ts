@@ -393,6 +393,10 @@ function isUnnamedBaby(name: string | null | undefined): boolean {
   if (/動物園|水族館|公園|で赤|初の赤|今年/.test(n)) return true;
   // 助詞で終わる文章断片（も・か・ら は名前にも使われるため除外）
   if (/[でにはをがへと]$/.test(n)) return true;
+  // 修飾語・限定表現（特集記事のキャッチコピーであり個体名ではない）
+  // 例: 「日本でここだけ」「日本初」「世界初」「国内初」「日本唯一」
+  if (/^(日本|世界|国内|国外|アジア)(で|初|唯一|最大|最小|最年少|最年長)/.test(n)) return true;
+  if (/ここだけ|ただ一|唯一/.test(n)) return true;
   return false;
 }
 
