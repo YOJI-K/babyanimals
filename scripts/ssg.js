@@ -217,7 +217,7 @@ function siteNav(activeHref) {
 
 function siteFooter() {
   return `<footer class="site-footer" aria-label="フッター">
-  <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
+  <small>© どうベビ（動物園ベビー情報）　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
 </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
@@ -1312,6 +1312,86 @@ ${siteFooter()}
 </html>`;
 }
 
+
+// ─── HTMLサイトマップページ（人間用 + Googleクロール経路拡大） ──────
+
+function buildSitemapHtml(babies, newsItems, slugMap) {
+  const title = 'サイトマップ｜どうベビ';
+  const desc = `どうベビの全ページ一覧。${babies.length}頭の赤ちゃん・${ZOOS.length}園の動物園・特集ページなど全${babies.length + ZOOS.length + 30}ページへすぐアクセスできます。`;
+  const canonical = `${SITE_BASE}/sitemap/`;
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'サイトマップ',
+    description: desc,
+    url: canonical,
+  });
+
+  // 主要ページ
+  const mainPages = `
+    <ul>
+      <li><a href="/">ホーム</a></li>
+      <li><a href="/babies/">赤ちゃん一覧（全${babies.length}頭）</a></li>
+      <li><a href="/zoos/">動物園一覧（都道府県別）</a></li>
+      <li><a href="/species/">動物種別一覧</a></li>
+      <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
+      <li><a href="/news/">ニュース一覧</a></li>
+      <li><a href="/calendar/">誕生日カレンダー</a></li>
+    </ul>`;
+
+  // 動物園一覧
+  const zooLinks = ZOOS.map(z => `<li><a href="/zoos/${esc(z.slug)}/">${esc(z.name)}<small style="color:#888;"> （${esc(z.prefecture)}）</small></a></li>`).join('');
+
+  // 種別一覧
+  const speciesSet = new Set(babies.map(b => b.species).filter(Boolean));
+  const speciesLinks = Array.from(speciesSet).sort().map(sp => `<li><a href="/species/${encodeURI(sp)}/">${esc(sp)}の赤ちゃん</a></li>`).join('');
+
+  // 赤ちゃん個別ページ（最新順）
+  const babyLinks = babies.slice(0, 100).map(b => {
+    const slug = slugMap?.get(b.id) || b.id;
+    const label = b.name ? `${esc(b.name)}（${esc(b.species || '?')}）` : esc(b.species || '名前未判明');
+    return `<li><a href="/babies/${slug}/">${label}<small style="color:#888;"> @ ${esc(b.zoo_name || '?')}</small></a></li>`;
+  }).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+  <section class="page-hero">
+    <h1 class="page-title">サイトマップ</h1>
+    <p class="page-subtitle">全${babies.length}頭・${ZOOS.length}園・${speciesSet.size}種を網羅</p>
+  </section>
+
+  <section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.1rem;margin:0 0 .5rem;">📄 主要ページ</h2>
+    ${mainPages}
+  </section>
+
+  <section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.1rem;margin:0 0 .5rem;">🏛️ 動物園（${ZOOS.length}園）</h2>
+    <ul style="columns:2;column-gap:1rem;">${zooLinks}</ul>
+  </section>
+
+  <section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.1rem;margin:0 0 .5rem;">🐾 動物種別（${speciesSet.size}種）</h2>
+    <ul style="columns:2;column-gap:1rem;">${speciesLinks}</ul>
+  </section>
+
+  <section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.1rem;margin:0 0 .5rem;">🐣 赤ちゃん（${babies.length}頭）</h2>
+    <ul style="columns:2;column-gap:1rem;">${babyLinks}</ul>
+  </section>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 function buildSitemap(babies, newsItems, slugMap) {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -1321,6 +1401,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/news/`,                     priority: '0.9', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/zoos/`,                     priority: '0.9', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/calendar/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/sitemap/`,                  priority: '0.8', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/species/`,                  priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/spring-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
   ];
@@ -1759,6 +1840,11 @@ async function main() {
   console.log(`   ✅ /specials/spring-2026/ 出力`);
 
   // ── サイトマップ ──
+  // ── HTMLサイトマップ ──
+  console.log('\n📄 sitemap.html 生成中...');
+  writeHtml(path.join(WEB_DIR, 'sitemap', 'index.html'), buildSitemapHtml(babies, newsItems, slugMap));
+  console.log(`   ✅ /sitemap/ 出力`);
+
   console.log('\n🗺️  sitemap.xml 生成中...');
   const sitemapXml = buildSitemap(babies, newsItems, slugMap);
   writeHtml(path.join(WEB_DIR, 'sitemap.xml'), sitemapXml);
