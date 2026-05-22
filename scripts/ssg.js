@@ -1760,7 +1760,10 @@ async function main() {
 
   // ── サイトマップ ──
   console.log('\n🗺️  sitemap.xml 生成中...');
-  writeHtml(path.join(WEB_DIR, 'sitemap.xml'), buildSitemap(babies, newsItems, slugMap));
+  const sitemapXml = buildSitemap(babies, newsItems, slugMap);
+  writeHtml(path.join(WEB_DIR, 'sitemap.xml'), sitemapXml);
+  // Search Console の失敗キャッシュ回避のためのエイリアス（内容は同一）
+  writeHtml(path.join(WEB_DIR, 'sitemap-v2.xml'), sitemapXml);
   console.log(`   ✅ ${babyCount + newsCount + zooCount + 5} URL を出力`);
 
   // ── baby-slugs.json（JS 側のリンク生成に使用） ──
