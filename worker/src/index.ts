@@ -827,6 +827,7 @@ async function resolveBabyEntitiesJob(env: Env) {
     `/rest/v1/baby_events` +
     `?select=id,url,title,published_at,thumbnail_url,zoo_id,species,source_kind,signal_birth,signal_name,signal_age_days` +
     `&processed_at=is.null` +
+    `&signal_name=not.is.null` +  // 名前未抽出のeventは deferred 専用のため取得対象外（2026-05-25 AI CEO: バッチ滞留解消）
     `&order=published_at.desc.nullslast` +
     `&limit=${RESOLVE_BATCH_LIMIT}`
   );
