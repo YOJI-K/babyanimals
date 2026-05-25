@@ -34,7 +34,7 @@ const MAX_EVENTS_PER_SOURCE = 30;
 const MAX_UPSERT_CHUNK = 500;
 
 // resolve のサブリクエスト抑制用
-const RESOLVE_BATCH_LIMIT = 100;  // 1回に処理する未処理イベント数（20→100に変更 2026-05-17 AI CEO）
+const RESOLVE_BATCH_LIMIT = 10;  // 1回に処理する未処理イベント数（100→10に変更 2026-05-25 AI CEO: signal_name フィルタ追加でリクエスト数増、Cloudflare Workers Free の50req/invocation上限対応）
 const PATCH_CHUNK = 200;          // processed_at 更新の id チャンク
 const LINKS_CHUNK = 500;          // baby_links 一括 POST のチャンク
 
