@@ -318,48 +318,92 @@ const SPECIES_MAP = new Map<string, string>([
   ["イルカ", "イルカ"],
 ]);
 
-const NAME_PATTERNS: RegExp[] = [
-  // --- 明示的命名パターン ---
+// === 案B: タイトル前処理 ===
+// 抽出ノイズ源（「○○の赤ちゃん」「○○の子」「#ハッシュタグ」「動画タイトル定型句」）を削除
+function preprocessTitleForName(title: string): string {
+  let t = title || "";
+  // ハッシュタグ以降を削除
+  t = t.replace(/[#＃][^\s]*/g, '');
+  // 「○○の赤ちゃん」「○○の赤」「○○に赤ちゃん」「○○に赤」を空文字化
+  t = t.replace(/[一-龯ァ-ヴーA-Za-z]{1,8}(?:の|に)赤(?:ちゃん|仔)?/g, '');
+  // 「○○の子」「○○の子ども」を空文字化
+  t = t.replace(/[一-龯ァ-ヴーA-Za-z]{1,8}の子(?:ども|供)?/g, '');
+  // 動画系の定型句
+  t = t.replace(/(shorts|YouTube|公式|【[^】]*】|《[^》]*》)/gi, '');
+  return t;
+}
+
+// === 案B: NAME_PATTERNS を信頼度別に分割 ===
+// HIGH: 命名・決定キーワードと併用する明示的パターン
+const NAME_PATTERNS_HIGH: RegExp[] = [
   /命名[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”]/,
   /[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”][にへ]?(?:と)?命名/,
   /[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”][にへ]?決定/,
   /(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})と名付[けら]/,
   /(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(?:という名前|という名)/,
-  // --- 「名前は〜」系 ---
-  /名前[は：:\s]*[「『”]?(?<name>[^」』”\s]{1,12})[」』”]/,
+  /名前[は：:\s]*[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”]/,
   /名前が(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})[にへとはでも。！]/,
   /名前を(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})[にへとはでも。！]/,
-  // --- 「赤ちゃん」直後のクォート ---
   /赤ちゃん[「『”](?!\s)(?<name>[^」』”\s]{1,12})[」』”]/,
-  // --- 英語クォート系 ---
-  /[‘”””’’](?<name>[^’”””’’\s]{1,12})[‘”””’’]/,
-  // --- 「〜ちゃん」「〜くん」（和名・英名対応） ---
-  /(?<![ぁ-んァ-ヴーa-zA-Z0-9])(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(ちゃん|くん|君)(?![ぁ-んァ-ヴーA-Za-z0-9])/,
-  // --- 個体名の後に「誕生」「生まれ」が来る形 ---
   /[「『”](?!\s)(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})[」』”](?:が|の)?(?:誕生|生まれ)/,
 ];
+// MID: 命名キーワードが title に含まれる場合のみ有効。汎用 Xちゃん/くん パターン
+const NAME_PATTERNS_MID: RegExp[] = [
+  /(?<![ぁ-んァ-ヴーa-zA-Z0-9])(?<name>[一-龯ぁ-んァ-ヴーA-Za-z]{2,8})(ちゃん|くん|君)(?![ぁ-んァ-ヴーA-Za-z0-9])/,
+];
+// LOW (廃止): 英語クォート単体は誤抽出が多すぎるため削除
+// const NAME_PATTERNS_LOW = [/[‘"""''](?<name>...)[‘"""'']/];
+
+// 命名キーワード（タイトルに含まれる場合のみ MID パターンを試行）
+const NAMING_KW_RE = /命名|決定|名付け|名前|愛称/;
+
+// 後方互換のため NAME_PATTERNS は HIGH + MID をエクスポート（直接参照する箇所がある場合に備え）
+const NAME_PATTERNS: RegExp[] = [...NAME_PATTERNS_HIGH, ...NAME_PATTERNS_MID];
 
 function extractBabyName(text: string): string | null {
-  const t = (text || "").replace(/\s+/g, "");
-  for (const re of NAME_PATTERNS) {
+  const original = text || "";
+  const preprocessed = preprocessTitleForName(original);
+  const t = preprocessed.replace(/\s+/g, "");
+  const hasNamingKw = NAMING_KW_RE.test(original);
+
+  // HIGH パターンを優先試行
+  const tryPattern = (re: RegExp): string | null => {
     const m = t.match(re);
     const name = m?.groups?.name;
-    if (!name) continue;
-    // 既存の除外（種名・場所名・動画タイトル定型句）
-    if (/赤ちゃん|命名|動画|shorts|まとめ|観察|様子|動物園|水族館|公園/.test(name)) continue;
-    if (/の赤$|の子$|仔$|ベビー$/.test(name)) continue;
-    // 案A: 名前に「赤」を含むものを全除外（「サルの赤」「ライオンの雄赤」「中のペンギンに赤」等の貪欲マッチ対策）
-    if (/赤/.test(name)) continue;
-    // 案A: 動詞句・文末断片の混入を除外（「をつけるよう呼びかけられ」「決まる夏の大三角にちなん」等）
-    if (/つけ|決ま|呼びか|られ|なん|ちなん|ぴったり|よろしく/.test(name)) continue;
-    // 案A: 助詞「始まり」も除外（既存は末尾のみ）
-    if (/^[をにはがでとへも]/.test(name)) continue;
-    // 案A: 関係名詞・一般名詞を除外（「子ども」「母親」「ユーカリ」「いいね」等）
-    if (/^(子ども|子供|母親|父親|兄弟|姉妹|親子|家族|誕生日プレゼント|いいね|ユーカリ|ユーカリの森|モフアクション|夏の大三角|いい飲みっぷり|決まりました|ベビー|赤ちゃん)$/.test(name)) continue;
-    // 案A: 「の/に」を含む 4文字以上の name は接続詞貪欲マッチの可能性が高い（「○○の○○」型は固有名詞ではない）
-    if (name.length >= 4 && /[のにを]/.test(name)) continue;
-    if (/^[一-龯ぁ-んァ-ヴーA-Za-z]{1,12}$/.test(name)) return name;
+    if (!name) return null;
+    return validateExtractedName(name);
+  };
+
+  for (const re of NAME_PATTERNS_HIGH) {
+    const name = tryPattern(re);
+    if (name) return name;
   }
+  // MID パターンは命名キーワードがある時のみ
+  if (hasNamingKw) {
+    for (const re of NAME_PATTERNS_MID) {
+      const name = tryPattern(re);
+      if (name) return name;
+    }
+  }
+  return null;
+}
+
+// 抽出後の name に対するバリデーション（旧 extractBabyName のフィルタ部分を関数化）
+function validateExtractedName(name: string): string | null {
+  // 既存の除外（種名・場所名・動画タイトル定型句）
+  if (/赤ちゃん|命名|動画|shorts|まとめ|観察|様子|動物園|水族館|公園/.test(name)) return null;
+  if (/の赤$|の子$|仔$|ベビー$/.test(name)) return null;
+  // 案A: 名前に「赤」を含むものを全除外
+  if (/赤/.test(name)) return null;
+  // 案A: 動詞句・文末断片
+  if (/つけ|決ま|呼びか|られ|なん|ちなん|ぴったり|よろしく/.test(name)) return null;
+  // 案A: 助詞「始まり」
+  if (/^[をにはがでとへも]/.test(name)) return null;
+  // 案A: 関係名詞・一般名詞
+  if (/^(子ども|子供|母親|父親|兄弟|姉妹|親子|家族|誕生日プレゼント|いいね|ユーカリ|ユーカリの森|モフアクション|夏の大三角|いい飲みっぷり|決まりました|ベビー|赤ちゃん)$/.test(name)) return null;
+  // 案A: 「の/に」を含む 4文字以上
+  if (name.length >= 4 && /[のにを]/.test(name)) return null;
+  if (/^[一-龯ぁ-んァ-ヴーA-Za-z]{1,12}$/.test(name)) return name;
   return null;
 }
 
