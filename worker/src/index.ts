@@ -345,8 +345,19 @@ function extractBabyName(text: string): string | null {
     const m = t.match(re);
     const name = m?.groups?.name;
     if (!name) continue;
+    // 既存の除外（種名・場所名・動画タイトル定型句）
     if (/赤ちゃん|命名|動画|shorts|まとめ|観察|様子|動物園|水族館|公園/.test(name)) continue;
     if (/の赤$|の子$|仔$|ベビー$/.test(name)) continue;
+    // 案A: 名前に「赤」を含むものを全除外（「サルの赤」「ライオンの雄赤」「中のペンギンに赤」等の貪欲マッチ対策）
+    if (/赤/.test(name)) continue;
+    // 案A: 動詞句・文末断片の混入を除外（「をつけるよう呼びかけられ」「決まる夏の大三角にちなん」等）
+    if (/つけ|決ま|呼びか|られ|なん|ちなん|ぴったり|よろしく/.test(name)) continue;
+    // 案A: 助詞「始まり」も除外（既存は末尾のみ）
+    if (/^[をにはがでとへも]/.test(name)) continue;
+    // 案A: 関係名詞・一般名詞を除外（「子ども」「母親」「ユーカリ」「いいね」等）
+    if (/^(子ども|子供|母親|父親|兄弟|姉妹|親子|家族|誕生日プレゼント|いいね|ユーカリ|ユーカリの森|モフアクション|夏の大三角|いい飲みっぷり|決まりました|ベビー|赤ちゃん)$/.test(name)) continue;
+    // 案A: 「の/に」を含む 4文字以上の name は接続詞貪欲マッチの可能性が高い（「○○の○○」型は固有名詞ではない）
+    if (name.length >= 4 && /[のにを]/.test(name)) continue;
     if (/^[一-龯ぁ-んァ-ヴーA-Za-z]{1,12}$/.test(name)) return name;
   }
   return null;
@@ -398,6 +409,14 @@ function isUnnamedBaby(name: string | null | undefined): boolean {
   // 例: 「日本でここだけ」「日本初」「世界初」「国内初」「日本唯一」
   if (/^(日本|世界|国内|国外|アジア)(で|初|唯一|最大|最小|最年少|最年長)/.test(n)) return true;
   if (/ここだけ|ただ一|唯一/.test(n)) return true;
+  // 案A: 名前に「赤」を含むもの全除外（extractBabyName と二重防御）
+  if (/赤/.test(n)) return true;
+  // 案A: 動詞句・関係名詞・一般名詞の NG リスト
+  if (/^(子ども|子供|母親|父親|兄弟|姉妹|親子|家族|誕生日プレゼント|いいね|ユーカリ|ユーカリの森|モフアクション|夏の大三角|いい飲みっぷり|決まりました|決まる|呼びかけ|つけるよう)$/.test(n)) return true;
+  // 案A: 動詞句・文末断片を含む
+  if (/つけ|決ま|呼びか|られ|ちなん|ぴったり|よろしく/.test(n)) return true;
+  // 案A: 「の/に」を含む 4文字以上は接続詞貪欲マッチの疑い
+  if (n.length >= 4 && /[のにを]/.test(n)) return true;
   return false;
 }
 
