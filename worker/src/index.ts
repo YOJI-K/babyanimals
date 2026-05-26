@@ -180,7 +180,7 @@ async function sbPatch(env: Env, path: string, body: unknown) {
   }
 }
 
-async function logJob(env: Env, row: any) {
+async function logJob(env: Env, row: any): Promise<string | null> {
   try {
     // crawl_logs に存在する安全な列だけを送る（必要に応じて増減）
     const allow = new Set([
@@ -193,8 +193,10 @@ async function logJob(env: Env, row: any) {
       if (allow.has(k) && row[k] !== undefined) safe[k] = row[k];
     }
     await sbPost(env, '/rest/v1/crawl_logs', [safe]);
+    return null;
   } catch (e) {
     console.error('logJob failed', e);
+    return String(e);
   }
 }
 
@@ -1333,11 +1335,15 @@ export default {
       else if (job === 'social')    await runSocialJob(env);
       else return new Response(JSON.stringify({ ok:false, error:'bad job', job }), { status:400, headers:{'content-type':'application/json'} });
 
-      await logJob(env, { job, ok: true, started_at: started, finished_at: new Date() });
-      return new Response(JSON.stringify({ ok: true, job }), { headers: { 'content-type': 'application/json' } });
+      const logErr = await logJob(env, { job, ok: true, started_at: started, finished_at: new Date() });
+      const okBody: Record<string, unknown> = { ok: true, job };
+      if (logErr) okBody.log_warning = logErr;
+      return new Response(JSON.stringify(okBody), { headers: { 'content-type': 'application/json' } });
     } catch (e) {
-      await logJob(env, { job, ok: false, error: String(e), started_at: started, finished_at: new Date() });
-      return new Response(JSON.stringify({ ok: false, job, error: String(e) }), { status: 500, headers: { 'content-type': 'application/json' } });
+      const logErr2 = await logJob(env, { job, ok: false, error: String(e), started_at: started, finished_at: new Date() });
+      const errBody: Record<string, unknown> = { ok: false, job, error: String(e) };
+      if (logErr2) errBody.log_warning = logErr2;
+      return new Response(JSON.stringify(errBody), { status: 500, headers: { 'content-type': 'application/json' } });
     }
   }
 };
