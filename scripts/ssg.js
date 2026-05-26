@@ -148,22 +148,35 @@ const ADSENSE_SLOT_BABY = process.env.ADSENSE_SLOT_BABY || 'XXXXXXXXXX';
 // プレースホルダーのままなら広告を非表示（XXXXX が含まれる場合は未設定とみなす）
 const ADSENSE_ENABLED   = !/X{5}/.test(ADSENSE_CLIENT);
 
-function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
+function htmlHead({ title, desc, ogImage, canonical, jsonLd, extraMeta, extraJsonLd, ogType }) {
   const og = ogImage || `${SITE_BASE}/assets/img/og.png`;
+  const ogTypeVal = ogType || 'article';
   return `<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}" />
-  <meta property="og:type" content="article" />
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+  <meta name="theme-color" content="#ffd6e3" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta property="og:type" content="${ogTypeVal}" />
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(desc)}" />
   <meta property="og:image" content="${esc(og)}" />
+  <meta property="og:image:alt" content="${esc(title)}" />
   <meta property="og:url" content="${esc(canonical)}" />
   <meta property="og:site_name" content="どうベビ" />
+  <meta property="og:locale" content="ja_JP" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${esc(title)}" />
+  <meta name="twitter:description" content="${esc(desc)}" />
+  <meta name="twitter:image" content="${esc(og)}" />
+  <meta name="twitter:image:alt" content="${esc(title)}" />
+  <meta name="pinterest:description" content="${esc(desc)}" />
+  <meta name="pinterest-rich-pin" content="true" />
   <link rel="canonical" href="${esc(canonical)}" />
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  ${extraMeta || ''}
   <meta name="google-site-verification" content="yqP_OZz3Qm_iPw3wLSlhofOmYHwrFf3CyU7psadeE-U" />
   <meta name="google-adsense-account" content="ca-pub-7279120932069417">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -181,6 +194,7 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd }) {
   ${ADSENSE_ENABLED ? `<!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}" crossorigin="anonymous"></script>` : '<!-- Google AdSense: 環境変数 ADSENSE_CLIENT を設定すると有効化されます -->'}
   <script type="application/ld+json">${jsonLd}</script>
+  ${extraJsonLd || ''}
 </head>`;
 }
 
@@ -333,6 +347,10 @@ const SPECIES_INFO = {
     iucn: 'LC（軽度懸念）',
     desc: 'カリフォルニアアシカは北アメリカ太平洋岸に生息するアシカで、高い知能と愛嬌のある顔が特徴。泳ぎが得意で時速40kmにも達します。赤ちゃんは生後すぐに母親の鳴き声を覚え、群れの中で迷子にならないよう学びます。活発でコミュニケーション豊かな性質のため、動物園でも特に人気の動物。IUCNレッドリストでは「軽度懸念（LC）」に指定されており、比較的安定した個体数を維持しています。',
   },
+    'ゾウ': {
+    iucn: 'EN/CR（絶滅危惧種〜野生絶滅危惧種、種により異なる）',
+    desc: 'ゾウは現生最大の陸上動物で、アジアゾウ・アフリカゾウ・マルミミゾウの3種に分類されます。寿命は約60〜70年、社会性が高く、メスを中心とした母系家族群で生活します。赤ちゃんは妊娠22ヶ月という哺乳類最長クラスの妊娠期間を経て、体重100kg前後で生まれます。野生個体数の減少から各種ともIUCNレッドリストで絶滅危惧クラスに指定されており、動物園での繁殖は種の保全に重要です。',
+  },
   'アメリカビーバー': {
     iucn: 'LC（軽度懸念）',
     desc: 'アメリカビーバーは北アメリカの河川・湖に生息する「自然のエンジニア」で、木を噛み倒してダムを作ることで有名。体長は約1メートル、扁平な尾が特徴的です。ダムにより周囲の環境を大きく変え、多くの生き物の生息地を作ります。赤ちゃんは毛皮に覆われた状態で生まれ、親のダムの中で育てられます。IUCNレッドリストでは「軽度懸念（LC）」に指定されており、個体数は安定しています。',
@@ -396,16 +414,46 @@ function babyHtml(b, slug, allBabies, slugMap) {
   const title = `${name}（${species}）の赤ちゃん｜${zoo}`;
   const desc  = `${zoo}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${species}の赤ちゃん「${name}」。誕生日は${bdayFmt || '不明'}、現在${age}。どうベビで動物園の赤ちゃん情報をチェック。`;
 
+  // 種別解説マスターからデータ取得（articleLd で参照するため早期に宣言）
+  const speciesData = SPECIES_INFO[species] || null;
+
+  const todayIso = new Date().toISOString().slice(0, 10);
   const articleLd = JSON.stringify({
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'NewsArticle',
     headline: `${name}（${species}）の赤ちゃん｜${zoo}`,
     description: desc,
-    image: b.thumbnail_url || `${SITE_BASE}/assets/img/og.png`,
+    image: [b.thumbnail_url || `${SITE_BASE}/assets/img/og.png`],
     url: canonical,
-    datePublished: b.birthday || undefined,
-    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+    datePublished: b.birthday || todayIso,
+    dateModified: todayIso,
+    inLanguage: 'ja',
+    isAccessibleForFree: true,
+    author: { '@type': 'Organization', name: 'どうベビ編集部', url: SITE_BASE },
+    publisher: {
+      '@type': 'Organization',
+      name: 'どうベビ',
+      url: SITE_BASE,
+      logo: { '@type': 'ImageObject', url: `${SITE_BASE}/assets/img/og.png`, width: 1200, height: 630 }
+    },
+    about: {
+      '@type': 'Animal',
+      name: name,
+      description: speciesData ? speciesData.desc.slice(0, 160) : `${species}の赤ちゃん`,
+    },
+    keywords: [name, species, '赤ちゃん', zoo, '動物園', birthdayYear ? String(birthdayYear) + '年生まれ' : ''].filter(Boolean).join(','),
   });
+
+  // Pinterest / 詳細OGPメタ
+  const extraMetaTags = `
+  <meta property="article:published_time" content="${esc(b.birthday || todayIso)}" />
+  <meta property="article:modified_time" content="${esc(todayIso)}" />
+  <meta property="article:section" content="動物の赤ちゃん" />
+  <meta property="article:tag" content="${esc(species)}" />
+  <meta property="article:tag" content="${esc(zoo)}" />
+  <meta property="article:tag" content="赤ちゃん" />
+  <meta name="keywords" content="${esc(name)},${esc(species)},赤ちゃん,${esc(zoo)},動物園,${birthdayYear || ''}" />`;
 
   const breadcrumbLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -430,9 +478,6 @@ function babyHtml(b, slug, allBabies, slugMap) {
   const sameSpecies = (allBabies || [])
     .filter(x => x.species === b.species && x.id !== b.id && x.zoo_name !== b.zoo_name)
     .slice(0, 6);
-
-  // 種別解説マスターからデータ取得
-  const speciesData = SPECIES_INFO[species] || null;
 
   // 種の紹介文セクション
   const speciesInfoHtml = speciesData ? `
@@ -469,7 +514,7 @@ function babyHtml(b, slug, allBabies, slugMap) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd: articleLd })}
+${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd: articleLd, extraMeta: extraMetaTags })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
@@ -668,10 +713,13 @@ function zooHtml(zoo, babies, slugMap = null) {
   const count = zooBabies.length;
   const sampleNames = zooBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
 
-  const title = `${zoo.name}の赤ちゃん動物一覧 | どうベビ`;
+  // SEO: 「○○ 赤ちゃん」検索でヒットしやすい title（コアキーワード前置）
+  const title = count > 0
+    ? `${zoo.name}の赤ちゃん｜現在${count}頭・最新情報 | どうベビ`
+    : `${zoo.name}の赤ちゃん情報 | どうベビ`;
   const desc = count > 0
-    ? `${zoo.name}で現在会える赤ちゃん動物を紹介。${sampleNames}${count > 3 ? 'など' : ''}${count}頭が暮らしています。${zoo.description || ''}`.slice(0, 160)
-    : `${zoo.name}の動物・アクセス・営業時間・入園料のご案内。${zoo.description || ''}`.slice(0, 160);
+    ? `${zoo.name}の赤ちゃん動物の最新情報。${sampleNames}${count > 3 ? 'など' : ''}${count}頭の赤ちゃんが暮らしています。誕生日・種類・写真をまとめて掲載。${zoo.description ? zoo.description.slice(0, 60) : ''}`.slice(0, 160)
+    : `${zoo.name}の赤ちゃん動物情報。入園料・営業時間・アクセスもまとめて掲載。${zoo.description || ''}`.slice(0, 160);
   const canonical = `${SITE_BASE}/zoos/${zoo.slug}/`;
 
   const jsonLd = JSON.stringify({
@@ -680,6 +728,7 @@ function zooHtml(zoo, babies, slugMap = null) {
     name: zoo.name,
     description: zoo.description || desc,
     url: canonical,
+    image: `${SITE_BASE}/assets/img/og.png`,
     sameAs: zoo.official_url ? [zoo.official_url] : undefined,
     address: {
       '@type': 'PostalAddress',
@@ -690,6 +739,52 @@ function zooHtml(zoo, babies, slugMap = null) {
     },
     openingHours: zoo.hours,
   });
+
+  // BreadcrumbList JSON-LD（パンくず構造化）
+  const zooBreadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '動物園一覧', item: `${SITE_BASE}/zoos/` },
+      { '@type': 'ListItem', position: 3, name: zoo.name, item: canonical },
+    ],
+  });
+
+  // FAQPage JSON-LD（よくある質問）— Google 検索結果に展開表示される可能性
+  const zooFaqLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `${zoo.name}には現在どんな赤ちゃん動物がいますか？`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: count > 0
+            ? `${zoo.name}には現在${count}頭の赤ちゃん動物が暮らしています。${sampleNames ? `代表的なのは${sampleNames}${count > 3 ? 'など' : ''}` : ''}。最新の誕生情報は本ページで随時更新しています。`
+            : `現在${zoo.name}の赤ちゃん動物の登録はありません。新しい情報が入り次第このページで掲載します。`,
+        },
+      },
+      ...(zoo.hours ? [{
+        '@type': 'Question',
+        name: `${zoo.name}の営業時間を教えてください。`,
+        acceptedAnswer: { '@type': 'Answer', text: zoo.hours.replace(/\n/g, ' / ') },
+      }] : []),
+      ...(zoo.fees ? [{
+        '@type': 'Question',
+        name: `${zoo.name}の入園料はいくらですか？`,
+        acceptedAnswer: { '@type': 'Answer', text: zoo.fees.replace(/\n/g, ' / ') },
+      }] : []),
+      ...(zoo.nearest_station ? [{
+        '@type': 'Question',
+        name: `${zoo.name}へのアクセス方法は？`,
+        acceptedAnswer: { '@type': 'Answer', text: zoo.nearest_station.replace(/\n/g, ' / ') },
+      }] : []),
+    ],
+  });
+
+  const zooExtraJsonLd = `<script type="application/ld+json">${zooBreadcrumbLd}</script><script type="application/ld+json">${zooFaqLd}</script>`;
 
   // アフィリエイト / 公式リンク
   const svgTicket2 = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-ticket"></use></svg>`;
@@ -722,7 +817,7 @@ function zooHtml(zoo, babies, slugMap = null) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd })}
+${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/zoos/')}
@@ -1135,8 +1230,17 @@ function speciesHtml(species, babies, slugMap) {
     name: `${species}の赤ちゃん`,
     description: desc,
     url: canonical,
+    image: `${SITE_BASE}/assets/img/og.png`,
+    inLanguage: 'ja',
+    isPartOf: { '@type': 'WebSite', name: 'どうベビ', url: SITE_BASE },
+    about: {
+      '@type': 'Animal',
+      name: species,
+      description: info ? info.desc : `${species}の赤ちゃん情報`,
+    },
     mainEntity: {
       '@type': 'ItemList',
+      numberOfItems: speciesBabies.length,
       itemListElement: speciesBabies.map((b, i) => ({
         '@type': 'ListItem',
         position: i + 1,
@@ -1145,6 +1249,36 @@ function speciesHtml(species, babies, slugMap) {
       })),
     },
   });
+
+  // FAQPage JSON-LD — 種別ページ向けQ&A
+  const speciesFaqLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `${species}の赤ちゃんはどこの動物園で会えますか？`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: zooSet.size > 0
+            ? `現在、${species}の赤ちゃんは全国${zooSet.size}園で会えます。${Array.from(zooSet).slice(0, 5).join('・')}${zooSet.size > 5 ? 'など' : ''}で飼育されています。`
+            : `現在、${species}の赤ちゃんの登録はありません。新しい情報が入り次第このページで掲載します。`,
+        },
+      },
+      ...(info ? [{
+        '@type': 'Question',
+        name: `${species}はどんな動物ですか？`,
+        acceptedAnswer: { '@type': 'Answer', text: info.desc },
+      }] : []),
+      ...(info ? [{
+        '@type': 'Question',
+        name: `${species}の保全状況（IUCN）はどうなっていますか？`,
+        acceptedAnswer: { '@type': 'Answer', text: `${species}は IUCN レッドリストで「${info.iucn}」に指定されています。` },
+      }] : []),
+    ],
+  });
+
+  const speciesExtraJsonLd = `<script type="application/ld+json">${speciesFaqLd}</script>`;
 
   const breadcrumbLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -1165,7 +1299,7 @@ function speciesHtml(species, babies, slugMap) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd })}
+${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: speciesExtraJsonLd })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
