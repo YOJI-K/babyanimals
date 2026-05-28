@@ -790,6 +790,8 @@ function zooBabyCardHtml(b, slugMap = null) {
 function zooHtml(zoo, babies, slugMap = null) {
   const zooBabies = babies.filter(b => b.zoo_name === zoo.db_name);
   const count = zooBabies.length;
+  // baby が紐付いていない zoo は薄いコンテンツになるため noindex（AdSense対応）
+  const isThinZoo = count === 0;
   const sampleNames = zooBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
 
   // SEO: 「○○ 赤ちゃん」検索でヒットしやすい title（コアキーワード前置）
@@ -896,7 +898,7 @@ function zooHtml(zoo, babies, slugMap = null) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd })}
+${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd, extraMeta: isThinZoo ? '\n  <meta name="robots" content="noindex,follow" />' : '' })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/zoos/')}
@@ -1952,44 +1954,111 @@ async function fetchNews() {
 
 // ─── baby 個別ニュース取得 ─────────────────────────────────────────────
 // 動物・赤ちゃん関連のキーワード（タイトル品質フィルタ用）
-const ANIMAL_NEWS_KEYWORDS = [
-  '赤ちゃん','ベビー','誕生','生まれ','産まれ',
-  '飼育','展示','公開','お披露目','披露','命名','名づけ',
-  '動物園','水族館','サファリ','繁殖','種の保存','保全',
-  '頭目','匹目','双子','三つ子','親子','母子',
+// 動物・園関連キーワード（タイトル品質フィルタ）
+const ANIMAL_CONTEXT_KEYWORDS = [
+  '動物園','水族館','サファリ','こども動物','動物公園','動物公苑','どうぶつ',
+  '動物の','動物が','動物に','動物を','動物達','動物たち',
+  '飼育','展示','繁殖','種の保存','保全','飼育員','獣医','園内',
+  '動物園で','動物園が','動物園の','水族館で','水族館の',
 ];
+const BABY_CONTEXT_KEYWORDS = [
+  '赤ちゃん','ベビー','誕生','生まれ','産まれ','お披露目','披露','命名','名づけ',
+  '双子','三つ子','親子','母子',
+];
+const ANIMAL_NEWS_KEYWORDS = [...ANIMAL_CONTEXT_KEYWORDS, ...BABY_CONTEXT_KEYWORDS];
 // 注: '子ども/子供/こども/子/育/初/名前/歳/カ月/ヶ月/か月/頭/匹/羽/成長' は人間の話題と誤マッチしやすいので除外
 function isAnimalNewsTitle(title, baby) {
   if (!title) return false;
-  // ベース: 動物関連キーワードを1つ以上含む
-  if (ANIMAL_NEWS_KEYWORDS.some(k => title.includes(k))) return true;
-  // 種名が含まれる場合もOK（「ゾウ」「パンダ」など）
+  // (1) 種名が含まれる場合は通過（「ゾウ」「パンダ」など）
   if (baby && baby.species && title.includes(baby.species)) return true;
-  return false;
+  // (2) この baby の動物園名がタイトルに含まれる場合は通過（「日本モンキーセンター」など）
+  if (baby && baby.zoo_name && title.includes(baby.zoo_name)) return true;
+  // (3) 動物文脈キーワード（動物園/水族館/サファリ/飼育/繁殖など）が含まれる
+  return ANIMAL_CONTEXT_KEYWORDS.some(k => title.includes(k));
 }
 function isNameStrongMatch(title, baby) {
   if (!title || !baby || !baby.name) return false;
   const name = baby.name.trim();
+  if (name.length < 2) return false;
   if (!title.includes(name)) return false;
-  // 名前マッチに加え、種名が含まれる場合のみ strong match（誤マッチ防止の最後の砦）
-  // 種名が無い baby は strong match させない
-  if (!baby.species) return false;
-  return title.includes(baby.species);
+  // 厳格な strong match:「名前」+「種名 OR 動物園名」両方含むこと
+  // 種名: 「Coqu」+「ゾウ」のように名前と種が一緒に出てくる場合
+  // 動物園名: 「ふく」+「野毛山動物園」のように所属が明示されている場合
+  const hasSpecies = baby.species && title.includes(baby.species);
+  const hasZoo     = baby.zoo_name && title.includes(baby.zoo_name);
+  return hasSpecies || hasZoo;
 }
 
-// baby に紐づくニュースを zoo_id 経由で取得（タイトル品質フィルタ → 最大10件→優先度ソート→上位5件返却）
+// baby に紐づくニュースを zoo_id 経由で取得（fallback: sources経由）
+// zoo_name → zoo_ids[] のキャッシュ（同名zoo複数登録への対処）
+const ZOO_IDS_BY_NAME_CACHE = new Map();
+async function resolveAllZooIds(baby) {
+  const ids = new Set();
+  if (baby && baby.zoo_id) ids.add(baby.zoo_id);
+  if (!baby || !baby.zoo_name || USE_MOCK) return Array.from(ids);
+  const key = baby.zoo_name.trim();
+  if (!key) return Array.from(ids);
+  const cached = ZOO_IDS_BY_NAME_CACHE.get(key);
+  if (cached) { cached.forEach(i => ids.add(i)); return Array.from(ids); }
+  try {
+    // (1) 完全一致
+    const exact = await sbFetch(`/rest/v1/zoos?select=id,name&name=eq.${encodeURIComponent(key)}`);
+    (exact||[]).forEach(z => ids.add(z.id));
+    // (2) 「baby.zoo_name を全体として」末尾に含む長い zoos.name のみ追加（特定的）
+    // 例: baby.zoo_name='ズーラシア' → 'よこはま動物園ズーラシア' を取り込みOK
+    //     baby.zoo_name='上野動物園' → '恩賜上野動物園' を取り込みOK
+    // ただしキーが3文字以下なら誤マッチ多発するので拡張しない
+    if (key.length >= 4) {
+      const long = await sbFetch(`/rest/v1/zoos?select=id,name&name=ilike.*${encodeURIComponent(key)}&limit=5`);
+      (long||[]).forEach(z => {
+        // 念のため、検索hitした name が key を本当に「含む」ことを再確認
+        if (z.name && z.name.includes(key)) ids.add(z.id);
+      });
+    }
+    ZOO_IDS_BY_NAME_CACHE.set(key, Array.from(ids));
+  } catch (e) {}
+  return Array.from(ids);
+}
+
 async function fetchNewsForBaby(baby) {
   if (USE_MOCK || !baby || !baby.zoo_id) return [];
   try {
-    const url = `/rest/v1/news_items?select=id,title,url,published_at,source_name,thumbnail_url&zoo_id=eq.${encodeURIComponent(baby.zoo_id)}&order=published_at.desc&limit=50`;
-    const data = await sbFetch(url);
+    const zooIds = await resolveAllZooIds(baby);
+    if (!zooIds.length) return [];
+    
+    // 全 zoo_id をまとめて検索
+    const ids = zooIds.map(encodeURIComponent).join(',');
+    const url = `/rest/v1/news_items?select=id,title,url,published_at,source_name,thumbnail_url&zoo_id=in.(${ids})&order=published_at.desc&limit=80`;
+    let data = await sbFetch(url);
+    
+    // フォールバック: source 経由
+    if (!Array.isArray(data) || data.length === 0) {
+      try {
+        const srcs = await sbFetch(`/rest/v1/sources?select=id&zoo_id=in.(${ids})&enabled=eq.true&limit=30`);
+        if (Array.isArray(srcs) && srcs.length > 0) {
+          const sids = srcs.map(s => s.id).filter(Boolean).join(',');
+          if (sids) {
+            data = await sbFetch(`/rest/v1/news_items?select=id,title,url,published_at,source_name,thumbnail_url&source_id=in.(${sids})&order=published_at.desc&limit=80`);
+          }
+        }
+      } catch (e) {}
+    }
+    
     if (!Array.isArray(data) || !data.length) return [];
 
-    // フィルタ: タイトルが動物・赤ちゃん関連語を含むものに限定
-    const relevant = data.filter(n => isAnimalNewsTitle(n.title, baby));
+    // 重複排除（同じ url を含む news）
+    const seenUrls = new Set();
+    const deduped = data.filter(n => {
+      if (!n.url || seenUrls.has(n.url)) return false;
+      seenUrls.add(n.url);
+      return true;
+    });
+
+    // フィルタ: タイトル品質
+    const relevant = deduped.filter(n => isAnimalNewsTitle(n.title, baby));
     if (!relevant.length) return [];
 
-    // スコア: 名前 + 動物文脈の両方一致(=この子の話題確度高) = 0、それ以外 = 1
+    // スコア: name strong match を上位に
     const scored = relevant.map(n => ({
       ...n,
       _score: isNameStrongMatch(n.title, baby) ? 0 : 1,

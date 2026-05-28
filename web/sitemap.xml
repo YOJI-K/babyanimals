@@ -385,12 +385,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/species/%E3%82%B3%E3%82%A2%E3%83%A9/</loc>
-    <lastmod>2026-05-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/species/%E3%83%8B%E3%82%B7%E3%82%B4%E3%83%AA%E3%83%A9/</loc>
     <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
@@ -481,6 +475,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/species/%E3%82%B3%E3%82%A2%E3%83%A9/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/species/%E3%82%AB%E3%83%AA%E3%83%95%E3%82%A9%E3%83%AB%E3%83%8B%E3%82%A2%E3%82%A2%E3%82%B7%E3%82%AB/</loc>
     <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
@@ -541,12 +541,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/species/%E3%82%B8%E3%83%A3%E3%82%A4%E3%82%A2%E3%83%B3%E3%83%88%E3%83%91%E3%83%B3%E3%83%80/</loc>
-    <lastmod>2026-05-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/species/%E3%82%AB%E3%83%90/</loc>
     <lastmod>2026-05-28</lastmod>
     <changefreq>weekly</changefreq>
@@ -579,12 +573,6 @@
   <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%82%A4%E3%83%AD%E3%83%8F-%E3%82%B3%E3%83%93%E3%83%88%E3%82%AB%E3%83%90-%E4%B8%8A%E9%87%8E%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
     <lastmod>2025-12-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E8%A1%9D%E6%92%83-%E3%82%B3%E3%82%A2%E3%83%A9-%E9%B9%BF%E5%85%90%E5%B3%B6%E5%B8%82%E5%B9%B3%E5%B7%9D%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92/</loc>
-    <lastmod>2025-12-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -673,7 +661,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%81%B2%E3%81%97-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E5%A7%AB%E8%B7%AF%E5%B8%82%E7%AB%8B%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
+    <loc>https://babyanimals.pages.dev/babies/%E3%81%B3%E3%81%9C%E3%82%93-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E5%A7%AB%E8%B7%AF%E5%B8%82%E7%AB%8B%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
     <lastmod>2025-01-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -685,31 +673,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/babies/%E3%81%B2%E3%81%97-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E5%A7%AB%E8%B7%AF%E5%B8%82%E7%AB%8B%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
+    <lastmod>2025-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%81%95%E3%81%8F%E3%82%89-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E5%A7%AB%E8%B7%AF%E5%B8%82%E7%AB%8B%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
     <lastmod>2025-01-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%81%B3%E3%81%9C%E3%82%93-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E5%A7%AB%E8%B7%AF%E5%B8%82%E7%AB%8B%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
-    <lastmod>2025-01-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%83%91%E3%82%A4-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E9%AB%98%E7%9F%A5%E7%9C%8C%E7%AB%8B%E3%81%AE%E3%81%84%E3%81%A1%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92/</loc>
-    <lastmod>2024-12-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%83%8A%E3%83%84-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E9%AB%98%E7%9F%A5%E7%9C%8C%E7%AB%8B%E3%81%AE%E3%81%84%E3%81%A1%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92/</loc>
-    <lastmod>2024-12-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%83%9D%E3%83%BC-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E9%AB%98%E7%9F%A5%E7%9C%8C%E7%AB%8B%E3%81%AE%E3%81%84%E3%81%A1%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92/</loc>
     <lastmod>2024-12-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -722,6 +698,18 @@
   </url>
   <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%81%86%E3%81%BF-%E3%83%9B%E3%83%83%E3%82%AD%E3%83%A7%E3%82%AF%E3%82%B0%E3%83%9E-%E5%85%AB%E6%9C%A8%E5%B1%B1%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92%E3%83%95%E3%82%B8%E3%82%B5%E3%82%AD%E3%81%AE%E6%9D%9C/</loc>
+    <lastmod>2024-12-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/babies/%E3%83%91%E3%82%A4-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E9%AB%98%E7%9F%A5%E7%9C%8C%E7%AB%8B%E3%81%AE%E3%81%84%E3%81%A1%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92/</loc>
+    <lastmod>2024-12-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/babies/%E3%83%9D%E3%83%BC-%E3%83%9F%E3%83%BC%E3%82%A2%E3%82%AD%E3%83%A3%E3%83%83%E3%83%88-%E9%AB%98%E7%9F%A5%E7%9C%8C%E7%AB%8B%E3%81%AE%E3%81%84%E3%81%A1%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92/</loc>
     <lastmod>2024-12-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -811,7 +799,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%83%A2%E3%83%8D-%E3%83%A9%E3%82%A4%E3%82%AA%E3%83%B3-%E6%84%9B%E5%AA%9B%E7%9C%8C%E7%AB%8B%E3%81%A8%E3%81%B9%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
+    <loc>https://babyanimals.pages.dev/babies/%E3%82%A2%E3%83%8D-%E3%83%A9%E3%82%A4%E3%82%AA%E3%83%B3-%E6%84%9B%E5%AA%9B%E7%9C%8C%E7%AB%8B%E3%81%A8%E3%81%B9%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
     <lastmod>2024-03-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -823,14 +811,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%82%A2%E3%83%8D-%E3%83%A9%E3%82%A4%E3%82%AA%E3%83%B3-%E6%84%9B%E5%AA%9B%E7%9C%8C%E7%AB%8B%E3%81%A8%E3%81%B9%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
+    <loc>https://babyanimals.pages.dev/babies/%E3%83%A2%E3%83%8D-%E3%83%A9%E3%82%A4%E3%82%AA%E3%83%B3-%E6%84%9B%E5%AA%9B%E7%9C%8C%E7%AB%8B%E3%81%A8%E3%81%B9%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
     <lastmod>2024-03-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E4%BA%8C%E4%B8%96-%E5%AF%8C%E5%B1%B1%E5%B8%82%E3%83%95%E3%82%A1%E3%83%9F%E3%83%AA%E3%83%BC%E3%83%91%E3%83%BC%E3%82%AF/</loc>
-    <lastmod>2024-01-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -859,25 +841,25 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%81%97%E3%81%B6%E3%81%8D-%E3%82%B3%E3%83%84%E3%83%A1%E3%82%AB%E3%83%AF%E3%82%A6%E3%82%BD-%E5%91%A8%E5%8D%97%E5%B8%82%E5%BE%B3%E5%B1%B1%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
-    <lastmod>2023-09-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%81%BF%E3%81%AA%E3%82%82-%E3%82%B3%E3%83%84%E3%83%A1%E3%82%AB%E3%83%AF%E3%82%A6%E3%82%BD-%E5%91%A8%E5%8D%97%E5%B8%82%E5%BE%B3%E5%B1%B1%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
-    <lastmod>2023-09-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%81%AA%E3%81%8E-%E3%82%B3%E3%83%84%E3%83%A1%E3%82%AB%E3%83%AF%E3%82%A6%E3%82%BD-%E5%91%A8%E5%8D%97%E5%B8%82%E5%BE%B3%E5%B1%B1%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
     <lastmod>2023-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/babies/%E3%81%97%E3%81%B6%E3%81%8D-%E3%82%B3%E3%83%84%E3%83%A1%E3%82%AB%E3%83%AF%E3%82%A6%E3%82%BD-%E5%91%A8%E5%8D%97%E5%B8%82%E5%BE%B3%E5%B1%B1%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
+    <lastmod>2023-09-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%81%97%E3%81%9A%E3%81%8F-%E3%82%B3%E3%83%84%E3%83%A1%E3%82%AB%E3%83%AF%E3%82%A6%E3%82%BD-%E5%91%A8%E5%8D%97%E5%B8%82%E5%BE%B3%E5%B1%B1%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
+    <lastmod>2023-09-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/babies/%E3%81%BF%E3%81%AA%E3%82%82-%E3%82%B3%E3%83%84%E3%83%A1%E3%82%AB%E3%83%AF%E3%82%A6%E3%82%BD-%E5%91%A8%E5%8D%97%E5%B8%82%E5%BE%B3%E5%B1%B1%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
     <lastmod>2023-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -937,12 +919,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E7%87%97%E7%8C%BF-%E6%97%A5%E6%9C%AC%E3%83%A2%E3%83%B3%E3%82%AD%E3%83%BC%E3%82%BB%E3%83%B3%E3%82%BF%E3%83%BC/</loc>
-    <lastmod>2022-01-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%83%A2%E3%83%83%E3%83%97-%E6%97%A5%E6%9C%AC%E3%83%A2%E3%83%B3%E3%82%AD%E3%83%BC%E3%82%BB%E3%83%B3%E3%82%BF%E3%83%BC/</loc>
     <lastmod>2021-04-14</lastmod>
     <changefreq>monthly</changefreq>
@@ -967,18 +943,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E4%BD%BF%E5%91%BD-%E3%82%AD%E3%83%AA%E3%83%B3-%E5%AE%87%E9%83%BD%E5%AE%AE%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
-    <lastmod>2020-01-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%83%AC%E3%82%A4-%E3%83%AC%E3%83%83%E3%82%B5%E3%83%BC%E3%83%91%E3%83%B3%E3%83%80-%E5%A4%A7%E7%89%9F%E7%94%B0%E5%B8%82%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
-    <lastmod>2019-05-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%82%89%E5%A4%A2-%E3%82%BE%E3%82%A6-%E5%B8%82%E5%8E%9F%E3%81%9E%E3%81%86%E3%81%AE%E5%9B%BD/</loc>
     <lastmod>2019-01-21</lastmod>
     <changefreq>monthly</changefreq>
@@ -993,18 +957,6 @@
   <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%82%82%E3%82%82%E5%A4%8F-%E3%82%BE%E3%82%A6-%E5%B8%82%E5%8E%9F%E3%81%9E%E3%81%86%E3%81%AE%E5%9B%BD/</loc>
     <lastmod>2018-08-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E5%BD%A9%E6%B5%9C-%E3%82%B8%E3%83%A3%E3%82%A4%E3%82%A2%E3%83%B3%E3%83%88%E3%83%91%E3%83%B3%E3%83%80-%E3%82%A2%E3%83%89%E3%83%99%E3%83%B3%E3%83%81%E3%83%A3%E3%83%BC%E3%83%AF%E3%83%BC%E3%83%AB%E3%83%89/</loc>
-    <lastmod>2018-08-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/babies/%E3%83%AB%E3%83%AA%E3%82%AB-%E3%82%AD%E3%83%AA%E3%83%B3-%E6%97%A5%E7%AB%8B%E5%B8%82%E3%81%8B%E3%81%BF%E3%81%AD%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
-    <lastmod>2018-07-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -1027,12 +979,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/babies/%E6%8A%95%E7%A5%A8-%E6%99%BA%E5%85%89%E5%B1%B1%E5%85%AC%E5%9C%92%E3%81%93%E3%81%A9%E3%82%82%E5%8B%95%E7%89%A9%E5%9C%92/</loc>
-    <lastmod>2017-05-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/babies/%E3%82%A4%E3%83%AD%E3%83%8F-%E3%82%AB%E3%83%90-%E4%BA%95%E3%81%AE%E9%A0%AD%E8%87%AA%E7%84%B6%E6%96%87%E5%8C%96%E5%9C%92/</loc>
     <lastmod>2026-05-28</lastmod>
     <changefreq>monthly</changefreq>
@@ -1045,7 +991,61 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_4953b742-3ff3-4e09-9fcb-1c3b43a0b21d/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_14df79a3-af04-4722-a59f-1edceae1abc3/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_0b50fee1-9dd4-4525-b395-5048b3e3b334/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_9755a66d-d9ca-4f96-af43-ad8de802a73d/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_74c77218-e79b-424b-9324-6fea9c5d2946/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_5d409d6c-2b6e-45c4-b877-ebb6d93f9242/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_59a0196c-e682-45cb-bdef-918dd926b27e/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_86c41809-2644-424e-8eab-3f9820069475/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_8a08a985-e4e2-464d-aa81-7cd3b2514f0c/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_1b516716-a826-4180-8167-a959526fcc30/</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1058,6 +1058,12 @@
   </url>
   <url>
     <loc>https://babyanimals.pages.dev/news/agg_40c69a9b-1a5f-487d-a374-e92c2043e54a/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_e0c8e899-6f2d-43f6-bf3a-9250258e5e3c/</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1093,6 +1099,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_156bd97f-9078-412f-a9c6-a3e40b3c7ad6/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_66b204c1-32d4-4afd-a9a7-2163c098d920/</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
@@ -1105,7 +1117,19 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_d183c4db-1830-4330-98de-87d87d10a0dc/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_3341dea0-9590-4cbd-9f0f-0319fd23f3bb/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_719c8ddc-c9c3-45ab-8389-63bff3a4bbe8/</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1165,6 +1189,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_dfb791ec-0894-42dc-8259-cbb11402e1fa/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_0c67efc3-7bc9-4448-b611-e5431491f9b3/</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
@@ -1208,6 +1238,12 @@
   </url>
   <url>
     <loc>https://babyanimals.pages.dev/news/agg_42b252aa-8c82-46b6-b304-b6890dfbb68f/</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_68f40a29-e72e-4bb2-82ae-5284465fc50b/</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1267,6 +1303,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_8d8b851d-4d60-4e3a-b31c-dc4880283a08/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_0f773590-7bd0-4eee-bfe2-e01fb8f226a9/</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>yearly</changefreq>
@@ -1280,6 +1322,12 @@
   </url>
   <url>
     <loc>https://babyanimals.pages.dev/news/agg_8f283588-55df-4e17-99c4-351c353c5a34/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_60783f96-3e8a-4973-8683-e6b9e909ba19/</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1369,6 +1417,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_a7a097ed-bafd-476e-b1c4-38ce8bd961de/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_2f8f2778-c65a-495d-b403-4e4c27ca14b3/</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>yearly</changefreq>
@@ -1387,6 +1441,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_c4ed21f9-9a9f-4194-a3c7-697d066373db/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_59c2cf0b-c97f-4153-800a-6e658359758d/</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>yearly</changefreq>
@@ -1399,7 +1459,25 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_cbfd5fb6-fc3a-4a94-ade2-a989c84971d8/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_b4ff4398-2ae8-4ae7-b80b-c9ec834adc36/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_0cd7d52c-2e47-466e-bdd5-7326d2a08d3d/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_281c61d4-41d8-4b71-ab7c-11aec070d47c/</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1430,6 +1508,12 @@
   </url>
   <url>
     <loc>https://babyanimals.pages.dev/news/agg_d03cde19-d482-476c-a255-ce929ee8ab66/</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_bd372cb5-b9a5-420d-a740-6999ca5c5da2/</loc>
     <lastmod>2026-05-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1591,7 +1675,7 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/news/agg_59a0196c-e682-45cb-bdef-918dd926b27e/</loc>
+    <loc>https://babyanimals.pages.dev/news/agg_b8489907-5f92-4f71-9364-e8519750539d/</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -1795,6 +1879,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_10797c80-0526-4fcf-9093-a1eecb7b09d5/</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_c64625f3-9432-41bf-9be6-dea5ecd0ed31/</loc>
     <lastmod>2026-05-24</lastmod>
     <changefreq>yearly</changefreq>
@@ -1921,6 +2011,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://babyanimals.pages.dev/news/agg_0f0e9629-13b4-473c-a61a-c4fc57e4e7e0/</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://babyanimals.pages.dev/news/agg_8446baf0-a3be-47fa-bed1-f21ba65be54b/</loc>
     <lastmod>2026-05-24</lastmod>
     <changefreq>yearly</changefreq>
@@ -1928,6 +2024,12 @@
   </url>
   <url>
     <loc>https://babyanimals.pages.dev/news/agg_97c29f23-6c12-40bc-9fe9-0e5d6b212c80/</loc>
+    <lastmod>2026-05-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://babyanimals.pages.dev/news/agg_f5707f47-5e59-4079-bcc7-3b19fe8f076d/</loc>
     <lastmod>2026-05-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
@@ -2023,12 +2125,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://babyanimals.pages.dev/news/agg_281c61d4-41d8-4b71-ab7c-11aec070d47c/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://babyanimals.pages.dev/news/agg_bb3d1898-a35b-40fa-898a-84b95654a52d/</loc>
     <lastmod>2026-05-23</lastmod>
     <changefreq>yearly</changefreq>
@@ -2091,156 +2187,6 @@
   <url>
     <loc>https://babyanimals.pages.dev/news/agg_eca08d6c-5d41-42d9-8194-51cd8b92e5e8/</loc>
     <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_b5298b38-ff8b-433f-bded-85d48a067c27/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_bd372cb5-b9a5-420d-a740-6999ca5c5da2/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_11317762-827c-45d9-a0f5-c528c915d048/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_3f6ad850-7781-493e-923a-b2e250ac2058/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_7591ee01-3603-4369-81bd-9ddddded0703/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_6b25fc69-6223-45cf-a04e-c5ccdd6da94a/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_d147229b-46d0-4988-93f8-3e6edb988ee8/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_c8004605-e496-4b45-908b-a901b49a6837/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_c4cb6d08-a164-4a63-bbcf-d24233b6a44b/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_312c98a6-c420-4c13-94f9-4d12f8f0974b/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_fece9c4c-a2aa-4990-ba29-48d5eb8eeebf/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_c1fe2635-5e32-42e0-b786-31e31f9a81d7/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_6fb5ed69-e1da-4185-815d-7b83edc353a5/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_69fd4062-8daf-496f-8846-ac11dc76a741/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_1fc21b32-3ef8-4ecb-a2ae-6c434dc943c7/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_406e4cfa-4626-46ed-b4ab-312a3f464d5c/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_84dd6a1b-8ffe-48f1-bed5-630f573fca4a/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_f130eccf-96c7-4e19-ad06-3d7b5d7cfa8f/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_3f5b8369-a82b-4b24-956c-bc038af87324/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_2c2cca79-0014-4c5a-b6bb-a16b4a3be41d/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_97c6eb6e-e76e-4816-a60e-cdc4462279a3/</loc>
-    <lastmod>2026-05-23</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_260027d3-4a86-4477-942c-a37f3526bcbc/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_b6457472-ab28-4a00-9b7d-0d7023d663ad/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_99cfda7d-cac3-4923-8b5b-2befb5fac64f/</loc>
-    <lastmod>2026-05-22</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://babyanimals.pages.dev/news/agg_97041e42-273b-4c41-b028-4333758276c4/</loc>
-    <lastmod>2026-05-22</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
