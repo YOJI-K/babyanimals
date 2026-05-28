@@ -231,7 +231,7 @@ function siteNav(activeHref) {
 
 function siteFooter() {
   return `<footer class="site-footer" aria-label="フッター">
-  <small>© どうベビ（動物園ベビー情報）　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a></small>
+  <small>© どうベビ（動物園ベビー情報）　<a href="/about/" style="color:inherit;opacity:0.7;font-size:0.9em;">運営者情報</a>　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a>　<a href="/contact/" style="color:inherit;opacity:0.7;font-size:0.9em;">お問い合わせ</a></small>
 </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
@@ -402,7 +402,7 @@ function zooLinksHtml(zooName, animalName) {
 
 // ─── 赤ちゃん個別ページ ─────────────────────────────────────────────
 
-function babyHtml(b, slug, allBabies, slugMap) {
+function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const name     = b.name    || '赤ちゃん';
   const species  = b.species || '動物';
   const zoo      = b.zoo_name || '（動物園不明）';
@@ -486,6 +486,83 @@ function babyHtml(b, slug, allBabies, slugMap) {
       <p class="species-info__desc">${speciesData.desc}</p>
     </section>` : '';
 
+  // === 「この子・この園の最新ニュース」（zoo_id経由の紐付け） ===
+  const newsList = Array.isArray(babyNews) ? babyNews : [];
+  const nameMatchNews = newsList.filter(n => n.title && name && n.title.includes(name));
+  const ownStoryCount = nameMatchNews.length;
+
+  const babyNewsHtml = newsList.length ? `
+    <section class="baby-news" aria-labelledby="baby-news-title">
+      <h2 class="baby-news__title" id="baby-news-title">🗞️ ${esc(name)}と${esc(zoo)}の最新ニュース</h2>
+      <ul class="baby-news__list">
+        ${newsList.map(n => {
+          const date = fmtDate(n.published_at) || '';
+          const src  = n.source_name || '';
+          const featured = n.title && name && n.title.includes(name);
+          return `<li class="baby-news__item${featured ? ' is-featured' : ''}">
+            <a class="baby-news__link" href="${esc(n.url)}" target="_blank" rel="noopener noreferrer">
+              <span class="baby-news__headline">${esc(n.title)}</span>
+              <span class="baby-news__meta">${esc(date)}${src ? ' / ' + esc(src) : ''}${featured ? ' <span class="baby-news__badge">この子の話題</span>' : ''}</span>
+            </a>
+          </li>`;
+        }).join('\n        ')}
+      </ul>
+      <p class="baby-news__note">※ ニュース見出しは外部メディアの公開情報を引用しています。リンク先で本文をご確認ください。</p>
+    </section>` : '';
+
+  // === 「この子のストーリー」自動生成エピソードテキスト（Step2） ===
+  // 個別性を出すため、ベース統計とニュース活用度からダイナミックに文章を組み立てる
+  const ageMonthsTotal = b.birthday ? Math.max(0, Math.floor((new Date() - new Date(b.birthday)) / (30.44 * 86400000))) : null;
+  const ageYears  = ageMonthsTotal !== null ? Math.floor(ageMonthsTotal / 12) : null;
+  const ageMonths = ageMonthsTotal !== null ? ageMonthsTotal % 12 : null;
+  const seasonOf = (iso) => {
+    if (!iso) return '';
+    const m = new Date(iso).getMonth() + 1;
+    if (m >= 3 && m <= 5)   return '春';
+    if (m >= 6 && m <= 8)   return '夏';
+    if (m >= 9 && m <= 11)  return '秋';
+    return '冬';
+  };
+  const season = seasonOf(b.birthday);
+  const isInfant = ageMonthsTotal !== null && ageMonthsTotal < 12;
+  const isToddler = ageMonthsTotal !== null && ageMonthsTotal >= 12 && ageMonthsTotal < 36;
+
+  const introLines = [];
+  if (birthdayYear && season) {
+    introLines.push(`${esc(name)}は${birthdayYear}年${season}に${esc(zoo)}で生まれた${esc(species)}の赤ちゃんです。`);
+  } else {
+    introLines.push(`${esc(name)}は${esc(zoo)}で暮らす${esc(species)}の赤ちゃんです。`);
+  }
+  if (ageYears !== null) {
+    if (isInfant) {
+      introLines.push(`誕生から${esc(age)}が経ち、初めての世界を毎日見つけている時期です。`);
+    } else if (isToddler) {
+      introLines.push(`現在${esc(age)}になり、好奇心いっぱいで動き回る姿が見られます。`);
+    } else {
+      introLines.push(`現在${esc(age)}に成長し、たくましい姿を見せてくれています。`);
+    }
+  }
+  if (speciesData) {
+    if (speciesData.iucn && speciesData.iucn.includes('絶滅') || (speciesData.iucn || '').match(/CR|EN/)) {
+      introLines.push(`${esc(species)}は絶滅が心配される希少種で、${esc(name)}の誕生は種の保全にとって大きな意味を持ちます。`);
+    } else if ((speciesData.iucn || '').includes('VU') || (speciesData.iucn || '').includes('NT')) {
+      introLines.push(`${esc(species)}は野生での生息数が減少傾向にあり、動物園での飼育・繁殖が重要な役割を果たしています。`);
+    }
+  }
+  if (ownStoryCount > 0) {
+    introLines.push(`これまでにメディアでも${ownStoryCount}件取り上げられており、${esc(zoo)}の人気者として注目を集めています。`);
+  } else if (newsList.length > 0) {
+    introLines.push(`${esc(zoo)}では他にもさまざまな動物の話題が日々更新されています。最新の情報はこのページの下部もご覧ください。`);
+  }
+
+  const babyEpisodeHtml = `
+    <section class="baby-episode" aria-labelledby="baby-episode-title">
+      <h2 class="baby-episode__title" id="baby-episode-title">📖 ${esc(name)}のストーリー</h2>
+      <div class="baby-episode__body">
+        ${introLines.map(l => `<p>${l}</p>`).join('\n        ')}
+      </div>
+    </section>`;
+
   // スペック表
   const specsHtml = `
     <table class="baby-specs">
@@ -544,8 +621,10 @@ ${siteNav('/babies/')}
         ${esc(zoo)}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${esc(species)}の赤ちゃん「${esc(name)}」の情報ページです。
         誕生日は${esc(bdayFmt) || '不明'}、現在${esc(age)}。
       </p>
+      ${babyEpisodeHtml}
       ${speciesInfoHtml}
       ${specsHtml}
+      ${babyNewsHtml}
       ${zooLinksHtml(zoo, name)}
       <div class="ssg-detail__actions">
         <a class="btn btn--primary" href="/babies/">← 赤ちゃん一覧へ戻る</a>
@@ -1870,6 +1949,32 @@ async function fetchNews() {
   return data;
 }
 
+
+// ─── baby 個別ニュース取得 ─────────────────────────────────────────────
+// baby に紐づくニュースを zoo_id 経由で取得（最大10件→優先度ソート→上位5件返却）
+async function fetchNewsForBaby(baby) {
+  if (USE_MOCK || !baby || !baby.zoo_id) return [];
+  try {
+    const url = `/rest/v1/news_items?select=id,title,url,published_at,source_name,thumbnail_url&zoo_id=eq.${encodeURIComponent(baby.zoo_id)}&order=published_at.desc&limit=30`;
+    const data = await sbFetch(url);
+    if (!Array.isArray(data) || !data.length) return [];
+
+    // スコア: title に baby.name 含む = 0、それ以外 = 1
+    const name = (baby.name || '').trim();
+    const scored = data.map(n => ({
+      ...n,
+      _score: name && n.title && n.title.includes(name) ? 0 : 1,
+    }));
+    scored.sort((a, b) => {
+      if (a._score !== b._score) return a._score - b._score;
+      return (b.published_at || '').localeCompare(a.published_at || '');
+    });
+    return scored.slice(0, 5);
+  } catch (e) {
+    return [];
+  }
+}
+
 // ─── メイン ─────────────────────────────────────────────────────────
 
 async function main() {
@@ -1902,18 +2007,23 @@ async function main() {
 
   // ── 赤ちゃん個別ページ（slug URL + UUID リダイレクトスタブ）──
   console.log(`\n🐣 赤ちゃん個別ページ生成中 (${babies.length} 件)...`);
+  console.log(`   📰 各赤ちゃんに紐づく最新ニュースを取得中...`);
   let babyCount = 0;
+  let withNewsCount = 0;
   for (const b of babies) {
     if (!b.id) continue;
     const slug = slugMap.get(b.id);
+    // この baby に紐づくニュース（zoo_id経由）を取得
+    const babyNews = await fetchNewsForBaby(b);
+    if (babyNews.length > 0) withNewsCount++;
     // slug URL に正規ページを生成
-    writeHtml(path.join(WEB_DIR, 'babies', slug, 'index.html'), babyHtml(b, slug, babies, slugMap));
+    writeHtml(path.join(WEB_DIR, 'babies', slug, 'index.html'), babyHtml(b, slug, babies, slugMap, babyNews));
     // UUID URL にリダイレクトスタブを生成（既存リンクの後方互換）
     writeHtml(path.join(WEB_DIR, 'babies', String(b.id), 'index.html'), babyRedirectHtml(slug));
     babyCount++;
-    if (babyCount % 100 === 0) process.stdout.write(`   ${babyCount}/${babies.length}\n`);
+    if (babyCount % 20 === 0) process.stdout.write(`   ${babyCount}/${babies.length}\n`);
   }
-  console.log(`   ✅ ${babyCount} 件完了（slug + UUID スタブ 各${babyCount}件）`);
+  console.log(`   ✅ ${babyCount} 件完了（うち ${withNewsCount} 件はニュース付き / slug + UUID スタブ）`);
 
   // ── ニュース個別ページ ──
   console.log(`\n🗞️  ニュース個別ページ生成中 (${newsItems.length} 件)...`);
