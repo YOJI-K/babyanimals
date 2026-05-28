@@ -488,7 +488,7 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
 
   // === 「この子・この園の最新ニュース」（zoo_id経由の紐付け） ===
   const newsList = Array.isArray(babyNews) ? babyNews : [];
-  const nameMatchNews = newsList.filter(n => n.title && name && n.title.includes(name));
+  const nameMatchNews = newsList.filter(n => isNameStrongMatch(n.title, b));
   const ownStoryCount = nameMatchNews.length;
 
   const babyNewsHtml = newsList.length ? `
@@ -498,7 +498,7 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
         ${newsList.map(n => {
           const date = fmtDate(n.published_at) || '';
           const src  = n.source_name || '';
-          const featured = n.title && name && n.title.includes(name);
+          const featured = isNameStrongMatch(n.title, b);
           return `<li class="baby-news__item${featured ? ' is-featured' : ''}">
             <a class="baby-news__link" href="${esc(n.url)}" target="_blank" rel="noopener noreferrer">
               <span class="baby-news__headline">${esc(n.title)}</span>
@@ -1951,19 +1951,48 @@ async function fetchNews() {
 
 
 // ─── baby 個別ニュース取得 ─────────────────────────────────────────────
-// baby に紐づくニュースを zoo_id 経由で取得（最大10件→優先度ソート→上位5件返却）
+// 動物・赤ちゃん関連のキーワード（タイトル品質フィルタ用）
+const ANIMAL_NEWS_KEYWORDS = [
+  '赤ちゃん','ベビー','誕生','生まれ','産まれ',
+  '飼育','展示','公開','お披露目','披露','命名','名づけ',
+  '動物園','水族館','サファリ','繁殖','種の保存','保全',
+  '頭目','匹目','双子','三つ子','親子','母子',
+];
+// 注: '子ども/子供/こども/子/育/初/名前/歳/カ月/ヶ月/か月/頭/匹/羽/成長' は人間の話題と誤マッチしやすいので除外
+function isAnimalNewsTitle(title, baby) {
+  if (!title) return false;
+  // ベース: 動物関連キーワードを1つ以上含む
+  if (ANIMAL_NEWS_KEYWORDS.some(k => title.includes(k))) return true;
+  // 種名が含まれる場合もOK（「ゾウ」「パンダ」など）
+  if (baby && baby.species && title.includes(baby.species)) return true;
+  return false;
+}
+function isNameStrongMatch(title, baby) {
+  if (!title || !baby || !baby.name) return false;
+  const name = baby.name.trim();
+  if (!title.includes(name)) return false;
+  // 名前マッチに加え、種名が含まれる場合のみ strong match（誤マッチ防止の最後の砦）
+  // 種名が無い baby は strong match させない
+  if (!baby.species) return false;
+  return title.includes(baby.species);
+}
+
+// baby に紐づくニュースを zoo_id 経由で取得（タイトル品質フィルタ → 最大10件→優先度ソート→上位5件返却）
 async function fetchNewsForBaby(baby) {
   if (USE_MOCK || !baby || !baby.zoo_id) return [];
   try {
-    const url = `/rest/v1/news_items?select=id,title,url,published_at,source_name,thumbnail_url&zoo_id=eq.${encodeURIComponent(baby.zoo_id)}&order=published_at.desc&limit=30`;
+    const url = `/rest/v1/news_items?select=id,title,url,published_at,source_name,thumbnail_url&zoo_id=eq.${encodeURIComponent(baby.zoo_id)}&order=published_at.desc&limit=50`;
     const data = await sbFetch(url);
     if (!Array.isArray(data) || !data.length) return [];
 
-    // スコア: title に baby.name 含む = 0、それ以外 = 1
-    const name = (baby.name || '').trim();
-    const scored = data.map(n => ({
+    // フィルタ: タイトルが動物・赤ちゃん関連語を含むものに限定
+    const relevant = data.filter(n => isAnimalNewsTitle(n.title, baby));
+    if (!relevant.length) return [];
+
+    // スコア: 名前 + 動物文脈の両方一致(=この子の話題確度高) = 0、それ以外 = 1
+    const scored = relevant.map(n => ({
       ...n,
-      _score: name && n.title && n.title.includes(name) ? 0 : 1,
+      _score: isNameStrongMatch(n.title, baby) ? 0 : 1,
     }));
     scored.sort((a, b) => {
       if (a._score !== b._score) return a._score - b._score;
