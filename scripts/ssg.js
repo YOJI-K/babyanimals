@@ -231,7 +231,7 @@ function siteNav(activeHref) {
 
 function siteFooter() {
   return `<footer class="site-footer" aria-label="フッター">
-  <small>© どうベビ（動物園ベビー情報）　<a href="/about/" style="color:inherit;opacity:0.7;font-size:0.9em;">運営者情報</a>　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a>　<a href="/contact/" style="color:inherit;opacity:0.7;font-size:0.9em;">お問い合わせ</a></small>
+  <small>© どうベビ（動物園ベビー情報）　<a href="/specials/" style="color:inherit;opacity:0.7;font-size:0.9em;">特集</a>　<a href="/about/" style="color:inherit;opacity:0.7;font-size:0.9em;">運営者情報</a>　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a>　<a href="/contact/" style="color:inherit;opacity:0.7;font-size:0.9em;">お問い合わせ</a></small>
 </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
@@ -354,6 +354,22 @@ const SPECIES_INFO = {
   'アメリカビーバー': {
     iucn: 'LC（軽度懸念）',
     desc: 'アメリカビーバーは北アメリカの河川・湖に生息する「自然のエンジニア」で、木を噛み倒してダムを作ることで有名。体長は約1メートル、扁平な尾が特徴的です。ダムにより周囲の環境を大きく変え、多くの生き物の生息地を作ります。赤ちゃんは毛皮に覆われた状態で生まれ、親のダムの中で育てられます。IUCNレッドリストでは「軽度懸念（LC）」に指定されており、個体数は安定しています。',
+  },
+  'トラ': {
+    iucn: 'EN（絶滅危惧種）',
+    desc: 'トラはアジアに生息する世界最大のネコ科動物で、オレンジ色の体に黒い縞模様が一頭ごとに異なる「指紋」のように違うのが特徴。アムールトラ・ベンガルトラ・スマトラトラなど複数の亜種に分かれます。単独で広い縄張りを持って生活し、泳ぎも得意です。赤ちゃんは2〜4頭で生まれ、生後約2週間で目が開き、母親から狩りを学びながら2年ほどで独立します。IUCNレッドリストでは「絶滅危惧種（EN）」に指定されており、野生では4,000頭ほどしか残っていません。動物園での繁殖が種の保全に重要な役割を果たしています。',
+  },
+  'マンドリル': {
+    iucn: 'VU（危急種）',
+    desc: 'マンドリルは中央アフリカの熱帯雨林に生息する世界最大のサルで、オスの顔の赤と青の鮮やかな色彩が最大の特徴。この色は興奮すると一段と濃くなり、群れの中の順位を示すサインにもなります。数百頭にもなる大きな群れで生活する社会性の高い動物です。赤ちゃんは母親にしっかりとしがみついて育ち、群れの仲間に見守られながら成長します。IUCNレッドリストでは「危急種（VU）」に指定されており、森林伐採や狩猟により生息数が減少。動物園での繁殖が保全に貢献しています。',
+  },
+  'カバ': {
+    iucn: 'VU（危急種）',
+    desc: 'カバはアフリカの川や湖に生息する大型の草食動物で、体重は最大3トンを超えます。一日の大半を水中で過ごし、皮膚を守るために「血の汗」と呼ばれる赤い分泌液を出すことで知られます。見た目はおっとりしていますが、実はアフリカで最も危険な動物のひとつとされる力強さを持ちます。赤ちゃんは水中で生まれることもあり、生後すぐに泳いで母親のもとへ向かいます。IUCNレッドリストでは「危急種（VU）」に指定されており、密猟や生息地の減少が脅威となっています。',
+  },
+  'ペンギン': {
+    iucn: '種により異なる（LC〜EN）',
+    desc: 'ペンギンは主に南半球に生息する飛べない海鳥で、翼をひれ（フリッパー）のように使って水中を自在に泳ぎます。世界には約18種が知られ、フンボルトペンギンやケープペンギンなど動物園で人気の種も多くいます。陸上ではよちよち歩く愛らしい姿が魅力。赤ちゃんはふわふわの綿羽（めんう）に包まれて生まれ、親が交代で温め餌を与えて育てます。種によって保全状況は「軽度懸念（LC）」から「絶滅危惧種（EN）」までさまざまで、海洋環境の保全が重要な課題です。',
   },
 };
 
@@ -787,6 +803,69 @@ function zooBabyCardHtml(b, slugMap = null) {
 /**
  * 動物園個別ページ HTML
  */
+/**
+ * 動物園ページ固有の紹介文を在籍赤ちゃんデータから動的生成する。
+ * 各園で内容が必ず変わるため重複コンテンツを避け、SEO上のオリジナリティを担保する。
+ */
+function zooStoryHtml(zoo, zooBabies) {
+  const count = zooBabies.length;
+  if (count === 0) return '';
+
+  const speciesCount = {};
+  for (const b of zooBabies) {
+    const sp = b.species || '動物';
+    speciesCount[sp] = (speciesCount[sp] || 0) + 1;
+  }
+  const speciesRanked = Object.entries(speciesCount).sort((a, b) => b[1] - a[1]);
+  const speciesKinds = speciesRanked.length;
+  const topSpecies = speciesRanked.slice(0, 3).map(([sp, n]) => n > 1 ? `${sp}（${n}頭）` : sp);
+
+  const withBday = zooBabies.filter(b => b.birthday).sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)));
+  const newest = withBday[0] || null;
+  const seasonOf = (iso) => {
+    const m = new Date(iso).getMonth() + 1;
+    if (m >= 3 && m <= 5)  return '春';
+    if (m >= 6 && m <= 8)  return '夏';
+    if (m >= 9 && m <= 11) return '秋';
+    return '冬';
+  };
+
+  const endangered = [];
+  for (const [sp] of speciesRanked) {
+    const info = SPECIES_INFO[sp];
+    if (info && /CR|EN|VU|絶滅|危急/.test(info.iucn || '')) endangered.push(sp);
+  }
+
+  const lines = [];
+  lines.push(`${esc(zoo.prefecture)}${zoo.city ? esc(zoo.city) : ''}にある${esc(zoo.name)}では、現在${count}頭の動物の赤ちゃんが暮らしています。`);
+  if (speciesKinds > 1) {
+    lines.push(`${topSpecies.map(esc).join('・')}${speciesKinds > 3 ? `など全${speciesKinds}種類` : ''}の赤ちゃんに会うことができます。`);
+  } else {
+    lines.push(`${esc(topSpecies[0])}の赤ちゃんに会うことができます。`);
+  }
+  if (newest && newest.birthday) {
+    const y = new Date(newest.birthday).getFullYear();
+    lines.push(`もっとも新しく仲間入りしたのは${y}年${seasonOf(newest.birthday)}生まれの${esc(newest.species || '動物')}の赤ちゃん「${esc(newest.name)}」。すくすくと成長する姿が見られます。`);
+  }
+  if (endangered.length > 0) {
+    lines.push(`なかでも${endangered.slice(0, 3).map(esc).join('・')}は野生での生息数が減少している希少種で、${esc(zoo.name)}での誕生は種の保全にとっても大切な一歩です。`);
+  }
+  lines.push(`赤ちゃんたちの誕生日・種類・最新の様子は、下記の一覧から各ページでご覧いただけます。お出かけの前にぜひチェックしてみてください。`);
+
+  return `
+  <section class="card zoo-section zoo-story" aria-labelledby="zoo-story-title">
+    <header class="panel-head">
+      <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="/assets/icons/icons.svg#icon-paw"></use></svg></div>
+      <div>
+        <h2 id="zoo-story-title" class="panel-title">${esc(zoo.name)}の赤ちゃんたち</h2>
+      </div>
+    </header>
+    <div class="zoo-story__body" style="line-height:1.9;">
+      ${lines.map(l => `<p>${l}</p>`).join('\n      ')}
+    </div>
+  </section>`;
+}
+
 function zooHtml(zoo, babies, slugMap = null) {
   const zooBabies = babies.filter(b => b.zoo_name === zoo.db_name);
   const count = zooBabies.length;
@@ -931,6 +1010,8 @@ ${siteNav('/zoos/')}
     </header>
     <p class="zoo-desc">${esc(zoo.description)}</p>
   </section>` : ''}
+
+  ${zooStoryHtml(zoo, zooBabies)}
 
   <section class="card zoo-section" aria-labelledby="zoo-babies-title">
     <header class="panel-head">
@@ -1528,6 +1609,193 @@ ${siteFooter()}
 }
 
 
+/**
+ * 特集ハブ: 絶滅危惧種の赤ちゃん特集（/specials/endangered/）
+ * 在籍する絶滅危惧種（IUCN: CR/EN/VU/NT）の赤ちゃんを保全ランク順に紹介する
+ * オリジナルのまとめ記事。各 baby 個別ページへ内部リンクを集約して回遊と被リンクを促す。
+ */
+function endangeredSpecialHtml(babies, slugMap) {
+  const rankWeight = (iucn) => {
+    if (!iucn) return 0;
+    if (iucn.includes('CR')) return 4;
+    if (iucn.includes('EN')) return 3;
+    if (iucn.includes('VU')) return 2;
+    if (iucn.includes('NT')) return 1;
+    return 0;
+  };
+
+  const targets = babies
+    .filter(b => b.species && SPECIES_INFO[b.species] && rankWeight(SPECIES_INFO[b.species].iucn) > 0)
+    .sort((a, b) => {
+      const w = rankWeight(SPECIES_INFO[b.species].iucn) - rankWeight(SPECIES_INFO[a.species].iucn);
+      if (w !== 0) return w;
+      return String(b.birthday).localeCompare(String(a.birthday));
+    });
+
+  const speciesSet = new Set(targets.map(b => b.species));
+  const title = `絶滅危惧種の赤ちゃん特集｜日本の動物園で会える希少な命${targets.length}頭 | どうベビ`;
+  const desc = `日本の動物園で生まれた絶滅危惧種の赤ちゃんを特集。コビトカバ・ニシゴリラ・スマトラトラなど${speciesSet.size}種・${targets.length}頭の希少な赤ちゃんをIUCN保全ランク順にご紹介。動物園での繁殖がなぜ大切なのかもわかる完全ガイド。`.slice(0, 200);
+  const canonical = `${SITE_BASE}/specials/endangered/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: '絶滅危惧種の赤ちゃん特集 — 日本の動物園で会える希少な命',
+    description: desc,
+    url: canonical,
+    datePublished: '2026-05-29',
+    dateModified: new Date().toISOString().slice(0, 10),
+    author: { '@type': 'Organization', name: 'どうベビ編集部', url: SITE_BASE },
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: canonical,
+  });
+
+  const cards = targets.map(b => zooBabyCardHtml(b, slugMap)).join('');
+
+  const byRank = { CR: [], EN: [], VU: [], NT: [] };
+  for (const b of targets) {
+    const iucn = SPECIES_INFO[b.species].iucn || '';
+    if (iucn.includes('CR')) byRank.CR.push(b);
+    else if (iucn.includes('EN')) byRank.EN.push(b);
+    else if (iucn.includes('VU')) byRank.VU.push(b);
+    else if (iucn.includes('NT')) byRank.NT.push(b);
+  }
+  const rankSections = [
+    ['CR', 'CR｜近絶滅種', 'いますぐ絶滅の危機に瀕している、最も保全の優先度が高いランク。'],
+    ['EN', 'EN｜絶滅危惧種', '野生での絶滅の危険性が高いランク。動物園での繁殖が種の存続に直結します。'],
+    ['VU', 'VU｜危急種', '将来的に絶滅が心配されるランク。今のうちの保全活動が重要です。'],
+    ['NT', 'NT｜準絶滅危惧', '現時点では危機的でないものの、注意が必要なランク。'],
+  ].map(([key, label, note]) => {
+    if (byRank[key].length === 0) return '';
+    return `
+  <section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 .5rem;">${label}（${byRank[key].length}頭）</h2>
+    <p style="opacity:.85;margin:0 0 1rem;line-height:1.7;">${note}</p>
+    <div class="baby-grid">${byRank[key].map(b => zooBabyCardHtml(b, slugMap)).join('')}</div>
+  </section>`;
+  }).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/specials/">特集</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">絶滅危惧種の赤ちゃん</span>
+  </nav>
+
+  <section class="page-hero">
+    <h1 class="page-title">🌍 絶滅危惧種の<br>赤ちゃん特集</h1>
+    <p class="page-subtitle">日本の動物園で会える希少な命 ${targets.length}頭・${speciesSet.size}種</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.9;">
+    <p>世界では今、多くの動物が絶滅の危機に瀕しています。国際自然保護連合（IUCN）が作成する<strong>レッドリスト</strong>では、危機の度合いに応じて生き物がランク分けされています。</p>
+    <p>動物園で生まれる希少種の赤ちゃん一頭一頭は、その種の未来をつなぐ、かけがえのない存在です。このページでは、<strong>日本の動物園で暮らす絶滅危惧種の赤ちゃん</strong>を、保全の優先度が高い順にご紹介します。会いに行くことが、その動物たちを知り、守る第一歩になります。</p>
+  </section>
+
+  ${rankSections || `<div class="baby-grid">${cards}</div>`}
+
+  <section style="margin:2rem 0;padding:1rem;background:rgba(255,255,255,0.5);border-radius:12px;line-height:1.8;">
+    <h2 style="font-size:1.1rem;margin:0 0 .5rem;">動物園での繁殖が大切な理由</h2>
+    <p>生息地の開発や気候変動により、野生動物の数は世界的に減り続けています。動物園は単に動物を「見せる」場所ではなく、希少種を計画的に繁殖させ、研究し、いつか野生に還す可能性をつなぐ「箱舟」としての役割を担っています。赤ちゃんの誕生は、その地道な取り組みが実を結んだ瞬間なのです。</p>
+  </section>
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
+/**
+ * 特集ハブ一覧（/specials/）— 各特集記事への入口。クロール経路と回遊を強化。
+ */
+function specialsIndexHtml(babies) {
+  const title = '特集・まとめ記事｜どうベビ';
+  const desc = '日本の動物園で生まれた赤ちゃん動物の特集・まとめ記事一覧。絶滅危惧種の赤ちゃん特集、季節ごとのベビーラッシュ特集など、テーマ別に動物園の赤ちゃんを紹介します。';
+  const canonical = `${SITE_BASE}/specials/`;
+
+  const endangeredCount = babies.filter(b => b.species && SPECIES_INFO[b.species] && /CR|EN|VU|NT/.test(SPECIES_INFO[b.species].iucn || '')).length;
+  const springCount = babies.filter(b => {
+    if (!b.birthday) return false;
+    const m = b.birthday.match(/^(\d{4})-(\d{2})-/);
+    if (!m) return false;
+    const y = Number(m[1]); const mo = Number(m[2]);
+    return (y === 2026 && mo >= 1 && mo <= 5) || (y === 2025 && mo >= 9);
+  }).length;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    description: desc,
+    url: canonical,
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+  });
+
+  const features = [
+    {
+      href: '/specials/endangered/',
+      emoji: '🌍',
+      heading: '絶滅危惧種の赤ちゃん特集',
+      text: `日本の動物園で会える希少種の赤ちゃん${endangeredCount}頭を、IUCN保全ランク順にご紹介。`,
+    },
+    {
+      href: '/specials/spring-2026/',
+      emoji: '🌸',
+      heading: '2026年春の動物園赤ちゃんラッシュ',
+      text: `2025年秋〜2026年春に生まれた最新ベビー${springCount}頭をピックアップ。`,
+    },
+  ];
+
+  const cards = features.map(f => `
+    <a class="card" href="${f.href}" style="display:block;padding:1.25rem;text-decoration:none;color:inherit;">
+      <div style="font-size:2rem;">${f.emoji}</div>
+      <h2 style="font-size:1.15rem;margin:.5rem 0;">${esc(f.heading)}</h2>
+      <p style="opacity:.85;line-height:1.7;margin:0;">${esc(f.text)}</p>
+    </a>`).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">特集</span>
+  </nav>
+
+  <section class="page-hero">
+    <h1 class="page-title">📚 特集・まとめ記事</h1>
+    <p class="page-subtitle">テーマ別に動物園の赤ちゃんを深掘り</p>
+  </section>
+
+  <div class="baby-grid" style="margin:1.5rem 0;">${cards}</div>
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
+
 // ─── HTMLサイトマップページ（人間用 + Googleクロール経路拡大） ──────
 
 function buildSitemapHtml(babies, newsItems, slugMap) {
@@ -1549,6 +1817,8 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/babies/">赤ちゃん一覧（全${babies.length}頭）</a></li>
       <li><a href="/zoos/">動物園一覧（都道府県別）</a></li>
       <li><a href="/species/">動物種別一覧</a></li>
+      <li><a href="/specials/">📚 特集・まとめ記事一覧</a></li>
+      <li><a href="/specials/endangered/">🌍 絶滅危惧種の赤ちゃん特集</a></li>
       <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
       <li><a href="/news/">ニュース一覧</a></li>
       <li><a href="/calendar/">誕生日カレンダー</a></li>
@@ -1619,6 +1889,8 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/sitemap/`,                  priority: '0.8', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/species/`,                  priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/spring-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
   ];
 
   const speciesSet = new Set(babies.map(b => b.species).filter(Boolean));
@@ -2180,6 +2452,16 @@ async function main() {
   console.log('\n🌸 2026年春特集ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'spring-2026', 'index.html'), springSpecialHtml(babies, slugMap));
   console.log(`   ✅ /specials/spring-2026/ 出力`);
+
+  // ── 絶滅危惧種の赤ちゃん特集ページ ──
+  console.log('\n🌍 絶滅危惧種特集ページ生成中...');
+  writeHtml(path.join(WEB_DIR, 'specials', 'endangered', 'index.html'), endangeredSpecialHtml(babies, slugMap));
+  console.log(`   ✅ /specials/endangered/ 出力`);
+
+  // ── 特集ハブ一覧ページ ──
+  console.log('\n📚 特集ハブ一覧ページ生成中...');
+  writeHtml(path.join(WEB_DIR, 'specials', 'index.html'), specialsIndexHtml(babies));
+  console.log(`   ✅ /specials/ 出力`);
 
   // ── サイトマップ ──
   // ── HTMLサイトマップ ──
