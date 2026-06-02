@@ -579,12 +579,15 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
       </div>
     </section>`;
 
-  // スペック表
+  // スペック表（種類・動物園は内部ページへリンク＝相互リンク強化）
+  const _zooSlug = (ZOOS.find(z => z.db_name === b.zoo_name) || {}).slug || null;
+  const speciesCell = b.species ? `<a href="/species/${esc(b.species)}/">${esc(species)}</a>` : esc(species);
+  const zooCell = _zooSlug ? `<a href="/zoos/${esc(_zooSlug)}/">${esc(zoo)}</a>` : esc(zoo);
   const specsHtml = `
     <table class="baby-specs">
       <tr><th>なまえ</th><td>${esc(name)}</td></tr>
-      <tr><th>種類</th><td>${esc(species)}</td></tr>
-      <tr><th>動物園</th><td>${esc(zoo)}</td></tr>
+      <tr><th>種類</th><td>${speciesCell}</td></tr>
+      <tr><th>動物園</th><td>${zooCell}</td></tr>
       <tr><th>誕生日</th><td>${esc(bdayFmt) || '不明'}（${esc(age)}）</td></tr>
       ${speciesData ? `<tr><th>保全状況</th><td class="baby-specs__iucn">${speciesData.iucn}</td></tr>` : ''}
     </table>`;
@@ -729,7 +732,7 @@ function newsHtml(item) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title: pageTitle, desc, ogImage: item.thumbnail_url, canonical, jsonLd })}
+${htmlHead({ title: pageTitle, desc, ogImage: item.thumbnail_url, canonical, jsonLd, extraMeta: '\n  <meta name="robots" content="noindex,follow" />' })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/news/')}
@@ -1923,7 +1926,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     lastmod:    n.published_at ? n.published_at.slice(0, 10) : today,
   }));
 
-  const allUrls = [...staticUrls, ...zooUrls, ...speciesUrls, ...babyUrls, ...newsUrls];
+  const allUrls = [...staticUrls, ...zooUrls, ...speciesUrls, ...babyUrls]; // news個別はnoindexのためサイトマップ除外
   const entries = allUrls.map(u => `  <url>
     <loc>${encodeURI(u.loc)}</loc>
     <lastmod>${u.lastmod}</lastmod>
