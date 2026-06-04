@@ -148,7 +148,7 @@ const ADSENSE_SLOT_BABY = process.env.ADSENSE_SLOT_BABY || 'XXXXXXXXXX';
 // プレースホルダーのままなら広告を非表示（XXXXX が含まれる場合は未設定とみなす）
 const ADSENSE_ENABLED   = !/X{5}/.test(ADSENSE_CLIENT);
 
-function htmlHead({ title, desc, ogImage, canonical, jsonLd, extraMeta, extraJsonLd, ogType }) {
+function htmlHead({ title, desc, ogImage, canonical, jsonLd, extraMeta, extraJsonLd, ogType, robots }) {
   const og = ogImage || `${SITE_BASE}/assets/img/og.png`;
   const ogTypeVal = ogType || 'article';
   return `<head>
@@ -156,7 +156,7 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd, extraMeta, extraJso
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}" />
-  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+  <meta name="robots" content="${robots || 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'}" />
   <meta name="theme-color" content="#ffd6e3" />
   <meta name="format-detection" content="telephone=no" />
   <meta property="og:type" content="${ogTypeVal}" />
@@ -768,7 +768,7 @@ function newsHtml(item) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title: pageTitle, desc, ogImage: item.thumbnail_url, canonical, jsonLd, extraMeta: '\n  <meta name="robots" content="noindex,follow" />' })}
+${htmlHead({ title: pageTitle, desc, ogImage: item.thumbnail_url, canonical, jsonLd, robots: 'noindex,follow' })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/news/')}
@@ -908,7 +908,7 @@ function zooStoryHtml(zoo, zooBabies) {
 function zooHtml(zoo, babies, slugMap = null) {
   const zooBabies = babies.filter(b => b.zoo_name === zoo.db_name);
   const count = zooBabies.length;
-  // baby が紐付いていない zoo は薄いコンテンツになるため noindex（AdSense対応）
+  // baby 0頭でも動物園情報(住所/営業/料金/FAQ)は十分なため index する（PROP-20260604-02）。0頭時は関連リンクで補強。
   const isThinZoo = count === 0;
   const sampleNames = zooBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
 
@@ -1022,7 +1022,7 @@ function zooHtml(zoo, babies, slugMap = null) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd, extraMeta: isThinZoo ? '\n  <meta name="robots" content="noindex,follow" />' : '' })}
+${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/zoos/')}
@@ -1068,6 +1068,21 @@ ${siteNav('/zoos/')}
     </header>
     ${babiesGrid}
   </section>
+
+  ${isThinZoo ? `<section class="card zoo-section">
+    <header class="panel-head">
+      <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="/assets/icons/icons.svg#icon-paw"></use></svg></div>
+      <div>
+        <h2 class="panel-title">他の動物園・動物の赤ちゃんを探す</h2>
+        <p class="panel-desc">${esc(zoo.name)}の赤ちゃん情報は入り次第掲載します。今会える赤ちゃんはこちら。</p>
+      </div>
+    </header>
+    <p style="display:flex;flex-wrap:wrap;gap:0.6rem;margin:0;">
+      <a class="dbb-cta" href="/zoos/">動物園一覧から探す →</a>
+      <a class="dbb-cta" href="/babies/">今いる赤ちゃんを見る →</a>
+      <a class="dbb-cta" href="/species/">動物の種類から探す →</a>
+    </p>
+  </section>` : ''}
 
   <section class="card zoo-section" aria-labelledby="zoo-info-title">
     <header class="panel-head">
