@@ -1,5 +1,6 @@
 /robots.txt   /robots.txt   200
 /sitemap.xml  /sitemap.xml  200
+/sitemap-v2.xml  /sitemap.xml  301
 
 # --- SSG:UUID-redirects:start ---
 /babies/08008ae5-0d3e-42d2-9feb-e3e8606844ec/ /babies/Coqu-日本モンキーセンター/ 301

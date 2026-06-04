@@ -394,6 +394,15 @@ function zooLinksHtml(zooName, animalName) {
          data-animal-name="${safeAnimal}">
       ${svgTicket} オンラインチケットを予約する <small class="zoo-link__pr">PR</small>
     </a>`);
+  } else {
+    buttons.push(`<a class="zoo-link zoo-link--ticket"
+         href="${asoviewAffiliate()}"
+         target="_blank" rel="noopener sponsored"
+         data-link-type="ticket-generic"
+         data-zoo-name="${safeZoo}"
+         data-animal-name="${safeAnimal}">
+      ${svgTicket} 動物園・水族館のチケットを探す <small class="zoo-link__pr">PR</small>
+    </a>`);
   }
   if (data.official_url) {
     buttons.push(`<a class="zoo-link zoo-link--official"
@@ -412,6 +421,33 @@ function zooLinksHtml(zooName, animalName) {
     <p class="visit-cta__lead">${safeZoo}でお待ちしています。事前にチケットを購入するとスムーズに入園できます。</p>
     <div class="zoo-links" aria-label="${safeZoo}へのリンク">
       ${buttons.join('\n      ')}
+    </div>
+  </section>`;
+}
+
+// ─── 汎用アフィリエイト（asoview）リンク ─────────────────────────────
+// PROP-20260603-01: 個別の動物園 asoview が無いページにも収益導線を常設する。
+const A8_ASOVIEW_MAT = '4B1KXR+740FOA+455G+BW0YB';
+const ASOVIEW_GENERIC_URL = 'https://www.asoview.com/';
+
+/** asoview の任意 URL を A8 計測リンクでラップ */
+function asoviewAffiliate(targetUrl = ASOVIEW_GENERIC_URL) {
+  return `https://px.a8.net/svt/ejp?a8mat=${A8_ASOVIEW_MAT}&a8ejpredirect=${encodeURIComponent(targetUrl)}`;
+}
+
+/** 汎用 asoview CTA セクション（特定動物園 asoview が無いページ用フォールバック） */
+function genericAsoviewCta(lead = '全国の動物園・水族館のチケットをオンラインで。事前購入でスムーズに入園できます。') {
+  const svgTicket = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-ticket"></use></svg>`;
+  return `<section class="visit-cta">
+    <h2 class="visit-cta__title">🎟️ 動物園・水族館に行こう</h2>
+    <p class="visit-cta__lead">${lead}</p>
+    <div class="zoo-links" aria-label="チケット予約リンク">
+      <a class="zoo-link zoo-link--ticket"
+         href="${asoviewAffiliate()}"
+         target="_blank" rel="noopener sponsored"
+         data-link-type="ticket-generic">
+        ${svgTicket} 動物園・水族館のチケットを探す <small class="zoo-link__pr">PR</small>
+      </a>
     </div>
   </section>`;
 }
@@ -644,7 +680,7 @@ ${siteNav('/babies/')}
       ${speciesInfoHtml}
       ${specsHtml}
       ${babyNewsHtml}
-      ${zooLinksHtml(zoo, name)}
+      ${zooLinksHtml(zoo, name) || genericAsoviewCta()}
       <div class="ssg-detail__actions">
         <a class="btn btn--primary" href="/babies/">← 赤ちゃん一覧へ戻る</a>
       </div>
@@ -960,7 +996,13 @@ function zooHtml(zoo, babies, slugMap = null) {
            data-zoo-name="${esc(zoo.db_name)}">
         🎟️ オンラインチケットを予約する <small class="zoo-link__pr">PR</small>
       </a>`
-    : '';
+    : `<a class="zoo-link zoo-link--ticket"
+           href="${asoviewAffiliate()}"
+           target="_blank" rel="noopener sponsored"
+           data-link-type="ticket-generic"
+           data-zoo-name="${esc(zoo.db_name)}">
+        🎟️ 動物園・水族館のチケットを探す <small class="zoo-link__pr">PR</small>
+      </a>`;
   const officialBtn = zoo.official_url
     ? `<a class="zoo-link zoo-link--official"
            href="${esc(zoo.official_url)}"
@@ -1134,6 +1176,7 @@ ${siteNav('/zoos/')}
 
   ${sections}
 
+  ${genericAsoviewCta()}
 </main>
 ${siteFooter()}
 <script defer src="/assets/js/analytics.js"></script>
@@ -1248,6 +1291,8 @@ ${siteNav('/babies/')}
     </div>
   </div>
   <div class="more-wrap"><button id="more" type="button" style="display:none;">もっと読む</button></div>
+
+  ${genericAsoviewCta()}
 </main>
 ${siteFooter()}
 <script defer src="/assets/js/app.js"></script>
@@ -1490,6 +1535,8 @@ ${siteNav('/babies/')}
     <ul style="list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.5rem;">${zoosList}</ul>
   </section>` : ''}
 
+  ${genericAsoviewCta(`${esc(species)}に会える動物園のチケットをオンラインで予約できます。事前購入でスムーズに入園。`)}
+
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
 
 </main>
@@ -1543,6 +1590,8 @@ ${siteNav('/babies/')}
     <p class="page-subtitle">${entries.length}種・${babies.length}頭の赤ちゃんを掲載中</p>
   </section>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;margin:1rem 0;">${cards}</div>
+
+  ${genericAsoviewCta()}
 </main>
 ${siteFooter()}
 <script defer src="/assets/js/analytics.js"></script>
@@ -1788,6 +1837,8 @@ ${siteNav('/')}
   </section>
 
   <div class="baby-grid" style="margin:1.5rem 0;">${cards}</div>
+
+  ${genericAsoviewCta()}
 
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
 
@@ -2475,8 +2526,7 @@ async function main() {
   console.log('\n🗺️  sitemap.xml 生成中...');
   const sitemapXml = buildSitemap(babies, newsItems, slugMap);
   writeHtml(path.join(WEB_DIR, 'sitemap.xml'), sitemapXml);
-  // Search Console の失敗キャッシュ回避のためのエイリアス（内容は同一）
-  writeHtml(path.join(WEB_DIR, 'sitemap-v2.xml'), sitemapXml);
+  // sitemap-v2.xml は 1 本化（PROP-20260604-01）により廃止。/_redirects で 301 集約。
   console.log(`   ✅ ${babyCount + newsCount + zooCount + 5} URL を出力`);
 
   // ── baby-slugs.json（JS 側のリンク生成に使用） ──
