@@ -20,7 +20,7 @@ import { ZOOS, groupByPrefecture, toAffiliateMap } from './zoos-data.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIR    = path.resolve(__dirname, '../web');
-const SITE_BASE  = 'https://babyanimals.pages.dev';
+const SITE_BASE  = 'https://zoobabies.jp';
 
 const SUPABASE_URL      = process.env.SUPABASE_URL      || 'https://hvhpfrksyytthupboaeo.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||

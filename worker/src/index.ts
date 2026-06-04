@@ -1212,7 +1212,7 @@ async function runSocialJob(env: Env): Promise<void> {
   for (const baby of newBabies) {
     const zooName = (baby.zoo_id && zooMap[baby.zoo_id]) || '動物園';
     const species  = baby.species || '動物';
-    const pageUrl  = `https://babyanimals.pages.dev/babies/${baby.id}/`;
+    const pageUrl  = `https://zoobabies.jp/babies/${baby.id}/`;
 
     const text = [
       `🍼【誕生速報】`,
