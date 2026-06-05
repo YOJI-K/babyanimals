@@ -1,3 +1,6 @@
+/* 旧ドメイン(babyanimals.pages.dev)アクセスは新ドメインzoobabies.jpへパス保持で転送（独自ドメイン移行） */
+(function(){try{if(location.hostname==='babyanimals.pages.dev'){var d='https://zoobabies.jp'+location.pathname+location.search+location.hash;location.replace(d);}}catch(e){}})();
+
 /**
  * analytics.js — どうベビ GA4 カスタムイベント
  *

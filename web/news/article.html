@@ -10,8 +10,8 @@
   <!-- OGP（クライアント描画のため汎用） -->
   <meta property="og:type" content="article" />
   <meta property="og:title" content="記事 | どうベビ" />
-  <meta property="og:image" content="https://babyanimals.pages.dev/assets/img/og.png" />
-  <meta property="og:url" content="https://babyanimals.pages.dev/news/" />
+  <meta property="og:image" content="https://zoobabies.jp/assets/img/og.png" />
+  <meta property="og:url" content="https://zoobabies.jp/news/" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <!-- 共通CSS -->
@@ -37,7 +37,7 @@
           data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
 
   <!-- canonical（JSで slug に差し替え） -->
-  <link id="canonical" rel="canonical" href="https://babyanimals.pages.dev/news/" />
+  <link id="canonical" rel="canonical" href="https://zoobabies.jp/news/" />
 
   <!-- ページ専用の最小スタイル（共通CSSに依存） -->
   <style>
@@ -250,7 +250,7 @@
 
     // canonical を slug に差し替え
     const can = document.getElementById('canonical');
-    const href = `https://babyanimals.pages.dev/news/${encodeURIComponent(a.slug || '')}`;
+    const href = `https://zoobabies.jp/news/${encodeURIComponent(a.slug || '')}`;
     can.setAttribute('href', a.canonical || href);
   };
 
