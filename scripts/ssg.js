@@ -607,6 +607,9 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
     introLines.push(`${esc(zoo)}では他にもさまざまな動物の話題が日々更新されています。最新の情報はこのページの下部もご覧ください。`);
   }
 
+  // 結び（来園誘導・内部回遊）
+  introLines.push(`${esc(zoo)}では${esc(name)}の公開状況が変わることがあります。おでかけ前に最新情報を確認し、${esc(species)}の赤ちゃんの成長をやさしく見守ってください。`);
+
   const babyEpisodeHtml = `
     <section class="baby-episode" aria-labelledby="baby-episode-title">
       <h2 class="baby-episode__title" id="baby-episode-title">📖 ${esc(name)}のストーリー</h2>
@@ -644,10 +647,36 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
     </div>
   </section>` : '';
 
+  // === よくある質問（FAQ）— 既存の正確なデータから構成 ===
+  const faqItems = [];
+  if (b.birthday) {
+    faqItems.push({ q: `${name}はいつ生まれましたか？`, a: `${name}の誕生日は${bdayFmt}です（現在${age}）。` });
+  }
+  faqItems.push({ q: `${name}（${species}）はどこの動物園で会えますか？`, a: `${name}は${zoo}で暮らしています。公開状況や展示場所は変わることがあるため、おでかけ前に${zoo}の公式情報もあわせてご確認ください。` });
+  if (speciesData) {
+    faqItems.push({ q: `${species}はどんな動物ですか？`, a: speciesData.desc });
+    if (speciesData.iucn) {
+      faqItems.push({ q: `${species}の保全状況（絶滅危惧度）は？`, a: `${species}はIUCNレッドリストで「${speciesData.iucn}」に分類されています。動物園での飼育・繁殖は種の保全において重要な役割を担っています。` });
+    }
+  }
+  const babyFaqLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  });
+  const babyFaqHtml = faqItems.length ? `
+    <section class="baby-faq" aria-labelledby="baby-faq-title">
+      <h2 class="baby-faq__title" id="baby-faq-title">❓ ${esc(name)}についてよくある質問</h2>
+      <dl class="baby-faq__list">
+        ${faqItems.map(f => `<div class="baby-faq__item"><dt class="baby-faq__q">${esc(f.q)}</dt><dd class="baby-faq__a">${esc(f.a)}</dd></div>`).join('\n        ')}
+      </dl>
+    </section>` : '';
+
   return `<!doctype html>
 <html lang="ja">
 ${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd: articleLd, extraMeta: extraMetaTags })}
 <script type="application/ld+json">${breadcrumbLd}</script>
+<script type="application/ld+json">${babyFaqLd}</script>
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/babies/')}
@@ -680,6 +709,7 @@ ${siteNav('/babies/')}
       ${speciesInfoHtml}
       ${specsHtml}
       ${babyNewsHtml}
+      ${babyFaqHtml}
       ${zooLinksHtml(zoo, name) || genericAsoviewCta()}
       <div class="ssg-detail__actions">
         <a class="btn btn--primary" href="/babies/">← 赤ちゃん一覧へ戻る</a>
@@ -1368,6 +1398,7 @@ function newsIndexHtml(newsItems) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,follow" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}" />
   <meta property="og:type" content="website" />
