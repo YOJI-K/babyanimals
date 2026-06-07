@@ -27,6 +27,7 @@
   </script>
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
   <link rel="canonical" href="https://zoobabies.jp/" />
+<!--SSG:jsonld:start--><!--SSG:jsonld:end-->
 </head>
 <body class="theme">
   <!-- ヘッダー（sticky / glass） -->
@@ -186,6 +187,18 @@
       </div>
       <div class="dbb-tkt__arrow">›</div>
     </a>
+
+    <!-- 種別ハブ（人気種・在籍頭数順／SSG差し込み） -->
+    <section class="dbb-sec" aria-labelledby="sphub-title" style="margin-top:22px">
+      <div class="dbb-sech">
+        <h2 id="sphub-title" class="dbb-sect"><span class="dbb-dot" style="background:#0a7a5c"></span>動物の種類から探す</h2>
+        <a class="dbb-sec__more" href="./species/">一覧 ›</a>
+      </div>
+      <p style="margin:0 0 .6rem;color:#555;font-size:.92rem;line-height:1.6;">どうベビは全国の動物園・水族館で生まれた赤ちゃんの最新情報をまとめています。気になる動物の種類から、今会える赤ちゃんを探してみましょう。</p>
+      <div style="display:flex;flex-wrap:wrap;">
+<!--SSG:specieshub:start--><!--SSG:specieshub:end-->
+      </div>
+    </section>
 
     <!-- 最新ニュースプレビュー（3件） -->
     <section class="dbb-sec" aria-labelledby="news-preview-title">

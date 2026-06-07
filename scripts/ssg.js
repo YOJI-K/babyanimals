@@ -2216,8 +2216,25 @@ function patchIndexHtml(babies, newsItems, slugMap) {
 </a>`;
   }).join('\n');
 
+  // 種ハブ（在籍頭数の多い順 上位16種）
+  const speciesCount = {};
+  babies.forEach(b => { if (b.species) speciesCount[b.species] = (speciesCount[b.species] || 0) + 1; });
+  const topSpecies = Object.entries(speciesCount).sort((a, b) => b[1] - a[1]).slice(0, 16);
+  const speciesHubHtml = topSpecies.map(([sp, n]) =>
+    `<a href="/species/${encodeURI(sp)}/" style="display:inline-block;padding:.4rem .9rem;margin:.25rem;background:#f0f7f4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.95rem;">${esc(sp)} <span style="opacity:.55;font-size:.85em;">${n}</span></a>`
+  ).join('\n');
+
+  // 構造化データ（WebSite / Organization / ItemList）
+  const indexJsonLd = JSON.stringify([
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: 'どうベビ', alternateName: '動物の赤ちゃん図鑑 どうベビ', url: SITE_BASE, inLanguage: 'ja', description: '全国の動物園・水族館で生まれた赤ちゃんの最新情報をまとめて紹介するサイト。' },
+    { '@context': 'https://schema.org', '@type': 'Organization', name: 'どうベビ', url: SITE_BASE, logo: `${SITE_BASE}/assets/img/og.png` },
+    { '@context': 'https://schema.org', '@type': 'ItemList', name: '新着の赤ちゃん', itemListElement: recentBabies.map((b, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`, name: `${b.name || ''}（${b.species || ''}）` })) },
+  ]);
+
   html = patchSection(html, 'recent', `\n${recentHtml}\n`);
   html = patchSection(html, 'news', `\n${newsHtml}\n`);
+  html = patchSection(html, 'specieshub', `\n${speciesHubHtml}\n`);
+  html = patchSection(html, 'jsonld', `\n<script type="application/ld+json">${indexJsonLd}</script>\n`);
   fs.writeFileSync(indexPath, html, 'utf-8');
 }
 
