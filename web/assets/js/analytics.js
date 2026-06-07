@@ -41,7 +41,20 @@
       };
       if (a.dataset.zooName)    params.zoo_name    = a.dataset.zooName;
       if (a.dataset.animalName) params.animal_name = a.dataset.animalName;
+      // ── affiliate_click ──（収益リンクを分離計測） PROP-20260607-02 施策7
+      const isAffiliate = /a8\.net|px\.a8\.|asoview/i.test(href);
+      if (isAffiliate && params.link_type === 'general') params.link_type = 'affiliate';
       sendEvent('outbound_click', params);
+      if (isAffiliate) {
+        sendEvent('affiliate_click', {
+          link_url:    href,
+          page_path:   location.pathname,
+          link_text:   params.link_text,
+          network:     /asoview/i.test(href) ? 'asoview' : 'a8',
+          zoo_name:    a.dataset.zooName    || undefined,
+          animal_name: a.dataset.animalName || undefined,
+        });
+      }
     } catch (_) { /* 不正なURL は無視 */ }
   }, { passive: true });
 
