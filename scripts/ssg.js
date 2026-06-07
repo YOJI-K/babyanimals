@@ -647,18 +647,41 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
     </div>
   </section>` : '';
 
-  // === よくある質問（FAQ）— 既存の正確なデータから構成 ===
+  // === よくある質問（FAQ）— ページ内の他要素と重複しない固有情報で構成（案A） ===
+  const faqHref = (x) => `/babies/${(slugMap && slugMap.get(x.id)) || x.id}/`;
   const faqItems = [];
-  if (b.birthday) {
-    faqItems.push({ q: `${name}はいつ生まれましたか？`, a: `${name}の誕生日は${bdayFmt}です（現在${age}）。` });
+  // ① 会いに行くときの実用情報
+  faqItems.push({
+    q: `${name}に会いに行くときに気をつけることは？`,
+    a: `${name}の公開時間や展示場所は、季節や${species}の体調によって変わることがあります。おでかけ前に${zoo}の公式サイトやSNSで当日の展示状況を確認すると安心です。前売り券を用意しておくと当日スムーズに入園できます。`,
+  });
+  // ② 同じ動物園のほかの赤ちゃん（内部リンクで回遊強化）
+  if (sameZoo.length) {
+    const items = sameZoo.slice(0, 4);
+    const plain  = items.map(x => `${x.species || '赤ちゃん'}「${x.name}」`).join('、');
+    const linked = items.map(x => `<a href="${faqHref(x)}">${esc(x.species || '赤ちゃん')}「${esc(x.name)}」</a>`).join('、');
+    faqItems.push({
+      q: `${zoo}にはほかにどんな赤ちゃんがいますか？`,
+      a: `${zoo}では${name}のほかに、${plain}などの赤ちゃんも暮らしています。`,
+      aHtml: `${esc(zoo)}では${esc(name)}のほかに、${linked}などの赤ちゃんも暮らしています。`,
+    });
   }
-  faqItems.push({ q: `${name}（${species}）はどこの動物園で会えますか？`, a: `${name}は${zoo}で暮らしています。公開状況や展示場所は変わることがあるため、おでかけ前に${zoo}の公式情報もあわせてご確認ください。` });
-  if (speciesData) {
-    faqItems.push({ q: `${species}はどんな動物ですか？`, a: speciesData.desc });
-    if (speciesData.iucn) {
-      faqItems.push({ q: `${species}の保全状況（絶滅危惧度）は？`, a: `${species}はIUCNレッドリストで「${speciesData.iucn}」に分類されています。動物園での飼育・繁殖は種の保全において重要な役割を担っています。` });
-    }
+  // ③ 同じ種のほかの赤ちゃん（内部リンクで回遊強化）
+  if (sameSpecies.length) {
+    const items = sameSpecies.slice(0, 4);
+    const plain  = items.map(x => `${x.zoo_name}「${x.name}」`).join('、');
+    const linked = items.map(x => `<a href="${faqHref(x)}">${esc(x.zoo_name)}「${esc(x.name)}」</a>`).join('、');
+    faqItems.push({
+      q: `${name}と同じ${species}の赤ちゃんはほかにもいますか？`,
+      a: `はい。${plain}など、ほかの動物園でも${species}の赤ちゃんに会えます。`,
+      aHtml: `はい。${linked}など、ほかの動物園でも${esc(species)}の赤ちゃんに会えます。`,
+    });
   }
+  // ④ やさしい観察（ブランド軸・常時表示）
+  faqItems.push({
+    q: `赤ちゃんを見るときに大切にしたいことは？`,
+    a: `赤ちゃんは体調や気分で展示をお休みすることもあります。「見られたらラッキー」という気持ちで、大きな声や急な動きは控え、そっと見守ってあげましょう。やさしい観察が、すこやかな成長を支えます。`,
+  });
   const babyFaqLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -667,11 +690,10 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const babyFaqHtml = faqItems.length ? `
     <section class="baby-faq" aria-labelledby="baby-faq-title">
       <h2 class="baby-faq__title" id="baby-faq-title">❓ ${esc(name)}についてよくある質問</h2>
-      <dl class="baby-faq__list">
-        ${faqItems.map(f => `<div class="baby-faq__item"><dt class="baby-faq__q">${esc(f.q)}</dt><dd class="baby-faq__a">${esc(f.a)}</dd></div>`).join('\n        ')}
-      </dl>
+      <div class="baby-faq__list">
+        ${faqItems.map((f, i) => `<details class="baby-faq__item"${i === 0 ? ' open' : ''}><summary class="baby-faq__q">${esc(f.q)}</summary><div class="baby-faq__a">${f.aHtml || esc(f.a)}</div></details>`).join('\n        ')}
+      </div>
     </section>` : '';
-
   return `<!doctype html>
 <html lang="ja">
 ${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd: articleLd, extraMeta: extraMetaTags })}
