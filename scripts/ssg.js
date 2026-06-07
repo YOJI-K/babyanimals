@@ -1543,33 +1543,44 @@ function speciesHtml(species, babies, slugMap) {
     },
   });
 
-  // FAQPage JSON-LD — 種別ページ向けQ&A
+  // 見頃（在籍個体の月齢から動的生成）
+  const datedBabies = speciesBabies.filter(b => b.birthday).sort((a, b) => b.birthday.localeCompare(a.birthday));
+  const youngest = datedBabies[0];
+  const viewingAnswer = youngest
+    ? `最も新しい${species}の赤ちゃんは${youngest.zoo_name ? youngest.zoo_name + 'の' : ''}「${youngest.name || '赤ちゃん'}」（${ageText(youngest.birthday)}）です。赤ちゃんの時期は短く、成長すると見た目も大きく変わります。会いたい子がいるうちに足を運ぶのがおすすめです。`
+    : '';
+
+  // FAQ項目（JSON-LD と 画面表示で共用）
+  const faqItems = [
+    {
+      q: `${species}の赤ちゃんはどこの動物園で会えますか？`,
+      a: zooSet.size > 0
+        ? `現在、${species}の赤ちゃんは全国${zooSet.size}園で会えます。${Array.from(zooSet).slice(0, 5).join('・')}${zooSet.size > 5 ? 'など' : ''}で飼育されています。`
+        : `現在、${species}の赤ちゃんの登録はありません。新しい情報が入り次第このページで掲載します。`,
+    },
+    ...(viewingAnswer ? [{ q: `${species}の赤ちゃんの見頃はいつですか？`, a: viewingAnswer }] : []),
+    ...(info ? [{ q: `${species}はどんな動物ですか？`, a: info.desc }] : []),
+    ...(info ? [{ q: `${species}の保全状況（IUCN）はどうなっていますか？`, a: `${species}は IUCN レッドリストで「${info.iucn}」に指定されています。野生での生息環境を守る取り組みとあわせて、動物園での飼育・繁殖も種の保全に役立っています。` }] : []),
+    { q: `${species}の赤ちゃんを見るときのコツはありますか？`, a: `赤ちゃんは午前中の涼しい時間帯に活発なことが多く、授乳や親子の様子を観察できます。公開時間や展示場所は季節や体調によって変わるため、おでかけ前に各動物園の公式サイトやSNSで当日の展示状況を確認すると安心です。前売り券を用意しておくと当日スムーズに入園できます。` },
+  ];
+
   const speciesFaqLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `${species}の赤ちゃんはどこの動物園で会えますか？`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: zooSet.size > 0
-            ? `現在、${species}の赤ちゃんは全国${zooSet.size}園で会えます。${Array.from(zooSet).slice(0, 5).join('・')}${zooSet.size > 5 ? 'など' : ''}で飼育されています。`
-            : `現在、${species}の赤ちゃんの登録はありません。新しい情報が入り次第このページで掲載します。`,
-        },
-      },
-      ...(info ? [{
-        '@type': 'Question',
-        name: `${species}はどんな動物ですか？`,
-        acceptedAnswer: { '@type': 'Answer', text: info.desc },
-      }] : []),
-      ...(info ? [{
-        '@type': 'Question',
-        name: `${species}の保全状況（IUCN）はどうなっていますか？`,
-        acceptedAnswer: { '@type': 'Answer', text: `${species}は IUCN レッドリストで「${info.iucn}」に指定されています。` },
-      }] : []),
-    ],
+    mainEntity: faqItems.map(it => ({
+      '@type': 'Question',
+      name: it.q,
+      acceptedAnswer: { '@type': 'Answer', text: it.a },
+    })),
   });
+
+  const visibleFaqHtml = `<section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{2753} ${esc(species)}の赤ちゃん よくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
 
   const speciesExtraJsonLd = `<script type="application/ld+json">${speciesFaqLd}</script>`;
 
@@ -1617,6 +1628,8 @@ ${siteNav('/babies/')}
     <h2 style="font-size:1.2rem;margin:0 0 1rem;">🏛️ ${esc(species)}に会える動物園</h2>
     <ul style="list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.5rem;">${zoosList}</ul>
   </section>` : ''}
+
+  ${visibleFaqHtml}
 
   ${genericAsoviewCta(`${esc(species)}に会える動物園のチケットをオンラインで予約できます。事前購入でスムーズに入園。`)}
 
