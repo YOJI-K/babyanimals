@@ -895,7 +895,8 @@ function zooBabyCardHtml(b, slugMap = null) {
           <span class="pill pill--age-${ageSuffix(b.birthday)}">${esc(age)}</span>
         </div>
       </div>
-    </a>
+    </a>${showSpecies ? `
+    <a class="baby-card__species" href="/species/${esc(species)}/" style="display:block;padding:0 .75rem .6rem;font-size:.8rem;color:#0a7a5c;text-decoration:none;">\u{1F43E} ${esc(species)}の仲間をもっと見る →</a>` : ''}
   </div>`;
 }
 
@@ -1497,6 +1498,12 @@ ${siteFooter()}
 
 function speciesHtml(species, babies, slugMap) {
   const info = SPECIES_INFO[species] || null;
+  const otherSpecies = [...new Set(babies.map(b => b.species).filter(s => s && s !== species))].sort().slice(0, 12);
+  const otherSpeciesLinks = otherSpecies.length ? `<section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{1F43E} ほかの動物の赤ちゃんも見る</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;">${otherSpecies.map(s => `<a href="/species/${esc(s)}/" style="display:inline-block;padding:.35rem .8rem;background:#f0f7f4;border-radius:999px;font-size:.9rem;color:#0a7a5c;text-decoration:none;">${esc(s)}</a>`).join('')}</div>
+    <p style="margin:1rem 0 0;font-size:.95rem;"><a href="/specials/endangered/">絶滅危惧種の赤ちゃん特集</a> ・ <a href="/species/">すべての種を見る</a></p>
+  </section>` : '';
   const speciesBabies = babies.filter(b => b.species === species);
   const count = speciesBabies.length;
   const sampleNames = speciesBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
@@ -1612,6 +1619,8 @@ ${siteNav('/babies/')}
   </section>` : ''}
 
   ${genericAsoviewCta(`${esc(species)}に会える動物園のチケットをオンラインで予約できます。事前購入でスムーズに入園。`)}
+
+  ${otherSpeciesLinks}
 
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
 
