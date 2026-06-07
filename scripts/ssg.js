@@ -1244,6 +1244,7 @@ ${siteNav('/zoos/')}
   <section class="page-hero">
     <h1 class="page-title">動物園一覧（都道府県別）</h1>
     <p class="page-subtitle">全国 ${ZOOS.length} 園の動物園を掲載中</p>
+    <p style="text-align:center;margin:.6rem 0 0;"><a class="dbb-cta" href="/area/">地域・エリアから赤ちゃんを探す →</a></p>
   </section>
 
   <nav class="zoo-jump" aria-label="都道府県ジャンプ">
@@ -1644,6 +1645,105 @@ ${siteFooter()}
 </html>`;
 }
 
+// ─── 地域（エリア）別ハブ（SSG） PROP-20260607-03 検索需要ハブ ──────────
+const REGIONS = [
+  ['北海道', ['北海道']],
+  ['東北', ['青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県']],
+  ['関東', ['茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県']],
+  ['中部', ['新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県', '静岡県', '愛知県']],
+  ['近畿', ['三重県', '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県']],
+  ['中国', ['鳥取県', '島根県', '岡山県', '広島県', '山口県']],
+  ['四国', ['徳島県', '香川県', '愛媛県', '高知県']],
+  ['九州・沖縄', ['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県']],
+];
+
+function areaIndexHtml(babies, slugMap) {
+  const prefRegion = {};
+  REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
+  const zooSlug = (name) => { const z = ZOOS.find(x => x.db_name === name); return z ? z.slug : null; };
+
+  const regionMap = new Map();
+  for (const b of babies) {
+    const rn = prefRegion[b.prefecture];
+    if (!rn || !b.zoo_name) continue;
+    if (!regionMap.has(rn)) regionMap.set(rn, new Map());
+    const zm = regionMap.get(rn);
+    if (!zm.has(b.zoo_name)) zm.set(b.zoo_name, { pref: b.prefecture, babies: [] });
+    zm.get(b.zoo_name).babies.push(b);
+  }
+
+  const totalBabies = babies.length;
+  const order = REGIONS.map(([rn]) => rn).filter(rn => regionMap.has(rn));
+  const title = `地域・エリアから動物の赤ちゃんを探す | どうベビ`;
+  const desc = `関東・近畿・九州など全国のエリア別に、いま動物園で会える赤ちゃんをまとめて紹介。お近くの動物園で会える${totalBabies}頭の赤ちゃんを地域から探せます。`;
+  const canonical = `${SITE_BASE}/area/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'CollectionPage',
+    name: 'エリア別 赤ちゃん一覧', description: desc, url: canonical, inLanguage: 'ja',
+    isPartOf: { '@type': 'WebSite', name: 'どうベビ', url: SITE_BASE },
+  });
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: 'エリアから探す', item: canonical },
+    ],
+  });
+
+  const navHtml = order.map(rn => {
+    const total = [...regionMap.get(rn).values()].reduce((t, x) => t + x.babies.length, 0);
+    return `<a href="#area-${esc(rn)}" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#f0f7f4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">${esc(rn)}<span style="opacity:.55;font-size:.85em;"> ${total}</span></a>`;
+  }).join('');
+
+  const sections = order.map(rn => {
+    const zm = regionMap.get(rn);
+    const zoos = [...zm.entries()].sort((a, b) => b[1].babies.length - a[1].babies.length);
+    const regionTotal = zoos.reduce((t, [, x]) => t + x.babies.length, 0);
+    const regionSp = new Set();
+    zoos.forEach(([, x]) => x.babies.forEach(b => b.species && regionSp.add(b.species)));
+    const zooBlocks = zoos.map(([zname, x]) => {
+      const slug = zooSlug(zname);
+      const head = slug
+        ? `<a href="/zoos/${esc(slug)}/" style="font-weight:700;color:#0a7a5c;text-decoration:none;">${esc(zname)}</a>`
+        : `<span style="font-weight:700;">${esc(zname)}</span>`;
+      const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(b.name || '赤ちゃん')}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>`).join('');
+      return `<div style="margin:0 0 1rem;">
+        <div>${head} <span style="color:#888;font-size:.85rem;">${esc(x.pref)}・${x.babies.length}頭</span></div>
+        <div style="margin-top:.3rem;">${babyLinks}</div>
+      </div>`;
+    }).join('');
+    return `<section id="area-${esc(rn)}" style="margin:2rem 0;">
+      <h2 style="font-size:1.25rem;margin:0 0 .9rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">${esc(rn)}で会える赤ちゃん <span style="font-size:.82rem;color:#888;font-weight:normal;">${zoos.length}園・${regionTotal}頭・${regionSp.size}種</span></h2>
+      ${zooBlocks}
+    </section>`;
+  }).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/zoos/')}
+<main class="container" id="main">
+  <section class="page-hero">
+    <h1 class="page-title">地域・エリアから赤ちゃんを探す</h1>
+    <p class="page-subtitle">いま全国${totalBabies}頭の赤ちゃんに会えます</p>
+  </section>
+  <p style="line-height:1.7;margin:1rem 0;">お住まいの地域や旅行先で、いま動物園・水族館に会いに行ける赤ちゃんをエリア別にまとめました。気になる地域から、会える赤ちゃんと動物園を探してみましょう。</p>
+  <nav aria-label="エリア一覧" style="margin:1rem 0;display:flex;flex-wrap:wrap;">${navHtml}</nav>
+  ${sections}
+  ${genericAsoviewCta('お近くの動物園・水族館のチケットをオンラインで予約できます。事前購入でスムーズに入園。')}
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/species/">動物の種類から探す →</a></p>
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
+
 function speciesIndexHtml(babies) {
   const grouped = new Map();
   for (const b of babies) {
@@ -1974,6 +2074,7 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
       <li><a href="/news/">ニュース一覧</a></li>
       <li><a href="/calendar/">誕生日カレンダー</a></li>
+      <li><a href="/area/">エリア（地域）から探す</a></li>
     </ul>`;
 
   // 動物園一覧
@@ -2040,6 +2141,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/calendar/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/sitemap/`,                  priority: '0.8', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/species/`,                  priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/area/`,                     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/spring-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
@@ -2362,13 +2464,13 @@ async function fetchBabies() {
   if (USE_MOCK) {
     // モック: 赤ちゃんサンプルデータ（--mock フラグ時）
     return [
-      { id: 'demo-baby-001', name: 'レオ',   species: 'ライオン',    birthday: '2024-03-15', zoo_name: 'サンプル動物園', thumbnail_url: null },
+      { id: 'demo-baby-001', name: 'レオ',   species: 'ライオン',    birthday: '2024-03-15', zoo_name: 'サンプル動物園', prefecture: '東京都', thumbnail_url: null },
       { id: 'demo-baby-002', name: 'パンちゃん', species: 'ジャイアントパンダ', birthday: '2023-09-01', zoo_name: 'サンプル動物園', thumbnail_url: null },
-      { id: 'demo-baby-003', name: 'ぺんた', species: 'ペンギン',    birthday: '2025-01-10', zoo_name: 'デモ水族館',     thumbnail_url: null },
+      { id: 'demo-baby-003', name: 'ぺんた', species: 'ペンギン',    birthday: '2025-01-10', zoo_name: 'デモ水族館', prefecture: '大阪府',    thumbnail_url: null },
     ];
   }
   try {
-    const data = await sbFetch('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name&order=birthday.desc.nullslast&limit=500');
+    const data = await sbFetch('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name,prefecture&order=birthday.desc.nullslast&limit=500');
     console.log(`   ✅ 赤ちゃん: ${data.length} 件`);
     return data;
   } catch (e) {
@@ -2616,6 +2718,11 @@ async function main() {
   }
   writeHtml(path.join(WEB_DIR, 'species', 'index.html'), speciesIndexHtml(babies));
   console.log(`   ✅ ${speciesCount}種 + 一覧1`);
+
+  // ── 地域（エリア）別ハブ ──
+  console.log('\n🗾 エリア別ハブ生成中...');
+  writeHtml(path.join(WEB_DIR, 'area', 'index.html'), areaIndexHtml(babies, slugMap));
+  console.log('   ✅ /area/ 出力');
 
   // ── 春の特集ページ ──
   console.log('\n🌸 2026年春特集ページ生成中...');
