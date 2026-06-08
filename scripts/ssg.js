@@ -400,7 +400,7 @@ function zooLinksHtml(zooName, animalName) {
          data-link-type="ticket"
          data-zoo-name="${safeZoo}"
          data-animal-name="${safeAnimal}">
-      ${svgTicket} オンラインチケットを予約する <small class="zoo-link__pr">PR</small>
+      ${svgTicket} チケットを事前予約 <small class="zoo-link__pr">広告</small>
     </a>`);
   } else {
     buttons.push(`<a class="zoo-link zoo-link--ticket"
@@ -409,7 +409,7 @@ function zooLinksHtml(zooName, animalName) {
          data-link-type="ticket-generic"
          data-zoo-name="${safeZoo}"
          data-animal-name="${safeAnimal}">
-      ${svgTicket} 動物園・水族館のチケットを探す <small class="zoo-link__pr">PR</small>
+      ${svgTicket} チケットを事前予約 <small class="zoo-link__pr">広告</small>
     </a>`);
   }
   if (data.official_url) {
@@ -419,17 +419,18 @@ function zooLinksHtml(zooName, animalName) {
          data-link-type="official"
          data-zoo-name="${safeZoo}"
          data-animal-name="${safeAnimal}">
-      ${svgMapPin} アクセス・営業時間
+      ${svgMapPin} 公式サイト（アクセス・料金）
     </a>`);
   }
   if (!buttons.length) return '';
 
   return `<section class="visit-cta">
     <h2 class="visit-cta__title">🎟️ この子に会いに行こう</h2>
-    <p class="visit-cta__lead">${safeZoo}でお待ちしています。事前にチケットを購入するとスムーズに入園できます。</p>
+    <p class="visit-cta__lead">${safeZoo}で待っています。当日窓口と同じ料金で、並ばず入園できます。</p>
     <div class="zoo-links" aria-label="${safeZoo}へのリンク">
       ${buttons.join('\n      ')}
     </div>
+    <p class="zoo-link__note">アソビュー（正規取扱）｜お支払額は当日窓口と変わりません</p>
   </section>`;
 }
 
@@ -444,7 +445,7 @@ function asoviewAffiliate(targetUrl = ASOVIEW_GENERIC_URL) {
 }
 
 /** 汎用 asoview CTA セクション（特定動物園 asoview が無いページ用フォールバック） */
-function genericAsoviewCta(lead = '全国の動物園・水族館のチケットをオンラインで。事前購入でスムーズに入園できます。') {
+function genericAsoviewCta(lead = '公式提携の電子チケット。当日窓口と同じ料金で、列に並ばず入園できます。') {
   const svgTicket = `<svg class="btn-icon" aria-hidden="true" focusable="false"><use href="/assets/icons/icons.svg#icon-ticket"></use></svg>`;
   return `<section class="visit-cta">
     <h2 class="visit-cta__title">🎟️ 動物園・水族館に行こう</h2>
@@ -454,9 +455,10 @@ function genericAsoviewCta(lead = '全国の動物園・水族館のチケット
          href="${asoviewAffiliate()}"
          target="_blank" rel="noopener sponsored"
          data-link-type="ticket-generic">
-        ${svgTicket} 動物園・水族館のチケットを探す <small class="zoo-link__pr">PR</small>
+        ${svgTicket} チケットを事前予約 <small class="zoo-link__pr">広告</small>
       </a>
     </div>
+    <p class="zoo-link__note">アソビュー（正規取扱）｜お支払額は当日窓口と変わりません</p>
   </section>`;
 }
 
@@ -1063,14 +1065,14 @@ function zooHtml(zoo, babies, slugMap = null) {
            target="_blank" rel="noopener sponsored"
            data-link-type="ticket"
            data-zoo-name="${esc(zoo.db_name)}">
-        🎟️ オンラインチケットを予約する <small class="zoo-link__pr">PR</small>
+        🎟️ チケットを事前予約 <small class="zoo-link__pr">広告</small>
       </a>`
     : `<a class="zoo-link zoo-link--ticket"
            href="${asoviewAffiliate()}"
            target="_blank" rel="noopener sponsored"
            data-link-type="ticket-generic"
            data-zoo-name="${esc(zoo.db_name)}">
-        🎟️ 動物園・水族館のチケットを探す <small class="zoo-link__pr">PR</small>
+        🎟️ チケットを事前予約 <small class="zoo-link__pr">広告</small>
       </a>`;
   const officialBtn = zoo.official_url
     ? `<a class="zoo-link zoo-link--official"
@@ -1171,6 +1173,7 @@ ${siteNav('/zoos/')}
       ${ticketBtn}
       ${officialBtn}
     </div>
+    <p class="zoo-link__note">アソビュー（正規取扱）｜お支払額は当日窓口と変わりません</p>
   </section>
 
   <div class="ssg-detail__actions">
@@ -1640,7 +1643,7 @@ ${siteNav('/babies/')}
 
   ${visibleFaqHtml}
 
-  ${genericAsoviewCta(`${esc(species)}に会える動物園のチケットをオンラインで予約できます。事前購入でスムーズに入園。`)}
+  ${genericAsoviewCta(`${esc(species)}に会える動物園の電子チケット。当日窓口と同じ料金で、並ばず入園できます。`)}
 
   ${otherSpeciesLinks}
 
@@ -1742,7 +1745,7 @@ ${siteNav('/zoos/')}
   <p style="line-height:1.7;margin:1rem 0;">お住まいの地域や旅行先で、いま動物園・水族館に会いに行ける赤ちゃんをエリア別にまとめました。気になる地域から、会える赤ちゃんと動物園を探してみましょう。</p>
   <nav aria-label="エリア一覧" style="margin:1rem 0;display:flex;flex-wrap:wrap;">${navHtml}</nav>
   ${sections}
-  ${genericAsoviewCta('お近くの動物園・水族館のチケットをオンラインで予約できます。事前購入でスムーズに入園。')}
+  ${genericAsoviewCta('お近くの動物園・水族館の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/species/">動物の種類から探す →</a></p>
 </main>
 ${siteFooter()}
@@ -1909,7 +1912,7 @@ ${siteNav('/')}
 
   ${sections || '<p>赤ちゃん情報を準備中です。</p>'}
 
-  ${genericAsoviewCta('お近くの動物園のチケットをオンラインで事前予約できます。当日券より安く、スムーズに入園。')}
+  ${genericAsoviewCta('お近くの動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
 
   ${visibleFaq}
 

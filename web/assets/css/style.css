@@ -1213,15 +1213,16 @@ body {
   transition: transform .12s ease, box-shadow .12s ease;
 }
 .zoo-links .zoo-link--ticket {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  background: #0e7a55;
   color: #fff;
   font-size: 16px;
   font-weight: 800;
-  box-shadow: 0 4px 16px rgba(249,115,22,.4);
+  box-shadow: 0 2px 8px rgba(14,122,85,.22);
 }
 .zoo-links .zoo-link--ticket:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(249,115,22,.5);
+  background: #0c6b4a;
+  box-shadow: 0 4px 12px rgba(14,122,85,.3);
 }
 .zoo-links .zoo-link--official {
   background: #fff;
@@ -2590,3 +2591,8 @@ body.theme{ background: var(--bg); }
   border-bottom: 1px solid rgba(22, 163, 74, .35);
 }
 .baby-faq__a a:hover { border-bottom-color: #16a34a; }
+
+
+/* CTA信頼化（PROP-20260608-03 ④） */
+.zoo-link__note{ font-size:12px; color:var(--text-2,#666); text-align:center; line-height:1.55; margin:8px 0 0; }
+.dbb-tkt__pr{ display:inline-block; font-size:10px; color:rgba(255,255,255,.6); margin-top:3px; }
