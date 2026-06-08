@@ -872,6 +872,13 @@ ${siteFooter()}
 /**
  * 動物園の赤ちゃんカードHTML（一覧ページの赤ちゃんカードと同デザイン）
  */
+// 公開状況バッジ（一般公開中／一般公開前）
+function displayStatusBadge(status) {
+  return status === 'pre'
+    ? '<span class="pill" style="background:#fff4d6;color:#8a6d00;">\u{1F7E1} 近日公開</span>'
+    : '<span class="pill" style="background:#e3f7ee;color:#0a7a5c;">\u{1F7E2} 公開中</span>';
+}
+
 function zooBabyCardHtml(b, slugMap = null) {
   const name     = b.name || '（名前未判明）';
   const species  = b.species || '';
@@ -893,6 +900,7 @@ function zooBabyCardHtml(b, slugMap = null) {
         <div class="meta">
           <span class="pill">🎂 ${esc(bdayFmt) || '—'}</span>
           <span class="pill pill--age-${ageSuffix(b.birthday)}">${esc(age)}</span>
+          ${displayStatusBadge(b.display_status)}
         </div>
       </div>
     </a>${showSpecies ? `
@@ -1800,54 +1808,110 @@ ${siteFooter()}
 // ─── 春の特集ページ ──────────────────────────────────────
 
 function springSpecialHtml(babies, slugMap) {
-  // 2025年9月〜2026年5月生まれの赤ちゃん（2026年春時点で0〜0.7歳程度）
-  const springBabies = babies.filter(b => {
+  // 季節ウィンドウ: 2025-09〜2026-05 生まれ
+  const inWindow = (b) => {
     if (!b.birthday) return false;
     const m = b.birthday.match(/^(\d{4})-(\d{2})-/);
     if (!m) return false;
-    const y = Number(m[1]); const mo = Number(m[2]);
-    return (y === 2026 && mo >= 1 && mo <= 5) || (y === 2025 && mo >= 9);
-  }).sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)));
+    const y = Number(m[1]), mo = Number(m[2]);
+    return (y === 2026 && mo >= 1 && mo <= 5) || (y === 2025 && mo >= 7);
+  };
+  const hasPhoto = (b) => !!b.thumbnail_url;
+  const byNewest = (a, b) => String(b.birthday).localeCompare(String(a.birthday));
 
-  const title = '2026年春の動物園赤ちゃんラッシュ — 全国の最新ベビー特集｜どうベビ';
-  const desc = `2026年春の動物園は赤ちゃん大集合！全国の動物園から${springBabies.length}頭の最新ベビーをピックアップ。コアラ・キリン・トラ・ペンギンなど人気の動物が新たな命を迎えました。会いに行きたい動物園が見つかる完全ガイド。`.slice(0, 200);
+  // 写真あり＆誕生日ありに限定（PROP-20260608-01。inWindow が null 誕生日を除外）。
+  const springBabies = babies.filter(b => inWindow(b) && hasPhoto(b)).sort(byNewest);
+
+  // 地域グルーピング（/area/ と同一の REGIONS を再利用）
+  const prefRegion = {};
+  REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
+  const regionMap = new Map();
+  for (const b of springBabies) {
+    const rn = prefRegion[b.prefecture] || 'その他';
+    if (!regionMap.has(rn)) regionMap.set(rn, []);
+    regionMap.get(rn).push(b);
+  }
+  const regionOrder = REGIONS.map(([rn]) => rn).filter(rn => regionMap.has(rn));
+  if (regionMap.has('その他')) regionOrder.push('その他');
+
+  // メタを実掲載種に動的整合（ハードコード撤廃）
+  const speciesList = [...new Set(springBabies.map(b => b.species).filter(Boolean))];
+  const speciesPhrase = speciesList.slice(0, 4).join('・') || '人気の動物';
+  const prefSet = new Set(springBabies.map(b => b.prefecture).filter(Boolean));
+
+  const title = '2026年春の動物園赤ちゃんラッシュ — 地域別・会いに行けるベビー特集｜どうベビ';
+  const desc = `2026年春、全国の動物園で会える赤ちゃん${springBabies.length}頭を地域別にご紹介。${speciesPhrase}など、いまお近くの動物園で会えるベビーを公開状況つきでまとめました。お出かけ先選びの完全ガイド。`.slice(0, 200);
   const canonical = `${SITE_BASE}/specials/spring-2026/`;
 
+  const sections = regionOrder.map(rn => {
+    const list = regionMap.get(rn).sort(byNewest);
+    const cards = list.map(b => zooBabyCardHtml(b, slugMap)).join('');
+    return `<section style="margin:1.8rem 0;">
+      <h2 style="font-size:1.2rem;margin:0 0 1rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">\u{1F4CD} ${esc(rn)}で会える赤ちゃん <span style="font-size:.82rem;color:#888;font-weight:normal;">${list.length}頭</span></h2>
+      <div class="baby-grid">${cards}</div>
+    </section>`;
+  }).join('');
+
+  const faqItems = [
+    { q: '動物園の赤ちゃんはいつ見頃ですか？', a: '生後2〜6か月ごろは活発に動き、親子の様子も観察しやすい見頃です。午前中の涼しい時間帯に活動的なことが多いので、開園直後の来園がおすすめです。' },
+    { q: '赤ちゃんは毎日会えますか？公開状況の見方は？', a: '各カードに「\u{1F7E2} 公開中（一般公開中）」「\u{1F7E1} 近日公開（一般公開前）」のバッジを表示しています。\u{1F7E2} は通常展示で会えますが、体調・天候・季節で展示時間や場所が変わることがあります。おでかけ前に各動物園の公式サイトやSNSで当日の展示状況をご確認ください。' },
+    { q: '予約やチケットは必要ですか？', a: '多くの動物園は当日入園できますが、前売り券を用意しておくと当日スムーズです。混雑期は入場制限がある園もあるため、公式サイトで最新情報を確認してからのお出かけが安心です。' },
+    { q: '近くの動物園の赤ちゃんはどう探せますか？', a: 'このページは地域別にまとめています。さらに詳しく探すなら、エリア別ハブから全国の動物園と赤ちゃんを地域でしぼり込めます。' },
+  ];
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
+  });
+  const visibleFaq = `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{2753} お出かけ前によくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
+
   const jsonLd = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: '2026年春の動物園赤ちゃんラッシュ',
-    description: desc,
-    url: canonical,
-    datePublished: '2026-05-21',
-    dateModified: new Date().toISOString().slice(0, 10),
+    '@context': 'https://schema.org', '@type': 'Article',
+    headline: '2026年春の動物園赤ちゃんラッシュ — 地域別ガイド',
+    description: desc, url: canonical,
+    datePublished: '2026-05-21', dateModified: new Date().toISOString().slice(0, 10),
     publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
     mainEntityOfPage: canonical,
   });
-
-  const cards = springBabies.map(b => zooBabyCardHtml(b, slugMap)).join('');
+  const extraJsonLd = `<script type="application/ld+json">${faqLd}</script>`;
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '特集', item: `${SITE_BASE}/specials/` },
+      { '@type': 'ListItem', position: 3, name: '2026年春の赤ちゃんラッシュ', item: canonical },
+    ],
+  });
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd })}
+${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/')}
 <main class="container" id="main">
   <section class="page-hero">
-    <h1 class="page-title">🌸 2026年春の<br>動物園赤ちゃんラッシュ</h1>
-    <p class="page-subtitle">全国の動物園から ${springBabies.length}頭 の最新ベビーをピックアップ</p>
+    <h1 class="page-title">\u{1F338} 2026年春の<br>動物園赤ちゃんラッシュ</h1>
+    <p class="page-subtitle">全国 ${prefSet.size}都道府県・${springBabies.length}頭の最新ベビーに会いに行こう</p>
   </section>
 
   <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.8;">
-    <p>春は動物園にとって新たな命が誕生する季節。<strong>コアラ、キリン、トラ、ペンギン</strong>──全国の動物園では今、たくさんの赤ちゃんたちが元気に育っています。</p>
-    <p>このページでは、<strong>2025年秋から2026年春にかけて誕生</strong>した赤ちゃんたちを、最新のお誕生日順にご紹介。お近くの動物園で会いに行く参考にどうぞ。</p>
+    <p>春は動物園に新しい命があふれる季節。<strong>${esc(speciesPhrase)}</strong>──いま全国の動物園では、たくさんの赤ちゃんがすくすく育っています。</p>
+    <p>このページでは、<strong>2025年夏〜2026年春に誕生</strong>した写真つきの赤ちゃんを<strong>地域別</strong>にご紹介。各カードの<strong>公開状況バッジ</strong>で「いま会えるか」もひと目でわかります。お近くの動物園を見つけて、会いに行く参考にどうぞ。</p>
+    <p style="margin-top:.6rem;"><a href="/area/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">\u{1F5FE} 地域・エリアからもっと探す →</a></p>
   </section>
 
-  <section style="margin:1.5rem 0;">
-    <h2 style="font-size:1.2rem;margin:0 0 1rem;">📅 春に会える赤ちゃんたち（${springBabies.length}頭）</h2>
-    <div class="baby-grid">${cards || '<p>赤ちゃん情報を準備中です。</p>'}</div>
-  </section>
+  ${sections || '<p>赤ちゃん情報を準備中です。</p>'}
+
+  ${genericAsoviewCta('お近くの動物園のチケットをオンラインで事前予約できます。当日券より安く、スムーズに入園。')}
+
+  ${visibleFaq}
 
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
 
@@ -1981,7 +2045,7 @@ function specialsIndexHtml(babies) {
     const m = b.birthday.match(/^(\d{4})-(\d{2})-/);
     if (!m) return false;
     const y = Number(m[1]); const mo = Number(m[2]);
-    return (y === 2026 && mo >= 1 && mo <= 5) || (y === 2025 && mo >= 9);
+    return (y === 2026 && mo >= 1 && mo <= 5) || (y === 2025 && mo >= 7);
   }).length;
 
   const jsonLd = JSON.stringify({
@@ -2460,6 +2524,19 @@ function updateRedirects(slugMap) {
 
 const USE_MOCK = process.argv.includes('--mock');
 
+// 公開状況(display_status)を babies テーブルから取得し id でマージ。失敗時は全件 public。
+async function mergeDisplayStatus(list) {
+  if (USE_MOCK) { list.forEach(b => { if (!b.display_status) b.display_status = 'public'; }); return; }
+  try {
+    const rows = await sbFetch('/rest/v1/babies?select=id,display_status&limit=1000');
+    const m = new Map(rows.map(r => [r.id, r.display_status || 'public']));
+    list.forEach(b => { b.display_status = m.get(b.id) || 'public'; });
+  } catch (e) {
+    console.warn(`   \u26A0\uFE0F  display_status \u53D6\u5F97\u5931\u6557 \u2014 \u5168\u4EF6 public \u6271\u3044 (${e.message})`);
+    list.forEach(b => { b.display_status = 'public'; });
+  }
+}
+
 async function fetchBabies() {
   if (USE_MOCK) {
     // モック: 赤ちゃんサンプルデータ（--mock フラグ時）
@@ -2471,12 +2548,13 @@ async function fetchBabies() {
   }
   try {
     const data = await sbFetch('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name,prefecture&order=birthday.desc.nullslast&limit=500');
+    await mergeDisplayStatus(data);
     console.log(`   ✅ 赤ちゃん: ${data.length} 件`);
     return data;
   } catch (e) {
     console.warn(`   ⚠️  babies_public 失敗 — babies テーブルで再試行 (${e.message})`);
-    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo:zoos(name)&order=birthday.desc.nullslast&limit=500');
-    const data = raw.map(x => ({ ...x, zoo_name: x.zoo?.name || '' }));
+    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,zoo_id,zoo:zoos(name,prefecture)&order=birthday.desc.nullslast&limit=500');
+    const data = raw.map(x => ({ ...x, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public' }));
     console.log(`   ✅ 赤ちゃん（フォールバック）: ${data.length} 件`);
     return data;
   }
