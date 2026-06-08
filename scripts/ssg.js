@@ -1675,6 +1675,20 @@ const REGIONS = [
   ['九州・沖縄', ['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県']],
 ];
 
+// 最近生まれた赤ちゃん 新着枠（PROP-20260608-03 ① インデックス促進：ハブから新規ページへ到達性を確保）
+function recentBabiesSection(babies, slugMap, n = 8) {
+  const recent = [...babies].filter(b => b.birthday).sort((a, b) => b.birthday.localeCompare(a.birthday)).slice(0, n);
+  if (!recent.length) return '';
+  const cards = recent.map(b => zooBabyCardHtml(b, slugMap)).join('');
+  return `<section style="margin:1.5rem 0;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:0 0 1rem;">
+      <h2 style="font-size:1.2rem;margin:0;">\u{1F195} 最近生まれた赤ちゃん</h2>
+      <a href="/babies/" style="color:#0a7a5c;text-decoration:none;font-size:.9rem;white-space:nowrap;">もっと見る ›</a>
+    </div>
+    <div class="baby-grid">${cards}</div>
+  </section>`;
+}
+
 function areaRegionData(babies) {
   const prefRegion = {};
   REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
@@ -1754,6 +1768,7 @@ ${siteNav('/zoos/')}
   </section>
   <p style="line-height:1.7;margin:1rem 0;">お住まいの地域や旅行先で、いま動物園・水族館に会いに行ける赤ちゃんをエリア別にまとめました。気になる地域を選んで、会える赤ちゃんと動物園を探してみましょう。</p>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.8rem;margin:1.2rem 0;">${cards}</div>
+  ${recentBabiesSection(babies, slugMap)}
   ${genericAsoviewCta('お近くの動物園・水族館の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/species/">動物の種類から探す →</a></p>
 </main>
@@ -1836,7 +1851,7 @@ ${siteFooter()}
 </html>`;
 }
 
-function speciesIndexHtml(babies) {
+function speciesIndexHtml(babies, slugMap) {
   const grouped = new Map();
   for (const b of babies) {
     if (!b.species) continue;
@@ -1880,6 +1895,8 @@ ${siteNav('/babies/')}
     <p class="page-subtitle">${entries.length}種・${babies.length}頭の赤ちゃんを掲載中</p>
   </section>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;margin:1rem 0;">${cards}</div>
+
+  ${recentBabiesSection(babies, slugMap)}
 
   ${genericAsoviewCta()}
 </main>
@@ -2948,7 +2965,7 @@ async function main() {
     writeHtml(path.join(WEB_DIR, 'species', sp, 'index.html'), speciesHtml(sp, babies, slugMap));
     speciesCount++;
   }
-  writeHtml(path.join(WEB_DIR, 'species', 'index.html'), speciesIndexHtml(babies));
+  writeHtml(path.join(WEB_DIR, 'species', 'index.html'), speciesIndexHtml(babies, slugMap));
   console.log(`   ✅ ${speciesCount}種 + 一覧1`);
 
   // ── 地域（エリア）別ハブ ──
