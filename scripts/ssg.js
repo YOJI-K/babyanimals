@@ -2331,6 +2331,69 @@ function fmtMD(iso) {
 /**
  * index.html の #recent-list と #news-preview-list を静的コンテンツで埋める
  */
+/** ヒーロー「お誕生日の赤ちゃん」を当月（無ければ最大5ヶ月遡る）で静的生成。
+ *  app.js のクライアント描画と同じ .dbb-bc カード／同じ絞り込み（誕生月一致・年齢0〜3）に揃える。
+ *  JS有効時は app.js が #hero-list を上書きするため、これはクローラー／JS無効向けの初期表示。 */
+function heroBirthdayHtml(babies, slugMap) {
+  const fmtMD = (iso) => { const d = new Date(iso); return `${d.getMonth() + 1}/${d.getDate()}`; };
+  const ageOn = (iso, ref) => {
+    const b = new Date(iso); if (isNaN(b)) return null;
+    let a = ref.getFullYear() - b.getFullYear();
+    const m = ref.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && ref.getDate() < b.getDate())) a--;
+    return a;
+  };
+  const monthFiltered = (ref) => {
+    const mm = ref.getMonth(), yyyy = ref.getFullYear();
+    return babies.filter(b => {
+      if (!b.birthday) return false;
+      const bd = new Date(b.birthday); if (isNaN(bd)) return false;
+      if (bd.getMonth() !== mm) return false;
+      if (bd.getFullYear() > yyyy) return false;
+      const a = ageOn(b.birthday, ref);
+      return a != null && a >= 0 && a <= 3;
+    });
+  };
+  const now = new Date();
+  let ref = new Date(now.getFullYear(), now.getMonth(), 1);
+  let list = [], monthsBack = 0;
+  for (let i = 0; i <= 5; i++) {
+    const r = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const f = monthFiltered(r);
+    if (f.length) { ref = r; list = f; monthsBack = i; break; }
+  }
+  const label = monthsBack === 0
+    ? '0〜3歳 · 今月生まれ'
+    : `0〜3歳 · ${ref.getFullYear()}年${ref.getMonth() + 1}月生まれ`;
+  if (!list.length) {
+    return { html: `\n<div class="empty-state"><p class="empty-state__desc">今月お誕生日の赤ちゃんはおやすみ中です。<a href="/babies/">最近生まれた赤ちゃんを見る ›</a></p></div>\n`, label: '0〜3歳 · 今月生まれ' };
+  }
+  list = [...list].sort((a, b) => a.birthday.localeCompare(b.birthday));
+  const cards = list.map(b => {
+    const name = esc(b.name || '（名前未設定）');
+    const sp   = esc(b.species || '不明');
+    const zoo  = esc(b.zoo_name || '園情報なし');
+    const slug = slugMap?.get(b.id) || b.id;
+    const href = `/babies/${slug}/`;
+    const a    = ageOn(b.birthday, ref);
+    const date = fmtMD(b.birthday);
+    const thumb = b.thumbnail_url
+      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async">`
+      : '';
+    const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
+    return `<a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${sp}）">
+  <div class="${thumbCls}">${thumb}${a != null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
+  <div class="dbb-bc__body">
+    <div class="dbb-bc__name">${name}</div>
+    <div class="dbb-bc__species">${sp}</div>
+    <div class="dbb-bc__zoo">📍 ${zoo}</div>
+    <div class="dbb-bc__bday">🎂 ${date}</div>
+  </div>
+</a>`;
+  }).join('\n');
+  return { html: `\n${cards}\n`, label };
+}
+
 function patchIndexHtml(babies, newsItems, slugMap) {
   const indexPath = path.join(WEB_DIR, 'index.html');
   if (!fs.existsSync(indexPath)) return;
@@ -2397,6 +2460,9 @@ function patchIndexHtml(babies, newsItems, slugMap) {
     { '@context': 'https://schema.org', '@type': 'ItemList', name: '新着の赤ちゃん', itemListElement: recentBabies.map((b, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`, name: `${b.name || ''}（${b.species || ''}）` })) },
   ]);
 
+  const __hero = heroBirthdayHtml(babies, slugMap);
+  html = patchSection(html, 'hero', __hero.html);
+  html = patchSection(html, 'heromonth', __hero.label);
   html = patchSection(html, 'recent', `\n${recentHtml}\n`);
   html = patchSection(html, 'news', `\n${newsHtml}\n`);
   html = patchSection(html, 'specieshub', `\n${speciesHubHtml}\n`);

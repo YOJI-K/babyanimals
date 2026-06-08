@@ -87,7 +87,7 @@
           <h2 id="hero-title" class="dbb-sect">
             <span class="dbb-dot" style="background:var(--ac)"></span>お誕生日の赤ちゃん
           </h2>
-          <p class="dbb-sec__sub" id="hero-month-label">0〜3歳 · 今月生まれ</p>
+          <p class="dbb-sec__sub" id="hero-month-label"><!--SSG:heromonth:start-->0〜3歳 · 今月生まれ<!--SSG:heromonth:end--></p>
         </div>
         <a class="dbb-sec__more" href="./calendar/index.html">一覧 ›</a>
       </div>
@@ -97,12 +97,12 @@
         <button class="dbb-mtab is-on" type="button" role="tab" aria-current="page" id="hero-month-pill">今月</button>
         <button class="dbb-mtab" id="hero-next" type="button" role="tab" aria-label="来月へ">来月 ›</button>
       </div>
-      <div id="hero-skel" class="dbb-rail" aria-hidden="true">
+      <div id="hero-skel" class="dbb-rail" aria-hidden="true" hidden>
         <div class="dbb-bc"><div class="dbb-bc__img is-placeholder">🐾</div><div class="dbb-bc__body"><div class="dbb-bc__name">&nbsp;</div></div></div>
         <div class="dbb-bc"><div class="dbb-bc__img is-placeholder">🐾</div><div class="dbb-bc__body"><div class="dbb-bc__name">&nbsp;</div></div></div>
         <div class="dbb-bc"><div class="dbb-bc__img is-placeholder">🐾</div><div class="dbb-bc__body"><div class="dbb-bc__name">&nbsp;</div></div></div>
       </div>
-      <div id="hero-list" class="dbb-rail" role="list"></div>
+      <div id="hero-list" class="dbb-rail" role="list"><!--SSG:hero:start--><!--SSG:hero:end--></div>
       <div id="hero-empty" class="empty-state" hidden>
         <p class="empty-state__desc">今月は対象がいません。</p>
         <button class="dbb-mtab is-on" id="hero-show-next" type="button" style="margin-top:8px">来月を見る ›</button>
