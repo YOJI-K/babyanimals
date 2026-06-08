@@ -362,32 +362,32 @@ const NAMING_KW_RE = /命名|決定|名付け|名前|愛称/;
 // 後方互換のため NAME_PATTERNS は HIGH + MID をエクスポート（直接参照する箇所がある場合に備え）
 const NAME_PATTERNS: RegExp[] = [...NAME_PATTERNS_HIGH, ...NAME_PATTERNS_MID];
 
-function extractBabyName(text: string): string | null {
+type NameConfidence = 'high' | 'mid';
+
+// 名前を確度付きで抽出（HIGH=命名/愛称+クォート, MID=Xちゃん/くん）
+function extractNameWithConfidence(text: string): { name: string; confidence: NameConfidence } | null {
   const original = text || "";
   const preprocessed = preprocessTitleForName(original);
   const t = preprocessed.replace(/\s+/g, "");
   const hasNamingKw = NAMING_KW_RE.test(original);
 
-  // HIGH パターンを優先試行
-  const tryPattern = (re: RegExp): string | null => {
-    const m = t.match(re);
-    const name = m?.groups?.name;
-    if (!name) return null;
-    return validateExtractedName(name);
-  };
-
   for (const re of NAME_PATTERNS_HIGH) {
-    const name = tryPattern(re);
-    if (name) return name;
+    const m = t.match(re);
+    const nm = m?.groups?.name;
+    if (nm) { const v = validateExtractedName(nm); if (v) return { name: v, confidence: 'high' }; }
   }
-  // MID パターンは命名キーワードがある時のみ
   if (hasNamingKw) {
     for (const re of NAME_PATTERNS_MID) {
-      const name = tryPattern(re);
-      if (name) return name;
+      const m = t.match(re);
+      const nm = m?.groups?.name;
+      if (nm) { const v = validateExtractedName(nm); if (v) return { name: v, confidence: 'mid' }; }
     }
   }
   return null;
+}
+
+function extractBabyName(text: string): string | null {
+  return extractNameWithConfidence(text)?.name ?? null;
 }
 
 // 抽出後の name に対するバリデーション（旧 extractBabyName のフィルタ部分を関数化）
@@ -853,6 +853,29 @@ type EventForResolve = {
   signal_age_days: number | null;
 };
 
+// フェーズA: 正式名(confirmed)の採否ゲート（PROP-20260608-04）
+// 確度(高) もしくは 信頼ソース(公式site/press) のときだけ正式名を採用する。
+// 種不明 / 純Latin単独トークン(例: Coqu) は厳格に弾く（誤名防止）。
+const TRUSTED_SOURCE_KINDS = new Set(['site', 'press']);
+function isLatinOnlyToken(s: string): boolean { return /^[A-Za-z]+$/.test(s); }
+
+function decideConfirmedName(ev: EventForResolve): string | null {
+  const ext = ev.title ? extractNameWithConfidence(ev.title) : null;
+  const cand = (ext?.name || (ev.signal_name ? ev.signal_name.trim() : '')).trim();
+  if (!cand) return null;
+  // タイトル再抽出が取れた場合はその確度、無ければ ingest 時の signal_name を mid 扱い
+  const conf: NameConfidence = ext?.confidence || 'mid';
+  if (isUnnamedBaby(cand)) return null;
+  // 種が不明な個体には名前を確定しない（Coqu のような種欠落＋断片名を排除）
+  if (!ev.species) return null;
+  const trusted = TRUSTED_SOURCE_KINDS.has(ev.source_kind || '');
+  // 純Latin単独トークンは「高確度かつ信頼ソース」のときのみ許可
+  if (isLatinOnlyToken(cand) && !(conf === 'high' && trusted)) return null;
+  // 正式名にできるのは 高確度 または 信頼ソース由来 のみ（YouTube/mid 単独は不可）
+  if (!(conf === 'high' || trusted)) return null;
+  return cand.slice(0, 100);
+}
+
 function scoreForCreate(ev: EventForResolve): number {
   let score = 0;
   if (ev.source_kind === 'site' || ev.source_kind === 'press') score += 2;
@@ -954,7 +977,7 @@ async function resolveBabyEntitiesJob(env: Env) {
         continue;
       }
       // babies 新規作成（個体IDが必要なのでここは単発 POST）
-      const resolvedName = ensureBabyName(ev.signal_name);
+      const resolvedName = decideConfirmedName(ev);
       // 名前が取れない場合はスキップ（DB NOT NULL制約のため）
       // processed_at もセットしない → 次回実行で再度試みる
       if (!resolvedName) {
