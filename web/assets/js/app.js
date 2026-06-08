@@ -492,6 +492,7 @@ function pickEmoji(baby){
   const $prev  = document.getElementById('hero-prev');
   const $next  = document.getElementById('hero-next');
   const $jumpN = document.getElementById('hero-show-next');
+  const $pill  = document.getElementById('hero-month-pill');
 
   /* -------- Supabase env / fetch (fallback headers) -------- */
   // 環境取得（URLという名前を使わない）
@@ -599,7 +600,7 @@ async function fetchJSON(path){
 
   /* ---------------- Render ---------------- */
   const isSP = () => window.matchMedia('(max-width: 599px)').matches;
-  const heroLimit = () => isSP() ? 3 : 6;
+  const heroLimit = () => Infinity; // 対象月の全頭を表示（SP/PC共通）
 
   function cardHTML(x, ref){
     const a = ageOn(x.birthday, ref);
@@ -647,6 +648,10 @@ async function fetchJSON(path){
     try{
       setState({ skel:true });
       if ($label) $label.textContent = fmtMonthJP(d);
+      if ($pill){
+        const rn = startOfMonth(new Date());
+        $pill.classList.toggle('is-on', d.getFullYear()===rn.getFullYear() && d.getMonth()===rn.getMonth());
+      }
 
       const all = await loadRangeSince(d);
       const mm = d.getMonth(), yyyy = d.getFullYear();
@@ -680,6 +685,7 @@ async function fetchJSON(path){
   $prev?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth,-1); renderMonth(currentMonth); });
   $next?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth, 1); renderMonth(currentMonth); });
   $jumpN?.addEventListener('click', ()=>{ currentMonth = addMonths(currentMonth, 1); renderMonth(currentMonth); });
+  $pill?.addEventListener('click', ()=>{ currentMonth = startOfMonth(new Date()); renderMonth(currentMonth); });
 
   // 画面幅変化で件数再評価（SP⇄TB）
   window.matchMedia('(max-width: 599px)').addEventListener?.('change', ()=>renderMonth(currentMonth));
