@@ -1621,6 +1621,13 @@ ${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: speciesExtraJsonLd })}
 ${siteHeader()}
 ${siteNav('/babies/')}
 <main class="container" id="main">
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/species/">動物種別</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">${esc(species)}</span>
+  </nav>
   <section class="page-hero">
     <h1 class="page-title">${esc(species)}の赤ちゃん</h1>
     <p class="page-subtitle">${count}頭・${zooSet.size}園で会える</p>
@@ -1668,11 +1675,9 @@ const REGIONS = [
   ['九州・沖縄', ['福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県']],
 ];
 
-function areaIndexHtml(babies, slugMap) {
+function areaRegionData(babies) {
   const prefRegion = {};
   REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
-  const zooSlug = (name) => { const z = ZOOS.find(x => x.db_name === name); return z ? z.slug : null; };
-
   const regionMap = new Map();
   for (const b of babies) {
     const rn = prefRegion[b.prefecture];
@@ -1682,13 +1687,33 @@ function areaIndexHtml(babies, slugMap) {
     if (!zm.has(b.zoo_name)) zm.set(b.zoo_name, { pref: b.prefecture, babies: [] });
     zm.get(b.zoo_name).babies.push(b);
   }
-
-  const totalBabies = babies.length;
   const order = REGIONS.map(([rn]) => rn).filter(rn => regionMap.has(rn));
+  return { regionMap, order };
+}
+
+function areaZooBlocks(zm, slugMap) {
+  const zooSlug = (name) => { const z = ZOOS.find(x => x.db_name === name); return z ? z.slug : null; };
+  const zoos = [...zm.entries()].sort((a, b) => b[1].babies.length - a[1].babies.length);
+  return zoos.map(([zname, x]) => {
+    const slug = zooSlug(zname);
+    const head = slug
+      ? `<a href="/zoos/${esc(slug)}/" style="font-weight:700;color:#0a7a5c;text-decoration:none;">${esc(zname)}</a>`
+      : `<span style="font-weight:700;">${esc(zname)}</span>`;
+    const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(b.name || '赤ちゃん')}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>`).join('');
+    return `<div style="margin:0 0 1rem;">
+      <div>${head} <span style="color:#888;font-size:.85rem;">${esc(x.pref)}・${x.babies.length}頭</span></div>
+      <div style="margin-top:.3rem;">${babyLinks}</div>
+    </div>`;
+  }).join('');
+}
+
+// /area/ ハブ：8地域への入口（PROP-20260608-03 ③ エリア別個別ページ化）
+function areaIndexHtml(babies, slugMap, areaData) {
+  const { regionMap, order } = areaData || areaRegionData(babies);
+  const totalBabies = babies.length;
   const title = `地域・エリアから動物の赤ちゃんを探す | どうベビ`;
   const desc = `関東・近畿・九州など全国のエリア別に、いま動物園で会える赤ちゃんをまとめて紹介。お近くの動物園で会える${totalBabies}頭の赤ちゃんを地域から探せます。`;
   const canonical = `${SITE_BASE}/area/`;
-
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org', '@type': 'CollectionPage',
     name: 'エリア別 赤ちゃん一覧', description: desc, url: canonical, inLanguage: 'ja',
@@ -1701,35 +1726,15 @@ function areaIndexHtml(babies, slugMap) {
       { '@type': 'ListItem', position: 2, name: 'エリアから探す', item: canonical },
     ],
   });
-
-  const navHtml = order.map(rn => {
-    const total = [...regionMap.get(rn).values()].reduce((t, x) => t + x.babies.length, 0);
-    return `<a href="#area-${esc(rn)}" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#f0f7f4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">${esc(rn)}<span style="opacity:.55;font-size:.85em;"> ${total}</span></a>`;
-  }).join('');
-
-  const sections = order.map(rn => {
+  const cards = order.map(rn => {
     const zm = regionMap.get(rn);
-    const zoos = [...zm.entries()].sort((a, b) => b[1].babies.length - a[1].babies.length);
-    const regionTotal = zoos.reduce((t, [, x]) => t + x.babies.length, 0);
-    const regionSp = new Set();
-    zoos.forEach(([, x]) => x.babies.forEach(b => b.species && regionSp.add(b.species)));
-    const zooBlocks = zoos.map(([zname, x]) => {
-      const slug = zooSlug(zname);
-      const head = slug
-        ? `<a href="/zoos/${esc(slug)}/" style="font-weight:700;color:#0a7a5c;text-decoration:none;">${esc(zname)}</a>`
-        : `<span style="font-weight:700;">${esc(zname)}</span>`;
-      const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(b.name || '赤ちゃん')}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>`).join('');
-      return `<div style="margin:0 0 1rem;">
-        <div>${head} <span style="color:#888;font-size:.85rem;">${esc(x.pref)}・${x.babies.length}頭</span></div>
-        <div style="margin-top:.3rem;">${babyLinks}</div>
-      </div>`;
-    }).join('');
-    return `<section id="area-${esc(rn)}" style="margin:2rem 0;">
-      <h2 style="font-size:1.25rem;margin:0 0 .9rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">${esc(rn)}で会える赤ちゃん <span style="font-size:.82rem;color:#888;font-weight:normal;">${zoos.length}園・${regionTotal}頭・${regionSp.size}種</span></h2>
-      ${zooBlocks}
-    </section>`;
+    const total = [...zm.values()].reduce((t, x) => t + x.babies.length, 0);
+    const sp = new Set(); zm.forEach(x => x.babies.forEach(b => b.species && sp.add(b.species)));
+    return `<a href="/area/${encodeURI(rn)}/" style="display:block;padding:1rem 1.2rem;background:#fff;border:1px solid #d6efe4;border-radius:14px;text-decoration:none;color:inherit;">
+      <div style="font-size:1.15rem;font-weight:800;color:#0a7a5c;">${esc(rn)}で会える赤ちゃん</div>
+      <div style="margin-top:.3rem;color:#666;font-size:.9rem;">${zm.size}園・${total}頭・${sp.size}種 ›</div>
+    </a>`;
   }).join('');
-
   return `<!doctype html>
 <html lang="ja">
 ${htmlHead({ title, desc, canonical, jsonLd })}
@@ -1738,13 +1743,17 @@ ${htmlHead({ title, desc, canonical, jsonLd })}
 ${siteHeader()}
 ${siteNav('/zoos/')}
 <main class="container" id="main">
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">エリアから探す</span>
+  </nav>
   <section class="page-hero">
     <h1 class="page-title">地域・エリアから赤ちゃんを探す</h1>
     <p class="page-subtitle">いま全国${totalBabies}頭の赤ちゃんに会えます</p>
   </section>
-  <p style="line-height:1.7;margin:1rem 0;">お住まいの地域や旅行先で、いま動物園・水族館に会いに行ける赤ちゃんをエリア別にまとめました。気になる地域から、会える赤ちゃんと動物園を探してみましょう。</p>
-  <nav aria-label="エリア一覧" style="margin:1rem 0;display:flex;flex-wrap:wrap;">${navHtml}</nav>
-  ${sections}
+  <p style="line-height:1.7;margin:1rem 0;">お住まいの地域や旅行先で、いま動物園・水族館に会いに行ける赤ちゃんをエリア別にまとめました。気になる地域を選んで、会える赤ちゃんと動物園を探してみましょう。</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.8rem;margin:1.2rem 0;">${cards}</div>
   ${genericAsoviewCta('お近くの動物園・水族館の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/species/">動物の種類から探す →</a></p>
 </main>
@@ -1754,6 +1763,78 @@ ${siteFooter()}
 </html>`;
 }
 
+// /area/{地域}/ 個別ページ（PROP-20260608-03 ③）
+function areaRegionHtml(rn, zm, totalBabies, slugMap, order) {
+  const regionTotal = [...zm.values()].reduce((t, x) => t + x.babies.length, 0);
+  const regionSp = new Set(); zm.forEach(x => x.babies.forEach(b => b.species && regionSp.add(b.species)));
+  const prefSet = new Set([...zm.values()].map(x => x.pref).filter(Boolean));
+  const canonical = `${SITE_BASE}/area/${encodeURI(rn)}/`;
+  const title = `${rn}の動物園で会える赤ちゃん｜会える動物園とベビーまとめ | どうベビ`;
+  const desc = `${rn}の動物園・水族館でいま会える赤ちゃんを${zm.size}園・${regionTotal}頭まとめて紹介。${[...regionSp].slice(0, 4).join('・')}など。お出かけ先選びの参考にどうぞ。`.slice(0, 160);
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'CollectionPage',
+    name: `${rn}で会える動物園の赤ちゃん`, description: desc, url: canonical, inLanguage: 'ja',
+    isPartOf: { '@type': 'WebSite', name: 'どうベビ', url: SITE_BASE },
+  });
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: 'エリアから探す', item: `${SITE_BASE}/area/` },
+      { '@type': 'ListItem', position: 3, name: rn, item: canonical },
+    ],
+  });
+  const faqItems = [
+    { q: `${rn}で今どんな赤ちゃんに会えますか？`, a: `このページに${rn}の動物園・水族館で会える赤ちゃんを園ごとにまとめています。気になる動物園のページから、公開状況や見どころを確認できます。` },
+    { q: '予約やチケットは必要ですか？', a: '多くの動物園は当日入園できますが、前売り券を用意しておくと当日スムーズです。混雑期は入場制限がある園もあるため、公式サイトで最新情報を確認してからのお出かけが安心です。' },
+    { q: '赤ちゃんは必ず見られますか？', a: '赤ちゃんは体調や月齢により非公開・公開前のことがあります。各動物園ページや公式サイトで公開状況を確認してからのお出かけをおすすめします。' },
+  ];
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
+  });
+  const visibleFaq = `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">❓ ${esc(rn)}のお出かけ前によくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
+  const otherRegions = (order || []).filter(x => x !== rn).map(x => `<a href="/area/${encodeURI(x)}/" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#f0f7f4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">${esc(x)}</a>`).join('');
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<script type="application/ld+json">${faqLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/zoos/')}
+<main class="container" id="main">
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/area/">エリアから探す</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">${esc(rn)}</span>
+  </nav>
+  <section class="page-hero">
+    <h1 class="page-title">${esc(rn)}で会える動物園の赤ちゃん</h1>
+    <p class="page-subtitle">${zm.size}園・${regionTotal}頭・${regionSp.size}種に会えます</p>
+  </section>
+  <p style="line-height:1.7;margin:1rem 0;">${esc(rn)}（${[...prefSet].slice(0, 8).map(esc).join('・')}）の動物園・水族館で、いま会いに行ける赤ちゃんをまとめました。気になる動物園を見つけて、会いに行く参考にどうぞ。</p>
+  <section style="margin:1.5rem 0;">
+    ${areaZooBlocks(zm, slugMap)}
+  </section>
+  ${visibleFaq}
+  ${genericAsoviewCta(`${esc(rn)}の動物園・水族館の電子チケット。当日窓口と同じ料金で、並ばず入園。`)}
+  ${otherRegions ? `<section style="margin:1.5rem 0;"><h2 style="font-size:1.1rem;margin:0 0 .6rem;">ほかの地域から探す</h2><nav aria-label="他エリア" style="display:flex;flex-wrap:wrap;">${otherRegions}</nav></section>` : ''}
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/species/">動物の種類から探す →</a></p>
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
 
 function speciesIndexHtml(babies) {
   const grouped = new Map();
@@ -2244,7 +2325,11 @@ function buildSitemap(babies, newsItems, slugMap) {
     lastmod:    n.published_at ? n.published_at.slice(0, 10) : today,
   }));
 
-  const allUrls = [...staticUrls, ...zooUrls, ...speciesUrls, ...babyUrls]; // news個別はnoindexのためサイトマップ除外
+  const areaUrls = areaRegionData(babies).order.map(rn => ({
+    loc: `${SITE_BASE}/area/${rn}/`, priority: '0.8', changefreq: 'weekly', lastmod: today,
+  }));
+
+  const allUrls = [...staticUrls, ...zooUrls, ...speciesUrls, ...areaUrls, ...babyUrls]; // news個別はnoindexのためサイトマップ除外
   const entries = allUrls.map(u => `  <url>
     <loc>${encodeURI(u.loc)}</loc>
     <lastmod>${u.lastmod}</lastmod>
@@ -2868,7 +2953,11 @@ async function main() {
 
   // ── 地域（エリア）別ハブ ──
   console.log('\n🗾 エリア別ハブ生成中...');
-  writeHtml(path.join(WEB_DIR, 'area', 'index.html'), areaIndexHtml(babies, slugMap));
+  const __areaData = areaRegionData(babies);
+  writeHtml(path.join(WEB_DIR, 'area', 'index.html'), areaIndexHtml(babies, slugMap, __areaData));
+  for (const __rn of __areaData.order) {
+    writeHtml(path.join(WEB_DIR, 'area', __rn, 'index.html'), areaRegionHtml(__rn, __areaData.regionMap.get(__rn), babies.length, slugMap, __areaData.order));
+  }
   console.log('   ✅ /area/ 出力');
 
   // ── 春の特集ページ ──
