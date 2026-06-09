@@ -2071,7 +2071,9 @@ body.theme{ background: var(--bg); }
   width: auto; flex-shrink: initial; box-shadow: none; border-radius: 0;
   display: block; flex: 1;
 }
-.baby-card--v2 .dbb-bc__img{ height: auto; aspect-ratio: 5 / 4; }
+.baby-card--v2 .dbb-bc__img{ height: auto; aspect-ratio: 5 / 4; background: #EDE9E1; }
+/* img を絶対配置でボックス全面に敷く（aspect-ratioコンテナ内では height:100% が解決せず、低速/外部画像が上部だけ表示され余白が出るのを防止）PROP-20260609-04 */
+.baby-card--v2 .dbb-bc__img img{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .baby-card--v2 .dbb-bc__name{ font-size: 15px; }
 .baby-card--v2 .dbb-bc__species,
 .baby-card--v2 .dbb-bc__zoo,
