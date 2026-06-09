@@ -31,9 +31,10 @@ function fmtBirthdayYMD(iso){
 
 /* 公開状況バッジ（公開中／近日公開）。display_status 不在時は非表示。 PROP-20260609-04 */
 function statusBadgeHTML(status){
-  if (status === 'pre')    return '<span class="dbb-badge dbb-badge--pre"><span class="dbb-badge__dot"></span>近日公開</span>';
-  if (status === 'public') return '<span class="dbb-badge dbb-badge--public"><span class="dbb-badge__dot"></span>公開中</span>';
-  return '';
+  // SSG(displayStatusBadge)と同じ既定：'pre' 以外（null含む）は「公開中」
+  return status === 'pre'
+    ? '<span class="dbb-badge dbb-badge--pre"><span class="dbb-badge__dot"></span>近日公開</span>'
+    : '<span class="dbb-badge dbb-badge--public"><span class="dbb-badge__dot"></span>公開中</span>';
 }
 
 /* display_status を babies から取得し id でマージ（babies_public に列が無くてもバッジ表示可）PROP-20260609-04 */
