@@ -893,36 +893,36 @@ ${siteFooter()}
 // 公開状況バッジ（一般公開中／一般公開前）
 function displayStatusBadge(status) {
   return status === 'pre'
-    ? '<span class="pill" style="background:#fff4d6;color:#8a6d00;">\u{1F7E1} 近日公開</span>'
-    : '<span class="pill" style="background:#e3f7ee;color:#0a7a5c;">\u{1F7E2} 公開中</span>';
+    ? '<span class="dbb-badge dbb-badge--pre"><span class="dbb-badge__dot"></span>近日公開</span>'
+    : '<span class="dbb-badge dbb-badge--public"><span class="dbb-badge__dot"></span>公開中</span>';
 }
 
 function zooBabyCardHtml(b, slugMap = null) {
   const name     = displayBabyName(b);
-  const species  = b.species || '';
-  // 名前の中に既に種別が含まれている場合（旧データの '赤ちゃん（X）'）は種別を重複表示しない
-  const showSpecies = species && !(b.name || '').includes(species);
-  const bdayFmt  = fmtDate(b.birthday);
-  const age      = ageText(b.birthday);
+  const species  = b.species || '不明';
+  const hasSp    = !!b.species;
+  const zoo      = b.zoo_name || '園情報なし';
+  const age      = calcAgeYears(b.birthday);
+  const date     = fmtBirthdayYMD(b.birthday);
   const slug     = slugMap?.get(b.id) || b.id;
   const href     = `/babies/${slug}/`;
   const thumb    = b.thumbnail_url
-    ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}"></div>`
-    : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
+    ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
+    : '';
+  const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
 
-  return `<div class="baby-card">
-    <a href="${href}" class="baby-card__link">
-      ${thumb}
-      <div class="pad">
-        <div class="title">${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}</div>
-        <div class="meta">
-          <span class="pill">🎂 ${esc(bdayFmt) || '—'}</span>
-          <span class="pill pill--age-${ageSuffix(b.birthday)}">${esc(age)}</span>
-          ${displayStatusBadge(b.display_status)}
-        </div>
+  return `<div class="baby-card baby-card--v2">
+    <a class="dbb-bc" role="listitem" href="${href}" aria-label="${esc(name)}（${esc(species)}、${esc(zoo)}）の詳細">
+      <div class="${thumbCls}">${thumb}${age != null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
+      <div class="dbb-bc__body">
+        <div class="dbb-bc__name">${esc(name)}</div>
+        <div class="dbb-bc__species">${esc(species)}</div>
+        <div class="dbb-bc__zoo">📍 ${esc(zoo)}</div>
+        <div class="dbb-bc__bday">🎂 ${esc(date)}</div>
+        <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}</div>
       </div>
-    </a>${showSpecies ? `
-    <a class="baby-card__species" href="/species/${esc(species)}/" style="display:block;padding:0 .75rem .6rem;font-size:.8rem;color:#0a7a5c;text-decoration:none;">\u{1F43E} ${esc(species)}の仲間をもっと見る →</a>` : ''}
+    </a>${hasSp ? `
+    <a class="baby-card__species" href="/species/${esc(species)}/" style="display:block;padding:.1rem .9rem .7rem;font-size:.8rem;color:#0a7a5c;text-decoration:none;">\u{1F43E} ${esc(species)}の仲間をもっと見る →</a>` : ''}
   </div>`;
 }
 
@@ -1329,6 +1329,7 @@ function babiesIndexHtml(babies, slugMap = null) {
             <div class="dbb-bc__species">${esc(species)}</div>
             <div class="dbb-bc__zoo">📍 ${esc(zoo)}</div>
             <div class="dbb-bc__bday">🎂 ${esc(date)}</div>
+            <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}</div>
           </div>
         </a>
       </div>`;
@@ -1730,10 +1731,10 @@ function areaZooBlocks(zm, slugMap) {
     const head = slug
       ? `<a href="/zoos/${esc(slug)}/" style="font-weight:700;color:#0a7a5c;text-decoration:none;">${esc(zname)}</a>`
       : `<span style="font-weight:700;">${esc(zname)}</span>`;
-    const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(displayBabyName(b))}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>${areaMiniStatus(b)}`).join('');
-    return `<div style="margin:0 0 1rem;">
-      <div>${head} <span style="color:#888;font-size:.85rem;">${esc(x.pref)}・${x.babies.length}頭</span></div>
-      <div style="margin-top:.3rem;">${babyLinks}</div>
+    const cards = x.babies.map(b => zooBabyCardHtml(b, slugMap)).join('');
+    return `<div style="margin:0 0 1.4rem;">
+      <div style="margin-bottom:.5rem;">${head} <span style="color:#888;font-size:.85rem;">${esc(x.pref)}・${x.babies.length}頭</span></div>
+      <div class="baby-grid">${cards}</div>
     </div>`;
   }).join('');
 }
@@ -2557,6 +2558,7 @@ function heroBirthdayHtml(babies, slugMap) {
     <div class="dbb-bc__species">${sp}</div>
     <div class="dbb-bc__zoo">📍 ${zoo}</div>
     <div class="dbb-bc__bday">🎂 ${date}</div>
+    <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}</div>
   </div>
 </a>`;
   }).join('\n');

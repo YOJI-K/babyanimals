@@ -154,10 +154,10 @@ const ZOO_AFFILIATE_MAP = {
       console.warn('[babies_public] failed, try embed', e1);
     }
     try{
-      const data = await fetchJSON('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo:zoos(name)&order=birthday.desc.nullslast&limit=500');
+      const data = await fetchJSON('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo_id,display_status,zoo:zoos(name)&order=birthday.desc.nullslast&limit=500');
       BABIES = (data||[]).map(x => ({
         id:x.id, name:x.name, species:x.species, birthday:x.birthday,
-        thumbnail_url:x.thumbnail_url, zoo_id:x.zoo_id, zoo_name:x.zoo?.name || ''
+        thumbnail_url:x.thumbnail_url, zoo_id:x.zoo_id, zoo_name:x.zoo?.name || '', display_status:x.display_status
       }));
       return;
     }catch(e2){
@@ -165,6 +165,14 @@ const ZOO_AFFILIATE_MAP = {
     }
     const data = await fetchJSON('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo_id&order=birthday.desc.nullslast&limit=500');
     BABIES = (data||[]).map(x => ({ ...x, zoo_name:'' }));
+  }
+
+  async function enrichDisplayStatus(){
+    try{
+      const rows = await fetchJSON('/rest/v1/babies?select=id,display_status&limit=2000');
+      const m = new Map((rows||[]).map(r => [r.id, r.display_status]));
+      BABIES.forEach(b => { if (b && b.display_status == null) b.display_status = m.get(b.id); });
+    }catch(e){ /* graceful: バッジ非表示 */ }
   }
 
   async function loadSlugMap(){
@@ -396,6 +404,7 @@ const ZOO_AFFILIATE_MAP = {
 
       await Promise.all([loadSlugMap(), loadZoos()]);
       await loadBabies();
+      await enrichDisplayStatus();
 
       PAGE = 1;
       render();

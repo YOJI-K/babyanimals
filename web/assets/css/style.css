@@ -2077,6 +2077,20 @@ body.theme{ background: var(--bg); }
 .baby-card--v2 .dbb-bc__zoo,
 .baby-card--v2 .dbb-bc__bday{ font-size: 12px; }
 .baby-card--v2 .baby-card__foot{ margin-top: auto; }
+
+/* 公開状況バッジ（公開中／近日公開）PROP-20260609-04 */
+.dbb-bc__status{ margin-top: 6px; }
+.dbb-badge{
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  padding: 3px 9px; border-radius: 999px;
+}
+.dbb-badge__dot{ width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.dbb-badge--public{ background: #e3f7ee; color: #0a7a5c; }
+.dbb-badge--public .dbb-badge__dot{ background: #1fb574; }
+.dbb-badge--pre{ background: #fff4d6; color: #8a6d00; }
+.dbb-badge--pre .dbb-badge__dot{ background: #e0a400; }
+.baby-card--v2 .baby-card__species{ margin-top: auto; }
 .baby-card__foot{ padding: 0 11px 11px; }
 .baby-card__ticket{
   display: flex; align-items: center; justify-content: center; gap: 5px;

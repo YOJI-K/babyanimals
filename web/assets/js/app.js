@@ -29,6 +29,29 @@ function fmtBirthdayYMD(iso){
   return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
 }
 
+/* 公開状況バッジ（公開中／近日公開）。display_status 不在時は非表示。 PROP-20260609-04 */
+function statusBadgeHTML(status){
+  if (status === 'pre')    return '<span class="dbb-badge dbb-badge--pre"><span class="dbb-badge__dot"></span>近日公開</span>';
+  if (status === 'public') return '<span class="dbb-badge dbb-badge--public"><span class="dbb-badge__dot"></span>公開中</span>';
+  return '';
+}
+
+/* display_status を babies から取得し id でマージ（babies_public に列が無くてもバッジ表示可）PROP-20260609-04 */
+let _statusMapPromise = null;
+function loadStatusMap(){
+  if (!_statusMapPromise){
+    _statusMapPromise = fetchJSON('/rest/v1/babies?select=id,display_status&limit=2000')
+      .then(rows => { const m = new Map(); (rows||[]).forEach(r => m.set(r.id, r.display_status)); return m; })
+      .catch(() => new Map());
+  }
+  return _statusMapPromise;
+}
+async function enrichDisplayStatus(list){
+  if (!Array.isArray(list) || !list.length) return list;
+  try { const m = await loadStatusMap(); list.forEach(b => { if (b && b.display_status == null) b.display_status = m.get(b.id); }); } catch(e){}
+  return list;
+}
+
 /* ===== 共通の赤ちゃんカード（トップ／一覧で共有） PROP-20260609-03 =====
    opts.age … 年齢（歳・数値 or null）。null のときは年齢バッジ非表示。 */
 function renderBabyCard(x, opts){
@@ -42,6 +65,7 @@ function renderBabyCard(x, opts){
   const href = babyHref(x.id);
   const age  = (opts.age != null) ? opts.age : null;
   const date = fmtBirthdayYMD(x.birthday);
+  const badge = statusBadgeHTML(x.display_status);
   const hasImg = !!x.thumbnail_url;
   const thumbCls = hasImg ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
   const thumb = hasImg
@@ -55,6 +79,7 @@ function renderBabyCard(x, opts){
           <div class="dbb-bc__species">${_esc(sp)}</div>
           <div class="dbb-bc__zoo">📍 ${_esc(zoo)}</div>
           <div class="dbb-bc__bday">🎂 ${_esc(date)}</div>
+          ${badge ? `<div class="dbb-bc__status">${badge}</div>` : ''}
         </div>
       </a>`;
 }
@@ -626,7 +651,7 @@ async function fetchJSON(path){
     // 2) babies + embed
     try {
       const qs = new URLSearchParams({
-        select:'id,name,species,birthday,zoo_id,thumbnail_url,zoo:zoos(name)',
+        select:'id,name,species,birthday,zoo_id,thumbnail_url,display_status,zoo:zoos(name)',
         order:'birthday.asc.nullsfirst,id.asc', limit:'2000'
       });
       qs.append('birthday', `gte.${since}`);
@@ -681,6 +706,7 @@ async function fetchJSON(path){
       }
 
       const all = await loadRangeSince(d);
+      await enrichDisplayStatus(all);
       const mm = d.getMonth(), yyyy = d.getFullYear();
 
       const filtered = (all||[]).filter(b=>{
