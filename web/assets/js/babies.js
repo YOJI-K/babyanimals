@@ -19,6 +19,14 @@ const ZOO_AFFILIATE_MAP = {
 };
 
 (() => {
+  /* ===== 名前未確定の表示名（SSG と統一） ===== */
+  const PROVISIONAL_BABY_NAME = 'なまえ待ちベビー';
+  function displayBabyName(b){
+    const raw = (b && b.name != null) ? String(b.name).trim() : '';
+    if (!raw) return PROVISIONAL_BABY_NAME;
+    if (raw === '（名前未設定）' || raw === '（名前未判明）' || (b && b.name_status === 'provisional')) return PROVISIONAL_BABY_NAME;
+    return raw;
+  }
   // ====== 小ユーティリティ ======
   const $ = (id) => document.getElementById(id);
   const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
@@ -177,11 +185,11 @@ const ZOO_AFFILIATE_MAP = {
   }
 
   function cardHTML(x){
-    const title = x.name || '（名前未判明）';
+    const title = displayBabyName(x);
     const zoo   = x.zoo_name || '';
     // 名前の中に既に種別が含まれている場合（例: 旧データの '赤ちゃん（マンドリル）'）は種別を重複表示しない
     const showSpecies = x.species && !(x.name || '').includes(x.species);
-    const alt   = [x.name || '名前未判明', x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
+    const alt   = [displayBabyName(x), x.species].filter(Boolean).join('（') + (x.species ? '）' : '');
     const soon  = x.birthday ? nextBirthdayDays(x.birthday) : Infinity;
     const isMonth = x.birthday ? (new Date(x.birthday).getMonth() === new Date().getMonth()) : false;
     const href  = `/babies/${ID_TO_SLUG[x.id] || x.id}/`;
@@ -338,7 +346,7 @@ const ZOO_AFFILIATE_MAP = {
       return;
     }
 
-    const name      = b.name || '赤ちゃん';
+    const name      = displayBabyName(b);
     const species   = b.species || '動物';
     const zoo       = b.zoo_name || '';
     const bdayFmt   = Site.fmtDate(b.birthday);

@@ -12,6 +12,15 @@ fetch('/assets/data/baby-slugs.json')
   .catch(() => {});
 const babyHref = (id) => `/babies/${babySlugMap[id] || id}/`;
 
+/* ===== 名前未確定の表示名（全 IIFE で共有・SSG と統一） ===== */
+const PROVISIONAL_BABY_NAME = 'なまえ待ちベビー';
+function displayBabyName(b){
+  const raw = (b && b.name != null) ? String(b.name).trim() : '';
+  if (!raw) return PROVISIONAL_BABY_NAME;
+  if (raw === '（名前未設定）' || raw === '（名前未判明）' || (b && b.name_status === 'provisional')) return PROVISIONAL_BABY_NAME;
+  return raw;
+}
+
 (() => {
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
@@ -209,7 +218,7 @@ function pickEmoji(baby){
         <div class="cal-event__bar" style="background:var(--cal-event-birth)"></div>
         <div>
           <div class="cal-event__type" style="color:var(--ac)">誕生日 · ${b.age}歳</div>
-          <div class="cal-event__title">${esc(b.name)}（${esc(b.species)}）${b.age}歳のお誕生日</div>
+          <div class="cal-event__title">${esc(displayBabyName(b))}（${esc(b.species)}）${b.age}歳のお誕生日</div>
           ${zooName ? `<div class="cal-event__zoo">📍 ${esc(zooName)}</div>` : ''}
         </div>
       `;
@@ -605,7 +614,7 @@ async function fetchJSON(path){
   function cardHTML(x, ref){
     const a = ageOn(x.birthday, ref);
     const emoji = pickEmoji(x);
-    const name = x.name || '（名前未設定）';
+    const name = displayBabyName(x);
     const sp   = x.species || '不明';
     const date = x.birthday ? fmtMD(x.birthday) : '-';
     const zoo  = x.zoo_name || '園情報なし';
@@ -776,7 +785,7 @@ async function fetchJSON(path){
     };
 
     for (const b of rows) {
-      const name = b.name || '（名前未設定）';
+      const name = displayBabyName(b);
       const zoo  = b.zoo_name || '';
       const href = babyHref(b.id);
       const emoji = pickE(b);
