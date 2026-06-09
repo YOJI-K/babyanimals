@@ -46,6 +46,14 @@ function fmtDate(iso) {
   return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月${String(d.getDate()).padStart(2, '0')}日`;
 }
 
+/** 誕生日（西暦あり・カード表示用） PROP-20260609-03  例: 2026/6/1 */
+function fmtBirthdayYMD(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '-';
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 /** 年齢（満年齢） */
 function calcAgeYears(birthday) {
   if (!birthday) return null;
@@ -1303,23 +1311,24 @@ function babiesIndexHtml(babies, slugMap = null) {
   });
 
   const cards = preview.map(b => {
-    const name       = displayBabyName(b);
-    const species    = b.species || '';
-    const zoo        = b.zoo_name || '';
-    const showSpecies = species && !name.includes(species);
+    const name    = displayBabyName(b);
+    const species = b.species || '不明';
+    const zoo     = b.zoo_name || '園情報なし';
+    const a       = calcAgeYears(b.birthday);
+    const date    = fmtBirthdayYMD(b.birthday);
+    const bSlug   = slugMap?.get(b.id) || b.id;
     const thumb = b.thumbnail_url
-      ? `<div class="thumb"><img src="${esc(b.thumbnail_url)}" loading="lazy" decoding="async" alt="${esc(name)}"></div>`
-      : `<div class="thumb is-placeholder" role="img" aria-label="画像なし"></div>`;
-    const bSlug = slugMap?.get(b.id) || b.id;
-    return `<div class="baby-card">
-        <a href="/babies/${esc(bSlug)}/" class="baby-card__link" aria-label="${esc(name)}（${esc(species || '種別不明')}、${esc(zoo || '園情報なし')}）の詳細">
-          ${thumb}
-          <div class="pad">
-            <div class="title">${esc(name)}${showSpecies ? `（${esc(species)}）` : ''}</div>
-            <div class="meta">
-              <span class="pill">${esc(zoo)}</span>
-              <span class="pill">🎂 ${fmtDate(b.birthday) || '—'}</span>
-            </div>
+      ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
+      : '';
+    const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
+    return `<div class="baby-card baby-card--v2">
+        <a class="dbb-bc" role="listitem" href="/babies/${esc(bSlug)}/" aria-label="${esc(name)}（${esc(species)}、${esc(zoo)}）の詳細">
+          <div class="${thumbCls}">${thumb}${a != null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
+          <div class="dbb-bc__body">
+            <div class="dbb-bc__name">${esc(name)}</div>
+            <div class="dbb-bc__species">${esc(species)}</div>
+            <div class="dbb-bc__zoo">📍 ${esc(zoo)}</div>
+            <div class="dbb-bc__bday">🎂 ${esc(date)}</div>
           </div>
         </a>
       </div>`;
@@ -2536,7 +2545,7 @@ function heroBirthdayHtml(babies, slugMap) {
     const slug = slugMap?.get(b.id) || b.id;
     const href = `/babies/${slug}/`;
     const a    = ageOn(b.birthday, ref);
-    const date = fmtMD(b.birthday);
+    const date = fmtBirthdayYMD(b.birthday);
     const thumb = b.thumbnail_url
       ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async">`
       : '';

@@ -21,6 +21,44 @@ function displayBabyName(b){
   return raw;
 }
 
+/* ===== 誕生日（西暦あり・全カード共通） PROP-20260609-03 ===== */
+function fmtBirthdayYMD(iso){
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '-';
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+}
+
+/* ===== 共通の赤ちゃんカード（トップ／一覧で共有） PROP-20260609-03 =====
+   opts.age … 年齢（歳・数値 or null）。null のときは年齢バッジ非表示。 */
+function renderBabyCard(x, opts){
+  opts = opts || {};
+  const _esc = (v)=> String(v ?? '')
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#39;');
+  const name = displayBabyName(x);
+  const sp   = x.species || '不明';
+  const zoo  = x.zoo_name || '園情報なし';
+  const href = babyHref(x.id);
+  const age  = (opts.age != null) ? opts.age : null;
+  const date = fmtBirthdayYMD(x.birthday);
+  const hasImg = !!x.thumbnail_url;
+  const thumbCls = hasImg ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
+  const thumb = hasImg
+    ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
+    : '';
+  return `
+      <a class="dbb-bc" role="listitem" href="${_esc(href)}" aria-label="${_esc(name)}（${_esc(sp)}）">
+        <div class="${thumbCls}">${thumb}${age!=null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
+        <div class="dbb-bc__body">
+          <div class="dbb-bc__name">${_esc(name)}</div>
+          <div class="dbb-bc__species">${_esc(sp)}</div>
+          <div class="dbb-bc__zoo">📍 ${_esc(zoo)}</div>
+          <div class="dbb-bc__bday">🎂 ${_esc(date)}</div>
+        </div>
+      </a>`;
+}
+
 (() => {
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
@@ -612,27 +650,7 @@ async function fetchJSON(path){
   const heroLimit = () => Infinity; // 対象月の全頭を表示（SP/PC共通）
 
   function cardHTML(x, ref){
-    const a = ageOn(x.birthday, ref);
-    const emoji = pickEmoji(x);
-    const name = displayBabyName(x);
-    const sp   = x.species || '不明';
-    const date = x.birthday ? fmtMD(x.birthday) : '-';
-    const zoo  = x.zoo_name || '園情報なし';
-    const href = babyHref(x.id);
-    const thumb = x.thumbnail_url
-      ? `<img src="${x.thumbnail_url}" alt="${name}" loading="lazy" decoding="async">`
-      : '';
-    const thumbCls = x.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
-    return `
-      <a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${sp}）">
-        <div class="${thumbCls}">${thumb}${a!=null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
-        <div class="dbb-bc__body">
-          <div class="dbb-bc__name">${name}</div>
-          <div class="dbb-bc__species">${sp}</div>
-          <div class="dbb-bc__zoo">📍 ${zoo}</div>
-          <div class="dbb-bc__bday">🎂 ${date}</div>
-        </div>
-      </a>`;
+    return renderBabyCard(x, { age: ageOn(x.birthday, ref) });
   }
   function bindHeroImageFallback(scope){
     (scope || document).querySelectorAll('.dbb-bc__img img').forEach(img=>{

@@ -2064,6 +2064,19 @@ body.theme{ background: var(--bg); }
   padding: 2px 7px; border-radius: 7px; font-weight: 700;
 }
 .baby-card .meta .pill--muted{ color: #ccc; }
+
+/* 赤ちゃん一覧：トップと共通の dbb-bc カードを流用（PROP-20260609-03） */
+.baby-card--v2{ padding: 0; }
+.baby-card--v2 .dbb-bc{
+  width: auto; flex-shrink: initial; box-shadow: none; border-radius: 0;
+  display: block; flex: 1;
+}
+.baby-card--v2 .dbb-bc__img{ height: auto; aspect-ratio: 5 / 4; }
+.baby-card--v2 .dbb-bc__name{ font-size: 15px; }
+.baby-card--v2 .dbb-bc__species,
+.baby-card--v2 .dbb-bc__zoo,
+.baby-card--v2 .dbb-bc__bday{ font-size: 12px; }
+.baby-card--v2 .baby-card__foot{ margin-top: auto; }
 .baby-card__foot{ padding: 0 11px 11px; }
 .baby-card__ticket{
   display: flex; align-items: center; justify-content: center; gap: 5px;
