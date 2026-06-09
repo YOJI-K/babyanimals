@@ -1721,12 +1721,58 @@ function areaZooBlocks(zm, slugMap) {
     const head = slug
       ? `<a href="/zoos/${esc(slug)}/" style="font-weight:700;color:#0a7a5c;text-decoration:none;">${esc(zname)}</a>`
       : `<span style="font-weight:700;">${esc(zname)}</span>`;
-    const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(displayBabyName(b))}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>`).join('');
+    const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(displayBabyName(b))}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>${areaMiniStatus(b)}`).join('');
     return `<div style="margin:0 0 1rem;">
       <div>${head} <span style="color:#888;font-size:.85rem;">${esc(x.pref)}・${x.babies.length}頭</span></div>
       <div style="margin-top:.3rem;">${babyLinks}</div>
     </div>`;
   }).join('');
+}
+
+// ─── PROP-20260609-01 おでかけハブ：公開ステータス/名前募集 ─────────────
+// 注: public_date / naming_url / naming_deadline はDB追加後、babies系のselectにも
+//     列を追記すると自動で反映される（未populate時は undefined で安全にフォールバック）。
+function areaMiniStatus(b) {
+  if (b && b.name_status === 'provisional') return ' <span class="pill" style="background:#efeafe;color:#5a45c8;font-size:.68rem;padding:.08rem .42rem;">✏️ 名前募集中</span>';
+  if (b && b.display_status === 'pre') return ' <span class="pill" style="background:#fff4d6;color:#8a6d00;font-size:.68rem;padding:.08rem .42rem;">\u{1F7E1} 近日公開</span>';
+  return '';
+}
+function areaBabyHref(b, slugMap) { return `/babies/${esc((slugMap && slugMap.get(b.id)) || b.id)}/`; }
+function fmtMonthDay(d) { const m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${Number(m[2])}/${Number(m[3])}` : ''; }
+// もうすぐ公開＋名前募集中の地域セクション（該当ゼロなら非表示のアダプティブ表示）
+function areaStatusSections(zm, slugMap) {
+  const all = [];
+  zm.forEach(x => x.babies.forEach(b => all.push(b)));
+  const pre = all.filter(b => b.display_status === 'pre')
+    .sort((a, b) => String(a.public_date || a.birthday || '9999').localeCompare(String(b.public_date || b.birthday || '9999')));
+  const naming = all.filter(b => b.name_status === 'provisional')
+    .sort((a, b) => String(a.naming_deadline || '9999').localeCompare(String(b.naming_deadline || '9999')));
+  let html = '';
+  if (pre.length) {
+    const items = pre.map(b => {
+      const dateChip = b.public_date ? `<span style="font-weight:700;color:#8a6d00;">${fmtMonthDay(b.public_date)} </span>` : '';
+      return `<li style="margin:.3rem 0;line-height:1.6;">${dateChip}<a href="${areaBabyHref(b, slugMap)}" style="color:#0a7a5c;text-decoration:none;font-weight:700;">${esc(displayBabyName(b))}</a><span style="opacity:.65;">（${esc(b.species || '赤ちゃん')}・${esc(b.zoo_name || '')}）</span></li>`;
+    }).join('');
+    html += `<section style="margin:1.2rem 0;padding:1rem 1.2rem;background:#fffaf0;border:1px solid #ffe6b3;border-radius:14px;">
+      <h2 style="font-size:1.1rem;margin:0 0 .5rem;">\u{1F4C5} もうすぐ会える（近日公開）</h2>
+      <ul style="margin:0;padding-left:1.1rem;">${items}</ul>
+    </section>`;
+  }
+  if (naming.length) {
+    const items = naming.map(b => {
+      const dl = b.naming_deadline ? `<span style="opacity:.65;">（〜${fmtMonthDay(b.naming_deadline)}）</span>` : '';
+      const link = b.naming_url
+        ? `<a href="${esc(b.naming_url)}" rel="nofollow noopener" target="_blank" style="color:#5a45c8;text-decoration:none;font-weight:700;">投票する ↗</a><span style="opacity:.65;">（${esc(displayBabyName(b))}・${esc(b.species || '赤ちゃん')}・${esc(b.zoo_name || '')}）</span>`
+        : `<a href="${areaBabyHref(b, slugMap)}" style="color:#5a45c8;text-decoration:none;font-weight:700;">${esc(displayBabyName(b))}</a><span style="opacity:.65;">（${esc(b.species || '赤ちゃん')}・${esc(b.zoo_name || '')}）</span>`;
+      return `<li style="margin:.3rem 0;line-height:1.6;">${link}${dl}</li>`;
+    }).join('');
+    html += `<section style="margin:1.2rem 0;padding:1rem 1.2rem;background:#faf7ff;border:1px solid #e4dbff;border-radius:14px;">
+      <h2 style="font-size:1.1rem;margin:0 0 .5rem;">✏️ 名前募集中の赤ちゃん</h2>
+      <p style="margin:0 0 .5rem;font-size:.9rem;opacity:.75;">名前がまだ決まっていない赤ちゃんです。公式の名前募集があれば投票で参加できます。</p>
+      <ul style="margin:0;padding-left:1.1rem;">${items}</ul>
+    </section>`;
+  }
+  return html;
 }
 
 // /area/ ハブ：8地域への入口（PROP-20260608-03 ③ エリア別個別ページ化）
@@ -1845,6 +1891,7 @@ ${siteNav('/zoos/')}
     <p class="page-subtitle">${zm.size}園・${regionTotal}頭・${regionSp.size}種に会えます</p>
   </section>
   <p style="line-height:1.7;margin:1rem 0;">${esc(rn)}（${[...prefSet].slice(0, 8).map(esc).join('・')}）の動物園・水族館で、いま会いに行ける赤ちゃんをまとめました。気になる動物園を見つけて、会いに行く参考にどうぞ。</p>
+  ${areaStatusSections(zm, slugMap)}
   <section style="margin:1.5rem 0;">
     ${areaZooBlocks(zm, slugMap)}
   </section>
