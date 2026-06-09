@@ -34,7 +34,7 @@ const MAX_EVENTS_PER_SOURCE = 30;
 const MAX_UPSERT_CHUNK = 500;
 
 // resolve のサブリクエスト抑制用
-const RESOLVE_BATCH_LIMIT = 10;  // 1回に処理する未処理イベント数（100→10に変更 2026-05-25 AI CEO: signal_name フィルタ追加でリクエスト数増、Cloudflare Workers Free の50req/invocation上限対応）
+const RESOLVE_BATCH_LIMIT = 25;  // 1回に処理する未処理イベント数（PROP-20260608-04 フェーズC: 既存照合をメモリ化しサブリクエストを削減したため 10→25）
 const PATCH_CHUNK = 200;          // processed_at 更新の id チャンク
 const LINKS_CHUNK = 500;          // baby_links 一括 POST のチャンク
 
@@ -289,6 +289,8 @@ const SPECIES_MAP = new Map<string, string>([
   ["ゴリラ", "ゴリラ"],
   ["チンパンジー", "チンパンジー"],
   ["オランウータン", "オランウータン"],
+  ["ヤクシマザル", "ヤクシマザル"],
+  ["アカゲザル", "ニホンザル"],
   ["ニホンザル", "ニホンザル"],
   ["マンドリル", "マンドリル"],
   // 草食大型獣
@@ -299,6 +301,10 @@ const SPECIES_MAP = new Map<string, string>([
   ["クロサイ", "サイ"],
   ["サイ", "サイ"],
   ["ゾウ", "ゾウ"],
+  ["ニホンジカ", "シカ"],
+  ["エゾシカ", "シカ"],
+  ["ホンドジカ", "シカ"],
+  ["アクシスジカ", "シカ"],
   // 小型哺乳類
   ["コツメカワウソ", "コツメカワウソ"],
   ["コアラ", "コアラ"],
@@ -876,6 +882,32 @@ function decideConfirmedName(ev: EventForResolve): string | null {
   return cand.slice(0, 100);
 }
 
+// フェーズC: 既存babyの照合をメモリ化（per-event SELECTを廃しサブリクエスト削減）
+type BabyMatchIndex = Map<string, Array<{ id: string; birthday: string }>>;
+async function loadBabyMatchIndex(env: Env): Promise<BabyMatchIndex> {
+  const idx: BabyMatchIndex = new Map();
+  try {
+    const rows = await sbGet(env, `/rest/v1/babies?select=id,zoo_id,species,birthday&birthday=not.is.null&limit=2000`);
+    for (const r of (rows as any[] || [])) {
+      if (!r.zoo_id || !r.species || !r.birthday) continue;
+      const key = `${r.zoo_id}|${r.species}`;
+      if (!idx.has(key)) idx.set(key, []);
+      idx.get(key)!.push({ id: r.id, birthday: r.birthday });
+    }
+  } catch (e) { console.warn('[resolve] loadBabyMatchIndex failed', e); }
+  return idx;
+}
+function findExistingBaby(idx: BabyMatchIndex, zooId: string, species: string, bday: string): string | null {
+  const arr = idx.get(`${zooId}|${species}`);
+  if (!arr) return null;
+  const t = new Date(bday).getTime();
+  for (const x of arr) {
+    const d = Math.abs(new Date(x.birthday).getTime() - t) / 86400000;
+    if (d <= MATCH_DAYS) return x.id;
+  }
+  return null;
+}
+
 function scoreForCreate(ev: EventForResolve): number {
   let score = 0;
   if (ev.source_kind === 'site' || ev.source_kind === 'press') score += 2;
@@ -915,7 +947,7 @@ async function resolveBabyEntitiesJob(env: Env) {
     `/rest/v1/baby_events` +
     `?select=id,url,title,published_at,thumbnail_url,zoo_id,species,source_kind,signal_birth,signal_name,signal_age_days` +
     `&processed_at=is.null` +
-    `&signal_name=not.is.null` +  // 名前未抽出のeventは deferred 専用のため取得対象外（2026-05-25 AI CEO: バッチ滞留解消）
+    `&signal_birth=eq.true` +  // PROP-20260608-04 フェーズB: 名前ではなく誕生確度を主対象に（名前は後追いで confirmed）
     `&order=published_at.desc.nullslast` +
     `&limit=${RESOLVE_BATCH_LIMIT}`
   );
@@ -925,8 +957,9 @@ async function resolveBabyEntitiesJob(env: Env) {
     return;
   }
 
-  // ここで一度だけ zoo インデックスを読み込む（SELECT×2回）
+  // ここで一度だけ zoo インデックス＋既存baby照合インデックスを読み込む
   const zooIndex = await loadZooIndex(env);
+  const babyIndex = await loadBabyMatchIndex(env);
 
   let linked = 0, created = 0, processed = 0;
 
@@ -949,17 +982,7 @@ async function resolveBabyEntitiesJob(env: Env) {
     let targetBabyId: string | null = null;
 
     if (zooIdForEvent && ev.species && bday) {
-      const min = new Date(bday); min.setDate(min.getDate() - MATCH_DAYS);
-      const max = new Date(bday); max.setDate(max.getDate() + MATCH_DAYS);
-      const q =
-        `/rest/v1/babies?select=id` +
-        `&zoo_id=eq.${zooIdForEvent}` +
-        `&species=eq.${encodeURIComponent(ev.species)}` +
-        `&birthday=gte.${min.toISOString().slice(0,10)}` +
-        `&birthday=lte.${max.toISOString().slice(0,10)}` +
-        `&limit=1`;
-      const hit = await sbGet(env, q);
-      if (Array.isArray(hit) && hit.length) targetBabyId = hit[0].id as string;
+      targetBabyId = findExistingBaby(babyIndex, zooIdForEvent, ev.species, bday);
     }
 
     const canCreate = scoreForCreate(ev) >= CREATE_THRESHOLD;
@@ -976,17 +999,18 @@ async function resolveBabyEntitiesJob(env: Env) {
         console.warn('[resolve] zoo_id unresolved, skipping baby creation for:', ev.title?.slice(0, 80));
         continue;
       }
-      // babies 新規作成（個体IDが必要なのでここは単発 POST）
-      const resolvedName = decideConfirmedName(ev);
-      // 名前が取れない場合はスキップ（DB NOT NULL制約のため）
-      // processed_at もセットしない → 次回実行で再度試みる
-      if (!resolvedName) {
+      // フェーズB: 種が不明な誕生イベントは作成しない（Coqu型の誤登録防止）。再試行のため defer。
+      if (!ev.species) {
         processedIds.splice(processedIds.indexOf(ev.id), 1);
-        console.info('[resolve] name unknown, deferring:', ev.title?.slice(0, 60));
+        console.info('[resolve] species unknown, deferring:', ev.title?.slice(0, 60));
         continue;
       }
+      // フェーズB: 誕生で作成。命名は確度ゲートを通った時だけ confirmed。
+      // 名前が取れない誕生イベントは provisional（なまえ待ち）として作成する。
+      const resolvedName = decideConfirmedName(ev);  // null = なまえ待ち
       const row: Record<string, unknown> = {
-        name: resolvedName,
+        name: resolvedName,                          // null 許容（B-DBで NOT NULL 解除済み）
+        name_status: resolvedName ? 'confirmed' : 'provisional',
         species: ev.species,
         birthday: bday,
         thumbnail_url: ev.thumbnail_url,
@@ -1007,12 +1031,17 @@ async function resolveBabyEntitiesJob(env: Env) {
       if (babyRes.ok) {
         const createdRows = await babyRes.json().catch(()=>[]) as any[];
         newId = createdRows?.[0]?.id as string | undefined;
-        if (newId) { linkRows.push({ baby_id: newId, event_id: ev.id }); created++; }
+        if (newId) {
+          linkRows.push({ baby_id: newId, event_id: ev.id }); created++;
+          if (bday) { const k = `${zooIdForEvent}|${ev.species}`; if (!babyIndex.has(k)) babyIndex.set(k, []); babyIndex.get(k)!.push({ id: newId, birthday: bday }); }
+        }
       } else if (babyRes.status === 409) {
-        // 重複キー → 既存babyのIDを検索してリンクだけ追加
-        const existing = await sbGet(env, `/rest/v1/babies?name=eq.${encodeURIComponent(resolvedName)}&zoo_id=eq.${zooIdForEvent}&select=id&limit=1`);
-        newId = Array.isArray(existing) ? existing[0]?.id as string | undefined : undefined;
-        if (newId) { linkRows.push({ baby_id: newId, event_id: ev.id }); linked++; }
+        // 重複キー → 名前があれば既存babyのIDを検索してリンクだけ追加（provisionalのnull名はスキップ）
+        if (resolvedName) {
+          const existing = await sbGet(env, `/rest/v1/babies?name=eq.${encodeURIComponent(resolvedName)}&zoo_id=eq.${zooIdForEvent}&select=id&limit=1`);
+          newId = Array.isArray(existing) ? existing[0]?.id as string | undefined : undefined;
+          if (newId) { linkRows.push({ baby_id: newId, event_id: ev.id }); linked++; }
+        }
       } else {
         const t = await babyRes.text().catch(()=>'');
         throw new Error(`Supabase POST /rest/v1/babies -> ${babyRes.status}: ${t}`);
@@ -1071,10 +1100,10 @@ async function runNameFillJob(env: Env) {
       checked++;
 
       // 2) この baby にリンクされた baby_events の title を取得
-      const links: Array<{ baby_events: { title: string | null; signal_name: string | null } }> = await sbGet(
+      const links: Array<{ baby_events: { title: string | null; signal_name: string | null; source_kind: string | null; species: string | null } }> = await sbGet(
         env,
         `/rest/v1/baby_links` +
-        `?select=baby_events(title,signal_name)` +
+        `?select=baby_events(title,signal_name,source_kind,species)` +
         `&baby_id=eq.${baby.id}` +
         `&limit=20`
       );
@@ -1084,25 +1113,18 @@ async function runNameFillJob(env: Env) {
         continue;
       }
 
-      // 3) 各イベントのタイトルから名前を再抽出
+      // 3) 各イベントから confirmed にできる名前を確度ゲートで決定（PROP-20260608-04 B-4）
+      //    高確度 or 公式/プレス由来のときのみ昇格。baby.species を種として渡す。
       let foundName: string | null = null;
       for (const link of links) {
         const ev = link.baby_events;
         if (!ev) continue;
-
-        // まず signal_name を優先（すでに抽出済みの可能性）
-        if (ev.signal_name && !isUnnamedBaby(ev.signal_name)) {
-          foundName = ev.signal_name.trim().slice(0, 100);
-          break;
-        }
-        // なければタイトルから再抽出
-        if (ev.title) {
-          const extracted = extractBabyName(ev.title);
-          if (extracted && !isUnnamedBaby(extracted)) {
-            foundName = extracted;
-            break;
-          }
-        }
+        const name = decideConfirmedName({
+          id: '', url: '', title: ev.title, published_at: null, thumbnail_url: null,
+          zoo_id: null, species: ev.species || baby.species, source_kind: ev.source_kind,
+          signal_birth: true, signal_name: ev.signal_name, signal_age_days: null,
+        });
+        if (name) { foundName = name; break; }
       }
 
       if (!foundName) {
@@ -1110,8 +1132,8 @@ async function runNameFillJob(env: Env) {
         continue;
       }
 
-      // 4) 名前が取れた → babies.name を UPDATE
-      await sbPatch(env, `/rest/v1/babies?id=eq.${baby.id}`, { name: foundName });
+      // 4) 名前が取れた → babies.name を UPDATE ＋ confirmed 昇格
+      await sbPatch(env, `/rest/v1/babies?id=eq.${baby.id}`, { name: foundName, name_status: 'confirmed' });
       console.log(`NAME_FILL: ${baby.id} (${baby.species || '?'}) → "${foundName}"`);
       filled++;
     }

@@ -85,6 +85,14 @@ function ageSuffix(birthday) {
   return String(Math.min(y ?? 0, 3));
 }
 
+// ─── 表示名（名前未確定は「なまえ待ちベビー」）PROP-20260608-04 フェーズB ──
+const PROVISIONAL_BABY_NAME = 'なまえ待ちベビー';
+function displayBabyName(b) {
+  const n = (b && b.name != null) ? String(b.name).trim() : '';
+  if (!n || (b && b.name_status === 'provisional')) return PROVISIONAL_BABY_NAME;
+  return n;
+}
+
 // ─── slug ユーティリティ ────────────────────────────────────────────
 
 function slugify(str) {
@@ -465,7 +473,7 @@ function genericAsoviewCta(lead = '公式提携の電子チケット。当日窓
 // ─── 赤ちゃん個別ページ ─────────────────────────────────────────────
 
 function babyHtml(b, slug, allBabies, slugMap, babyNews) {
-  const name     = b.name    || '赤ちゃん';
+  const name     = displayBabyName(b);
   const species  = b.species || '動物';
   const zoo      = b.zoo_name || '（動物園不明）';
   const bdayFmt  = fmtDate(b.birthday);
@@ -668,8 +676,8 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   // ② 同じ動物園のほかの赤ちゃん（内部リンクで回遊強化）
   if (sameZoo.length) {
     const items = sameZoo.slice(0, 4);
-    const plain  = items.map(x => `${x.species || '赤ちゃん'}「${x.name}」`).join('、');
-    const linked = items.map(x => `<a href="${faqHref(x)}">${esc(x.species || '赤ちゃん')}「${esc(x.name)}」</a>`).join('、');
+    const plain  = items.map(x => `${x.species || '赤ちゃん'}「${displayBabyName(x)}」`).join('、');
+    const linked = items.map(x => `<a href="${faqHref(x)}">${esc(x.species || '赤ちゃん')}「${esc(displayBabyName(x))}」</a>`).join('、');
     faqItems.push({
       q: `${zoo}にはほかにどんな赤ちゃんがいますか？`,
       a: `${zoo}では${name}のほかに、${plain}などの赤ちゃんも暮らしています。`,
@@ -679,8 +687,8 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   // ③ 同じ種のほかの赤ちゃん（内部リンクで回遊強化）
   if (sameSpecies.length) {
     const items = sameSpecies.slice(0, 4);
-    const plain  = items.map(x => `${x.zoo_name}「${x.name}」`).join('、');
-    const linked = items.map(x => `<a href="${faqHref(x)}">${esc(x.zoo_name)}「${esc(x.name)}」</a>`).join('、');
+    const plain  = items.map(x => `${x.zoo_name}「${displayBabyName(x)}」`).join('、');
+    const linked = items.map(x => `<a href="${faqHref(x)}">${esc(x.zoo_name)}「${esc(displayBabyName(x))}」</a>`).join('、');
     faqItems.push({
       q: `${name}と同じ${species}の赤ちゃんはほかにもいますか？`,
       a: `はい。${plain}など、ほかの動物園でも${species}の赤ちゃんに会えます。`,
@@ -882,7 +890,7 @@ function displayStatusBadge(status) {
 }
 
 function zooBabyCardHtml(b, slugMap = null) {
-  const name     = b.name || '（名前未判明）';
+  const name     = displayBabyName(b);
   const species  = b.species || '';
   // 名前の中に既に種別が含まれている場合（旧データの '赤ちゃん（X）'）は種別を重複表示しない
   const showSpecies = species && !(b.name || '').includes(species);
@@ -1295,7 +1303,7 @@ function babiesIndexHtml(babies, slugMap = null) {
   });
 
   const cards = preview.map(b => {
-    const name       = b.name || '（名前未判明）';
+    const name       = displayBabyName(b);
     const species    = b.species || '';
     const zoo        = b.zoo_name || '';
     const showSpecies = species && !name.includes(species);
@@ -1713,7 +1721,7 @@ function areaZooBlocks(zm, slugMap) {
     const head = slug
       ? `<a href="/zoos/${esc(slug)}/" style="font-weight:700;color:#0a7a5c;text-decoration:none;">${esc(zname)}</a>`
       : `<span style="font-weight:700;">${esc(zname)}</span>`;
-    const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(b.name || '赤ちゃん')}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>`).join('');
+    const babyLinks = x.babies.map(b => `<a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="display:inline-block;margin:.15rem .3rem .15rem 0;padding:.2rem .6rem;background:#f4f7f6;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.85rem;">${esc(displayBabyName(b))}${b.species ? `<span style="opacity:.6;">（${esc(b.species)}）</span>` : ''}</a>`).join('');
     return `<div style="margin:0 0 1rem;">
       <div>${head} <span style="color:#888;font-size:.85rem;">${esc(x.pref)}・${x.babies.length}頭</span></div>
       <div style="margin-top:.3rem;">${babyLinks}</div>
@@ -2475,7 +2483,7 @@ function heroBirthdayHtml(babies, slugMap) {
   }
   list = [...list].sort((a, b) => a.birthday.localeCompare(b.birthday));
   const cards = list.map(b => {
-    const name = esc(b.name || '（名前未設定）');
+    const name = esc(displayBabyName(b));
     const sp   = esc(b.species || '不明');
     const zoo  = esc(b.zoo_name || '園情報なし');
     const slug = slugMap?.get(b.id) || b.id;
@@ -2511,7 +2519,7 @@ function patchIndexHtml(babies, newsItems, slugMap) {
     .slice(0, 6);
 
   const recentHtml = recentBabies.map(b => {
-    const name    = esc(b.name || '（名前未設定）');
+    const name    = esc(displayBabyName(b));
     const species = esc(b.species || '不明');
     const zoo     = esc(b.zoo_name || '');
     const slug    = slugMap?.get(b.id) || b.id;
@@ -2562,7 +2570,7 @@ function patchIndexHtml(babies, newsItems, slugMap) {
   const indexJsonLd = JSON.stringify([
     { '@context': 'https://schema.org', '@type': 'WebSite', name: 'どうベビ', alternateName: '動物の赤ちゃん図鑑 どうベビ', url: SITE_BASE, inLanguage: 'ja', description: '全国の動物園・水族館で生まれた赤ちゃんの最新情報をまとめて紹介するサイト。' },
     { '@context': 'https://schema.org', '@type': 'Organization', name: 'どうベビ', url: SITE_BASE, logo: `${SITE_BASE}/assets/img/og.png` },
-    { '@context': 'https://schema.org', '@type': 'ItemList', name: '新着の赤ちゃん', itemListElement: recentBabies.map((b, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`, name: `${b.name || ''}（${b.species || ''}）` })) },
+    { '@context': 'https://schema.org', '@type': 'ItemList', name: '新着の赤ちゃん', itemListElement: recentBabies.map((b, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`, name: `${displayBabyName(b)}（${b.species || ''}）` })) },
   ]);
 
   const __hero = heroBirthdayHtml(babies, slugMap);
@@ -2637,7 +2645,7 @@ function patchCalendarHtml(babies, slugMap) {
   const listHtml = monthBabies.length === 0
     ? '<p class="empty-state__desc">今月は対象がいません。</p>'
     : monthBabies.map(b => {
-        const name    = esc(b.name || '（名前未設定）');
+        const name    = esc(displayBabyName(b));
         const species = esc(b.species || '');
         const zoo     = esc(b.zoo_name || '');
         const slug    = slugMap?.get(b.id) || b.id;
@@ -2697,15 +2705,28 @@ const USE_MOCK = process.argv.includes('--mock');
 
 // 公開状況(display_status)を babies テーブルから取得し id でマージ。失敗時は全件 public。
 async function mergeDisplayStatus(list) {
-  if (USE_MOCK) { list.forEach(b => { if (!b.display_status) b.display_status = 'public'; }); return; }
+  if (USE_MOCK) { list.forEach(b => { if (!b.display_status) b.display_status = 'public'; if (!b.name_status) b.name_status = 'confirmed'; }); return; }
   try {
-    const rows = await sbFetch('/rest/v1/babies?select=id,display_status&limit=1000');
-    const m = new Map(rows.map(r => [r.id, r.display_status || 'public']));
-    list.forEach(b => { b.display_status = m.get(b.id) || 'public'; });
+    const rows = await sbFetch('/rest/v1/babies?select=id,display_status,name_status&limit=1000');
+    const m = new Map(rows.map(r => [r.id, r]));
+    list.forEach(b => { const r = m.get(b.id); b.display_status = (r && r.display_status) || 'public'; b.name_status = (r && r.name_status) || 'confirmed'; });
   } catch (e) {
-    console.warn(`   \u26A0\uFE0F  display_status \u53D6\u5F97\u5931\u6557 \u2014 \u5168\u4EF6 public \u6271\u3044 (${e.message})`);
-    list.forEach(b => { b.display_status = 'public'; });
+    console.warn(`   \u26A0\uFE0F  status \u53D6\u5F97\u5931\u6557 \u2014 \u65E2\u5B9A\u5024 (${e.message})`);
+    list.forEach(b => { b.display_status = 'public'; b.name_status = 'confirmed'; });
   }
+}
+
+// provisional（なまえ待ち）が babies_public に出ない場合の取りこぼし防止：babies から補完
+async function appendMissingProvisional(list) {
+  if (USE_MOCK) return;
+  try {
+    const ids = new Set(list.map(b => b.id));
+    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,name_status,zoo_id,zoo:zoos(name,prefecture)&name_status=eq.provisional&order=birthday.desc.nullslast&limit=500');
+    for (const x of raw) {
+      if (ids.has(x.id)) continue;
+      list.push({ id: x.id, name: x.name, species: x.species, birthday: x.birthday, thumbnail_url: x.thumbnail_url, zoo_id: x.zoo_id, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public', name_status: 'provisional' });
+    }
+  } catch (e) { console.warn(`   \u26A0\uFE0F  provisional \u88DC\u5B8C\u5931\u6557 (${e.message})`); }
 }
 
 async function fetchBabies() {
@@ -2720,12 +2741,13 @@ async function fetchBabies() {
   try {
     const data = await sbFetch('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name,prefecture&order=birthday.desc.nullslast&limit=500');
     await mergeDisplayStatus(data);
+    await appendMissingProvisional(data);
     console.log(`   ✅ 赤ちゃん: ${data.length} 件`);
     return data;
   } catch (e) {
     console.warn(`   ⚠️  babies_public 失敗 — babies テーブルで再試行 (${e.message})`);
-    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,zoo_id,zoo:zoos(name,prefecture)&order=birthday.desc.nullslast&limit=500');
-    const data = raw.map(x => ({ ...x, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public' }));
+    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,name_status,zoo_id,zoo:zoos(name,prefecture)&order=birthday.desc.nullslast&limit=500');
+    const data = raw.map(x => ({ ...x, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public', name_status: x.name_status || 'confirmed' }));
     console.log(`   ✅ 赤ちゃん（フォールバック）: ${data.length} 件`);
     return data;
   }
