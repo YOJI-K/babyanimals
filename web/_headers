@@ -3,9 +3,3 @@
 
 /robots.txt
   Content-Type: text/plain; charset=utf-8
-
-/assets/js/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-/assets/css/*
-  Cache-Control: public, max-age=0, must-revalidate

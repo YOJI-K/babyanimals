@@ -16,10 +16,49 @@
 import fs   from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 import { ZOOS, groupByPrefecture, toAffiliateMap } from './zoos-data.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIR    = path.resolve(__dirname, '../web');
+
+// ─── アセットのキャッシュバスティング（PROP-20260609-05）──────────────
+// JS/CSS の内容ハッシュをバージョンとして全HTMLの参照URLへ ?v= で付与する。
+// Cloudflare Pages は /assets/* の Cache-Control を上書き（max-age=14400）し
+// _headers で変更できないため、URL自体を変えて確実にキャッシュ更新させる。
+// 内容が変わった時だけハッシュが変わる＝無駄な差分を出さず必要時のみ更新。
+const ASSET_VER = (() => {
+  try {
+    const files = ['app.js', 'babies.js', 'news.js', 'analytics.js']
+      .map(f => path.join(__dirname, '../web/assets/js', f))
+      .concat([path.join(__dirname, '../web/assets/css/style.css')]);
+    const h = crypto.createHash('sha1');
+    for (const f of files) { if (fs.existsSync(f)) h.update(fs.readFileSync(f)); }
+    return h.digest('hex').slice(0, 8);
+  } catch (e) { return String(Date.now()); }
+})();
+
+// web 配下の全 *.html のアセットURLへ ?v=ASSET_VER を付与（既存の ?v= は置換）
+function versionAssets() {
+  const reAsset = /((?:\.?\/)?assets\/(?:js|css)\/[A-Za-z0-9_.\-]+\.(?:js|css))(\?v=[0-9A-Za-z]+)?/g;
+  const stack = [WEB_DIR];
+  let n = 0;
+  while (stack.length) {
+    const dir = stack.pop();
+    let ents = [];
+    try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { continue; }
+    for (const ent of ents) {
+      const fp = path.join(dir, ent.name);
+      if (ent.isDirectory()) stack.push(fp);
+      else if (ent.name.endsWith('.html')) {
+        const html = fs.readFileSync(fp, 'utf-8');
+        const out = html.replace(reAsset, (m, p1) => `${p1}?v=${ASSET_VER}`);
+        if (out !== html) { fs.writeFileSync(fp, out, 'utf-8'); n++; }
+      }
+    }
+  }
+  console.log(`   🔖 アセットURLへバージョン付与: ${n} ページ (v=${ASSET_VER})`);
+}
 const SITE_BASE  = 'https://zoobabies.jp';
 
 const SUPABASE_URL      = process.env.SUPABASE_URL      || 'https://hvhpfrksyytthupboaeo.supabase.co';
@@ -3136,6 +3175,9 @@ async function main() {
     }
     if (patchCount > 0) console.log(`   GA4 ID を静的ページ ${patchCount} 件に適用 (${GA_ID})`);
   }
+
+  // 全HTMLのJS/CSS参照にバージョンを付与（キャッシュ即時更新）
+  versionAssets();
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`\n🎉 SSG 完了 (${elapsed}s)`);
