@@ -29,7 +29,7 @@ const WEB_DIR    = path.resolve(__dirname, '../web');
 // 内容が変わった時だけハッシュが変わる＝無駄な差分を出さず必要時のみ更新。
 const ASSET_VER = (() => {
   try {
-    const files = ['app.js', 'babies.js', 'news.js', 'analytics.js']
+    const files = ['app.js', 'babies.js', 'news.js', 'analytics.js', 'favorites.js']
       .map(f => path.join(__dirname, '../web/assets/js', f))
       .concat([path.join(__dirname, '../web/assets/css/style.css')]);
     const h = crypto.createHash('sha1');
@@ -263,6 +263,12 @@ function siteHeader() {
       <span class="brand__title">どうベビ</span>
     </a>
   </div>
+  <div class="site-header__right">
+    <a class="fav-hdr" href="/favorites/" aria-label="お気に入り">
+      <svg class="fav-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <span class="fav-hdr__badge" style="display:none">0</span>
+    </a>
+  </div>
 </header>`;
 }
 
@@ -291,7 +297,8 @@ function siteFooter() {
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
-<script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>`;
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
+<script defer src="/assets/js/favorites.js"></script>`;
 }
 
 // ─── 動物園アフィリエイトデータ ──────────────────────────────────────
@@ -936,6 +943,10 @@ function displayStatusBadge(status) {
     : '<span class="dbb-badge dbb-badge--public"><span class="dbb-badge__dot"></span>公開中</span>';
 }
 
+function favBtnHtml(id, species){
+  return `<span class="fav-btn" role="button" tabindex="0" data-fav-id="${esc(id)}" data-fav-species="${esc(species || '')}" aria-pressed="false" aria-label="お気に入りに追加"><svg class="fav-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>`;
+}
+
 function zooBabyCardHtml(b, slugMap = null) {
   const name     = displayBabyName(b);
   const species  = b.species || '不明';
@@ -952,7 +963,7 @@ function zooBabyCardHtml(b, slugMap = null) {
 
   return `<div class="baby-card baby-card--v2">
     <a class="dbb-bc" role="listitem" href="${href}" aria-label="${esc(name)}（${esc(species)}、${esc(zoo)}）の詳細">
-      <div class="${thumbCls}">${thumb}${age != null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
+      <div class="${thumbCls}">${thumb}${favBtnHtml(b.id, species)}${age != null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
       <div class="dbb-bc__body">
         <div class="dbb-bc__name">${esc(name)}</div>
         <div class="dbb-bc__species">${esc(species)}</div>
@@ -2773,6 +2784,7 @@ function patchCalendarHtml(babies, slugMap) {
     <div class="dbb-brow__bday">🎂 ${bday}</div>
     <div class="dbb-brow__status">${badge}</div>
   </div>
+  ${favBtnHtml(b.id, species)}
   <div class="dbb-brow__badge">${age}歳</div>
 </a>`;
       }).join('\n');

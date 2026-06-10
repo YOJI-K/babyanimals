@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>お気に入り | どうベビ</title>
+  <meta name="description" content="お気に入り登録した動物の赤ちゃんをまとめて確認できます（この端末内に保存）。" />
+  <meta name="robots" content="noindex,follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+  <meta property="og:image" content="../assets/img/og.png">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YRQJXRMEN2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-YRQJXRMEN2');
+  </script>
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
+  <link rel="canonical" href="https://zoobabies.jp/favorites/">
+</head>
+<body class="theme">
+  <header class="site-header site-header--candy">
+    <div class="site-header__left">
+      <a class="brand" href="../index.html" aria-label="ホームへ">
+        <span class="brand__title">どうベビ</span>
+      </a>
+    </div>
+    <div class="site-header__right">
+      <a class="fav-hdr is-active" href="./index.html" aria-label="お気に入り">
+        <svg class="fav-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span class="fav-hdr__badge" style="display:none">0</span>
+      </a>
+    </div>
+  </header>
+
+  <nav class="tabbar tabbar--stack" aria-label="メイン">
+    <a class="tabbar__link" href="../index.html" aria-label="ホーム" title="ホーム">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="tabbar__text">ホーム</span>
+    </a>
+    <a class="tabbar__link" href="../news/index.html" aria-label="ニュース" title="ニュース">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"/><path d="M14 4v4h6M8 12h8M8 16h5"/></svg>
+      <span class="tabbar__text">ニュース</span>
+    </a>
+    <a class="tabbar__link" href="../babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M8 14c-3 1-5 3-5 5h18c0-2-2-4-5-5"/></svg>
+      <span class="tabbar__text">赤ちゃん</span>
+    </a>
+    <a class="tabbar__link" href="../zoos/index.html" aria-label="動物園" title="動物園">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="tabbar__text">動物園</span>
+    </a>
+    <a class="tabbar__link" href="../calendar/index.html" aria-label="カレンダー" title="カレンダー">
+      <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/></svg>
+      <span class="tabbar__text">カレンダー</span>
+    </a>
+  </nav>
+
+  <main class="container" id="main">
+    <div class="fav-head">
+      <h1 class="fav-title">お気に入り</h1>
+      <p class="fav-sub" id="fav-count">読み込み中…</p>
+    </div>
+
+    <div id="fav-list" role="list"></div>
+
+    <div id="fav-empty" class="fav-empty" hidden>
+      <div class="fav-empty__heart" aria-hidden="true">
+        <svg class="fav-heart" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </div>
+      <p class="fav-empty__title">お気に入りはまだありません</p>
+      <p class="fav-empty__desc">気になる赤ちゃんのカードにある♡を押すと、ここにまとまります。<br>※お気に入りはこの端末内に保存されます。</p>
+      <a class="fav-empty__cta" href="../babies/index.html">赤ちゃん一覧を見る</a>
+    </div>
+
+    <p class="fav-note">お気に入りはこの端末内（ブラウザ）に保存されます。別の端末やブラウザには引き継がれません。</p>
+  </main>
+
+  <footer class="site-footer" aria-label="フッター">
+    <small>© どうベビ（動物園ベビー情報）　<a href="../privacy/" style="color:inherit;opacity:0.7;">プライバシーポリシー</a></small>
+  </footer>
+
+  <script src="../assets/js/app.js" defer></script>
+  <script src="../assets/js/favorites.js" defer></script>
+  <script defer src="../assets/js/analytics.js"></script>
+</body>
+</html>

@@ -55,6 +55,11 @@ async function enrichDisplayStatus(list){
 
 /* ===== 共通の赤ちゃんカード（トップ／一覧で共有） PROP-20260609-03 =====
    opts.age … 年齢（歳・数値 or null）。null のときは年齢バッジ非表示。 */
+function favBtnHTML(id, species){
+  const e = (v)=> String(v ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+  return `<span class="fav-btn" role="button" tabindex="0" data-fav-id="${e(id)}" data-fav-species="${e(species)}" aria-pressed="false" aria-label="お気に入りに追加"><svg class="fav-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span>`;
+}
+
 function renderBabyCard(x, opts){
   opts = opts || {};
   const _esc = (v)=> String(v ?? '')
@@ -74,7 +79,7 @@ function renderBabyCard(x, opts){
     : '';
   return `
       <a class="dbb-bc" role="listitem" href="${_esc(href)}" aria-label="${_esc(name)}（${_esc(sp)}）">
-        <div class="${thumbCls}">${thumb}${age!=null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
+        <div class="${thumbCls}">${thumb}${favBtnHTML(x.id, sp)}${age!=null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
         <div class="dbb-bc__body">
           <div class="dbb-bc__name">${_esc(name)}</div>
           <div class="dbb-bc__species">${_esc(sp)}</div>
@@ -111,6 +116,7 @@ function renderBabyRow(x, opts){
           <div class="dbb-brow__bday">🎂 ${_esc(date)}</div>
           ${badge ? `<div class="dbb-brow__status">${badge}</div>` : ''}
         </div>
+        ${favBtnHTML(x.id, sp)}
         ${age!=null ? `<div class="dbb-brow__badge">${age}歳</div>` : ''}
       </a>`;
 }
