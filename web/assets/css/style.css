@@ -2764,3 +2764,19 @@ body.theme{ background: var(--bg); }
   font-size:13px; font-weight:600; padding:10px 20px; border-radius:10px;
 }
 .fav-note{ font-size:11px; color:#b0b0b0; text-align:center; padding:14px 24px 8px; }
+
+/* ===== お気に入り♡：詳細ページ用の大きめトグル（PROP-20260610-02 フェーズ2）===== */
+.fav-btn--detail{
+  position:static; width:100%; height:auto; border-radius:12px;
+  background:#fff; border:1.5px solid #D4537E; box-shadow:none;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px; font-size:14px; font-weight:700; color:#D4537E;
+  margin-bottom:10px; cursor:pointer;
+}
+.fav-btn--detail .fav-heart{ width:20px; height:20px; }
+.fav-btn--detail .fav-heart path{ fill:none; stroke:#D4537E; stroke-width:2; }
+.fav-btn--detail::after{ content:"お気に入りに追加"; }
+.fav-btn--detail.is-on{ background:#D4537E; color:#fff; }
+.fav-btn--detail.is-on .fav-heart path{ fill:#fff; stroke:#fff; }
+.fav-btn--detail.is-on::after{ content:"お気に入り登録済み"; }
+.fav-btn--detail:active{ transform:scale(.98); }
