@@ -2695,3 +2695,18 @@ body.theme{ background: var(--bg); }
 .dbb-brow{ margin: 0; }
 .cal-sheet__list .dbb-brow{ box-shadow: none; border: 1px solid #ECE6DA; }
 #js-birthdayList{ display: flex; flex-direction: column; gap: 8px; padding: 0 14px; }
+
+/* ===== サムネイル不具合修正（PROP-20260610-01 追補③）===== */
+/* ① .card 内の汎用 img 上限(max-height:40px)が赤ちゃんカード画像へ誤適用されるのを解除 */
+.baby-card--v2 .dbb-bc__img img,
+.card .dbb-bc__img img,
+.card .dbb-brow__thumb img,
+.card .cal-thumb img{ max-height: none; }
+
+/* ② 画像なしプレースホルダの緑背景をv2カード／行カードでも復活（トップと統一） */
+.baby-card--v2 .dbb-bc__img.is-placeholder,
+.dbb-brow__thumb.is-placeholder{
+  background: radial-gradient(800px 400px at 120% -20%, #d1fae5 0, transparent 60%),
+              radial-gradient(600px 300px at -10% 30%, #fef3c7 0, transparent 60%),
+              linear-gradient(135deg, #ecfdf5 0%, #fefce8 100%);
+}

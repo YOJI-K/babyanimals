@@ -97,12 +97,13 @@ function renderBabyRow(x, opts){
   const age  = (opts.age != null) ? opts.age : null;
   const date = fmtBirthdayYMD(x.birthday);
   const badge = statusBadgeHTML(x.display_status);
-  const thumb = x.thumbnail_url
-    ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" onerror="this.parentNode.textContent='🐾';">`
+  const hasImg = !!x.thumbnail_url;
+  const thumb = hasImg
+    ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" data-allow-big onerror="this.parentNode.classList.add('is-placeholder'); this.parentNode.textContent='🐾';">`
     : '🐾';
   return `
       <a class="dbb-brow" role="listitem" href="${_esc(href)}" aria-label="${_esc(name)}（${_esc(sp)}）">
-        <div class="dbb-brow__thumb">${thumb}</div>
+        <div class="dbb-brow__thumb${hasImg ? '' : ' is-placeholder'}">${thumb}</div>
         <div class="dbb-brow__info">
           <div class="dbb-brow__name">${_esc(name)}</div>
           <div class="dbb-brow__species">${_esc(sp)}</div>

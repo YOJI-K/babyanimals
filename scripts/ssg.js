@@ -2758,13 +2758,14 @@ function patchCalendarHtml(babies, slugMap) {
         const slug    = slugMap?.get(b.id) || b.id;
         const href    = `/babies/${slug}/`;
         const age     = Y - new Date(b.birthday).getFullYear();
-        const thumb   = b.thumbnail_url
-          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" onerror="this.parentNode.textContent='🐾';">`
+        const hasImg  = !!b.thumbnail_url;
+        const thumb   = hasImg
+          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" data-allow-big onerror="this.parentNode.classList.add('is-placeholder'); this.parentNode.textContent='🐾';">`
           : '🐾';
         const bday    = fmtMD(b.birthday);
         const badge   = displayStatusBadge(b.display_status);
         return `<a class="dbb-brow" role="listitem" href="${href}" aria-label="${name}（${species}）">
-  <div class="dbb-brow__thumb">${thumb}</div>
+  <div class="dbb-brow__thumb${hasImg ? '' : ' is-placeholder'}">${thumb}</div>
   <div class="dbb-brow__info">
     <div class="dbb-brow__name">${name}</div>
     <div class="dbb-brow__species">${species}</div>
