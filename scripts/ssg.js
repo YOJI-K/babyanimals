@@ -2758,19 +2758,21 @@ function patchCalendarHtml(babies, slugMap) {
         const slug    = slugMap?.get(b.id) || b.id;
         const href    = `/babies/${slug}/`;
         const age     = Y - new Date(b.birthday).getFullYear();
-        const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
         const thumb   = b.thumbnail_url
-          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async">`
-          : '';
+          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" onerror="this.parentNode.textContent='🐾';">`
+          : '🐾';
         const bday    = fmtMD(b.birthday);
-        return `<a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${species}）">
-  <div class="${thumbCls}">${thumb}<div class="dbb-bc__age">${age}歳</div></div>
-  <div class="dbb-bc__body">
-    <div class="dbb-bc__name">${name}</div>
-    <div class="dbb-bc__species">${species}</div>
-    ${zoo ? `<div class="dbb-bc__zoo">📍 ${zoo}</div>` : ''}
-    <div class="dbb-bc__bday">🎂 ${bday}</div>
+        const badge   = displayStatusBadge(b.display_status);
+        return `<a class="dbb-brow" role="listitem" href="${href}" aria-label="${name}（${species}）">
+  <div class="dbb-brow__thumb">${thumb}</div>
+  <div class="dbb-brow__info">
+    <div class="dbb-brow__name">${name}</div>
+    <div class="dbb-brow__species">${species}</div>
+    ${zoo ? `<div class="dbb-brow__zoo">📍 ${zoo}</div>` : ''}
+    <div class="dbb-brow__bday">🎂 ${bday}</div>
+    <div class="dbb-brow__status">${badge}</div>
   </div>
+  <div class="dbb-brow__badge">${age}歳</div>
 </a>`;
       }).join('\n');
 

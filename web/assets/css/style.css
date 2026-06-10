@@ -2688,3 +2688,10 @@ body.theme{ background: var(--bg); }
   background: var(--surface); cursor: pointer; text-decoration: none;
 }
 .cal-sheet__btn--primary{ background: var(--ac); color: #fff; border-color: var(--ac); }
+
+/* ===== Calendar list: dbb-brow extra fields (PROP-20260610-01 追補) ===== */
+.dbb-brow__bday{ font-size: 11px; color: var(--text-primary); margin-top: 3px; }
+.dbb-brow__status{ margin-top: 5px; }
+.dbb-brow{ margin: 0; }
+.cal-sheet__list .dbb-brow{ box-shadow: none; border: 1px solid #ECE6DA; }
+#js-birthdayList{ display: flex; flex-direction: column; gap: 8px; padding: 0 14px; }

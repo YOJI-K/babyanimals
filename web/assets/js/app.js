@@ -85,6 +85,35 @@ function renderBabyCard(x, opts){
       </a>`;
 }
 
+function renderBabyRow(x, opts){
+  opts = opts || {};
+  const _esc = (v)=> String(v ?? '')
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#39;');
+  const name = displayBabyName(x);
+  const sp   = x.species || '不明';
+  const zoo  = x.zoo_name || '園情報なし';
+  const href = babyHref(x.id);
+  const age  = (opts.age != null) ? opts.age : null;
+  const date = fmtBirthdayYMD(x.birthday);
+  const badge = statusBadgeHTML(x.display_status);
+  const thumb = x.thumbnail_url
+    ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" onerror="this.parentNode.textContent='🐾';">`
+    : '🐾';
+  return `
+      <a class="dbb-brow" role="listitem" href="${_esc(href)}" aria-label="${_esc(name)}（${_esc(sp)}）">
+        <div class="dbb-brow__thumb">${thumb}</div>
+        <div class="dbb-brow__info">
+          <div class="dbb-brow__name">${_esc(name)}</div>
+          <div class="dbb-brow__species">${_esc(sp)}</div>
+          <div class="dbb-brow__zoo">📍 ${_esc(zoo)}</div>
+          <div class="dbb-brow__bday">🎂 ${_esc(date)}</div>
+          ${badge ? `<div class="dbb-brow__status">${badge}</div>` : ''}
+        </div>
+        ${age!=null ? `<div class="dbb-brow__badge">${age}歳</div>` : ''}
+      </a>`;
+}
+
 (() => {
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
@@ -271,9 +300,8 @@ function pickEmoji(baby){
       return;
     }
     listEl.innerHTML = items
-      .map(b => renderBabyCard({ ...b, zoo_name: (b.zoo && b.zoo.name) || b.zoo_name || '' }, { age: b.age }))
+      .map(b => renderBabyRow({ ...b, zoo_name: (b.zoo && b.zoo.name) || b.zoo_name || '' }, { age: b.age }))
       .join('');
-    bindHeroImageFallback(listEl);
   }
 
   /* ===== 初期化 ===== */
@@ -415,7 +443,7 @@ function pickEmoji(baby){
     const dows = ['日','月','火','水','木','金','土'];
     const dow = dows[dateObj.getDay()];
     const cards = hits
-      .map(h => renderBabyCard({ ...h, zoo_name: (h.zoo && h.zoo.name) || h.zoo_name || '' }, { age: h.age }))
+      .map(h => renderBabyRow({ ...h, zoo_name: (h.zoo && h.zoo.name) || h.zoo_name || '' }, { age: h.age }))
       .join('');
 
     const overlay = document.createElement('div');
@@ -453,7 +481,6 @@ function pickEmoji(baby){
 
     document.body.appendChild(overlay);
     document.addEventListener('keydown', onSheetKey);
-    bindHeroImageFallback(overlay);
     void overlay.offsetWidth; // 強制リフロー → 可視/不可視タブに依存せずトランジション発火
     overlay.classList.add('is-open');
   }
