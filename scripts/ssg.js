@@ -2725,11 +2725,21 @@ function patchCalendarHtml(babies, slugMap) {
     if (dow === 0) cls += ' sun';
     if (dow === 6) cls += ' sat';
     if (isToday)  cls += ' today';
-    const dots = hits.slice(0, 3).map(() => '<span class="cal-dot cal-dot--birth"></span>').join('');
+    let indicator;
+    if (hits.length) {
+      const rep   = hits.find(h => h.thumbnail_url) || hits[0];
+      const thumb = rep.thumbnail_url
+        ? `<span class="cal-thumb"><img src="${esc(rep.thumbnail_url)}" alt="" loading="lazy" decoding="async"></span>`
+        : '<span class="cal-thumb is-placeholder"></span>';
+      const more  = hits.length > 1 ? `<span class="cal-more">+${hits.length - 1}</span>` : '';
+      indicator = `<div class="cal-thumbs">${thumb}${more}</div>`;
+    } else {
+      indicator = '<div class="cal-dots"></div>';
+    }
     const ariaLabel = hits.length
       ? `${Y}年${M}月${day}日、${hits.length}件の誕生日`
       : `${Y}年${M}月${day}日`;
-    cells += `<div class="${cls}" role="gridcell" aria-label="${ariaLabel}"><span class="cal-dn">${day}</span><div class="cal-dots">${dots}</div></div>`;
+    cells += `<div class="${cls}" role="gridcell" aria-label="${ariaLabel}"><span class="cal-dn">${day}</span>${indicator}</div>`;
   }
 
   // 翌月頭

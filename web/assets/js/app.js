@@ -375,20 +375,17 @@ function pickEmoji(baby){
       if (isToday(cellDate)) cls += ' today';
       cell.className = cls;
       cell.setAttribute('role','gridcell');
-      cell.innerHTML = `<span class="cal-dn">${day}</span><div class="cal-dots"></div>`;
 
       const hits = monthly.filter(b => b.day === day);
+      cell.innerHTML = `<span class="cal-dn">${day}</span>${birthdayIndicatorHTML(hits)}`;
       if (hits.length){
-        const dots = cell.querySelector('.cal-dots');
-        hits.slice(0, 3).forEach(() => {
-          const dot = document.createElement('span');
-          dot.className = 'cal-dot cal-dot--birth';
-          dots.appendChild(dot);
-        });
-
         const ariaAges = hits.map(h=>`${h.age}歳`).join(', ');
         cell.style.cursor = 'pointer';
-        cell.addEventListener('click', () => openDay(hits, cellDate, Y, M, day));
+        cell.addEventListener('click', () => {
+          $$('#cal-grid .cal-day.selected').forEach(el => el.classList.remove('selected'));
+          cell.classList.add('selected');
+          openDay(hits, cellDate, Y, M, day);
+        });
         cell.setAttribute('aria-label', `${Y}年${M}月${day}日、${hits.length}件の誕生日（${ariaAges}）`);
       } else {
         cell.setAttribute('aria-label', `${Y}年${M}月${day}日`);
@@ -410,12 +407,68 @@ function pickEmoji(baby){
     renderMonthlyList(Y, M, monthly);
   }
 
+  function birthdayIndicatorHTML(hits){
+    if(!hits || !hits.length) return '<div class="cal-dots"></div>';
+    const rep = hits.find(h => h.thumbnail_url) || hits[0];
+    const thumb = rep.thumbnail_url
+      ? `<span class="cal-thumb"><img src="${esc(rep.thumbnail_url)}" alt="" loading="lazy" decoding="async" onerror="this.closest('.cal-thumb')?.classList.add('is-placeholder'); this.remove();"></span>`
+      : '<span class="cal-thumb is-placeholder"></span>';
+    const more = hits.length > 1 ? `<span class="cal-more">+${hits.length-1}</span>` : '';
+    return `<div class="cal-thumbs">${thumb}${more}</div>`;
+  }
+
+  function closeDaySheet(){
+    const ov = $('#cal-sheet-overlay');
+    if (ov){ ov.classList.remove('is-open'); setTimeout(()=>ov.remove(), 180); }
+    document.removeEventListener('keydown', onSheetKey);
+  }
+  function onSheetKey(e){ if (e.key === 'Escape') closeDaySheet(); }
+
   function openDay(hits, dateObj, Y, M, D){
-    const list = hits.map(h=>{
-      const zoo = h.zoo?.name ? ` / ${h.zoo.name}` : '';
-      return `・${h.name}（${h.species}${zoo}）：${h.age}歳`;
-    }).join('\n');
-    alert(`${Y}年${M}月${D}日の誕生日（0〜3歳）\n\n${list}`);
+    closeDaySheet();
+    const dows = ['日','月','火','水','木','金','土'];
+    const dow = dows[dateObj.getDay()];
+    const cards = hits
+      .map(h => renderBabyCard({ ...h, zoo_name: (h.zoo && h.zoo.name) || h.zoo_name || '' }, { age: h.age }))
+      .join('');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cal-sheet-overlay';
+    overlay.className = 'cal-sheet-overlay';
+    overlay.innerHTML = `
+      <div class="cal-sheet" role="dialog" aria-modal="true" aria-label="${Y}年${M}月${D}日の誕生日">
+        <div class="cal-sheet__handle" aria-hidden="true"></div>
+        <div class="cal-sheet__head">
+          <div class="cal-sheet__title">${M}月${D}日(${dow})・誕生日 ${hits.length}件</div>
+          <button type="button" class="cal-sheet__close" aria-label="閉じる">×</button>
+        </div>
+        <div class="cal-sheet__list" role="list">${cards}</div>
+        <div class="cal-sheet__actions">
+          <a class="cal-sheet__btn cal-sheet__btn--primary" href="/babies/">赤ちゃん一覧を見る</a>
+          <button type="button" class="cal-sheet__btn cal-sheet__share" aria-label="この日の赤ちゃんをシェア">シェア</button>
+        </div>
+      </div>`;
+
+    overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeDaySheet(); });
+    overlay.querySelector('.cal-sheet__close').addEventListener('click', closeDaySheet);
+
+    const shareBtn = overlay.querySelector('.cal-sheet__share');
+    const shareUrl = `${location.origin}/calendar/?y=${Y}&m=${pad2(M)}`;
+    const shareTitle = `${Y}年${M}月${D}日生まれの動物の赤ちゃん｜どうべビ`;
+    shareBtn.addEventListener('click', async ()=>{
+      if (typeof gtag === 'function') gtag('event','calendar_day_share',{ date:`${Y}-${pad2(M)}-${pad2(D)}` });
+      if (navigator.share){
+        try { await navigator.share({ title: shareTitle, url: shareUrl }); } catch(_){}
+      } else {
+        try { await navigator.clipboard.writeText(shareUrl); shareBtn.textContent='URLをコピーしました'; setTimeout(()=>{ shareBtn.textContent='シェア'; }, 1500); }
+        catch(_){ window.prompt('URLをコピーしてください', shareUrl); }
+      }
+    });
+
+    document.body.appendChild(overlay);
+    document.addEventListener('keydown', onSheetKey);
+    bindHeroImageFallback(overlay);
+    requestAnimationFrame(()=> overlay.classList.add('is-open'));
   }
 
   function renderMonthlyList(Y, M, items){
