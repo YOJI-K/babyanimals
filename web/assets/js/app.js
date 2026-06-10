@@ -266,28 +266,14 @@ function pickEmoji(baby){
 }
   function renderMonthlyCards(listEl, items){
     if (!listEl) return;
-    listEl.innerHTML = '';
     if (!items?.length){
-      listEl.insertAdjacentHTML('beforeend',
-        `<div class="empty-state"><p class="empty-state__desc">今月のお誕生日（0〜3歳）の登録がありません。</p></div>`);
+      listEl.innerHTML = `<div class="empty-state"><p class="empty-state__desc">今月のお誕生日（0〜3歳）の登録がありません。</p></div>`;
       return;
     }
-    for (const b of items){
-      const zooName = b.zoo?.name || '';
-      const row = document.createElement('a');
-      row.className = 'cal-event';
-      row.href = babyHref(b.id);
-      row.setAttribute('role','listitem');
-      row.innerHTML = `
-        <div class="cal-event__bar" style="background:var(--cal-event-birth)"></div>
-        <div>
-          <div class="cal-event__type" style="color:var(--ac)">誕生日 · ${b.age}歳</div>
-          <div class="cal-event__title">${esc(displayBabyName(b))}（${esc(b.species)}）${b.age}歳のお誕生日</div>
-          ${zooName ? `<div class="cal-event__zoo">📍 ${esc(zooName)}</div>` : ''}
-        </div>
-      `;
-      listEl.appendChild(row);
-    }
+    listEl.innerHTML = items
+      .map(b => renderBabyCard({ ...b, zoo_name: (b.zoo && b.zoo.name) || b.zoo_name || '' }, { age: b.age }))
+      .join('');
+    bindHeroImageFallback(listEl);
   }
 
   /* ===== 初期化 ===== */
@@ -468,7 +454,8 @@ function pickEmoji(baby){
     document.body.appendChild(overlay);
     document.addEventListener('keydown', onSheetKey);
     bindHeroImageFallback(overlay);
-    requestAnimationFrame(()=> overlay.classList.add('is-open'));
+    void overlay.offsetWidth; // 強制リフロー → 可視/不可視タブに依存せずトランジション発火
+    overlay.classList.add('is-open');
   }
 
   function renderMonthlyList(Y, M, items){
