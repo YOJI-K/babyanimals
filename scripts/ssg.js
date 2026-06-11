@@ -554,6 +554,16 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const birthdayYear = b.birthday ? new Date(b.birthday).getFullYear() : null;
   const canonical = `${SITE_BASE}/babies/${slug}/`;
 
+  // === おでかけエリア（地域・都道府県）の解決：ボトムアップ内部リンク用（PROP-20260611-04） ===
+  // REGIONS/areaPrefData と同じ判定で「ページが存在する都道府県」だけをリンク化する。
+  const _pref = b.prefecture || null;
+  const _prefRegion = {};
+  REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { _prefRegion[p] = rn; }));
+  const _region = _pref ? (_prefRegion[_pref] || null) : null;
+  const _prefHasPage = _pref ? areaPrefData(allBabies || [], 2).prefMap.has(_pref) : false;
+  const _regionHref = _region ? `/area/${encodeURI(_region)}/` : null;
+  const _prefHref = (_pref && _prefHasPage) ? `/area/${encodeURI(_pref)}/` : null;
+
   const title = `${zoo}の${species}赤ちゃん「${name}」公開情報・誕生日｜どうベビ`;
   const desc  = `${zoo}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${species}の赤ちゃん「${name}」。誕生日は${bdayFmt || '不明'}、現在${age}。公開状況・会える場所・最新情報をどうベビでチェック。`;
 
@@ -598,14 +608,17 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   <meta property="article:tag" content="赤ちゃん" />
   <meta name="keywords" content="${esc(name)},${esc(species)},赤ちゃん,${esc(zoo)},動物園,${birthdayYear || ''}" />`;
 
+  // パンくず：県ページが存在する時のみ「県」階層を挿入（PROP-20260611-04）
+  const _bcItems = [
+    { '@type': 'ListItem', name: 'ホーム', item: `${SITE_BASE}/` },
+    { '@type': 'ListItem', name: '赤ちゃん一覧', item: `${SITE_BASE}/babies/` },
+  ];
+  if (_prefHref) _bcItems.push({ '@type': 'ListItem', name: _pref, item: `${SITE_BASE}${_prefHref}` });
+  _bcItems.push({ '@type': 'ListItem', name: `${name}（${species}）の赤ちゃん`, item: canonical });
   const breadcrumbLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
-      { '@type': 'ListItem', position: 2, name: '赤ちゃん一覧', item: `${SITE_BASE}/babies/` },
-      { '@type': 'ListItem', position: 3, name: `${name}（${species}）の赤ちゃん`, item: canonical },
-    ],
+    itemListElement: _bcItems.map((it, i) => ({ ...it, position: i + 1 })),
   });
 
   const thumbHtml = b.thumbnail_url
@@ -713,6 +726,18 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const _zooSlug = (ZOOS.find(z => z.db_name === b.zoo_name) || {}).slug || null;
   const speciesCell = b.species ? `<a href="/species/${esc(b.species)}/">${esc(species)}</a>` : esc(species);
   const zooCell = _zooSlug ? `<a href="/zoos/${esc(_zooSlug)}/">${esc(zoo)}</a>` : esc(zoo);
+
+  // 📍 おでかけエリア：園 → 県 → 地域 へのボトムアップ内部リンク行（PROP-20260611-04）
+  const _areaChips = [];
+  if (_zooSlug) _areaChips.push(`<a href="/zoos/${esc(_zooSlug)}/" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#eaf6f0;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">🏛️ ${esc(zoo)}</a>`);
+  if (_prefHref) _areaChips.push(`<a href="${_prefHref}" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#eaf6f0;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">📍 ${esc(_pref)}の赤ちゃん</a>`);
+  if (_regionHref) _areaChips.push(`<a href="${_regionHref}" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#f0f7f4;border:1px solid #e0eee8;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">🗺️ ${esc(_region)}エリア</a>`);
+  const _areaLinkRow = _areaChips.length ? `
+      <section class="baby-area-links" aria-label="おでかけエリア" style="margin:1.2rem 0;">
+        <h2 style="font-size:1.05rem;margin:0 0 .5rem;">📍 ${esc(_pref || zoo)}でほかの赤ちゃんを探す</h2>
+        <div>${_areaChips.join('')}</div>
+      </section>` : '';
+
   const specsHtml = `
     <table class="baby-specs">
       <tr><th>なまえ</th><td>${esc(name)}</td></tr>
@@ -800,7 +825,9 @@ ${siteNav('/babies/')}
     <span aria-hidden="true"> › </span>
     <a href="/babies/">赤ちゃん一覧</a>
     <span aria-hidden="true"> › </span>
-    <span aria-current="page">${esc(name)}</span>
+    ${_prefHref ? `<a href="${_prefHref}">${esc(_pref)}</a>
+    <span aria-hidden="true"> › </span>
+    ` : ''}<span aria-current="page">${esc(name)}</span>
   </nav>
 
   <article class="card ssg-detail" itemscope itemtype="https://schema.org/Animal">
@@ -823,6 +850,7 @@ ${siteNav('/babies/')}
       ${specsHtml}
       ${babyNewsHtml}
       ${babyFaqHtml}
+      ${_areaLinkRow}
       ${zooLinksHtml(zoo, name) || genericAsoviewCta()}
       <div class="ssg-detail__actions">
         <button type="button" class="fav-btn fav-btn--detail" data-fav-id="${esc(b.id)}" data-fav-species="${esc(species)}" aria-pressed="false" aria-label="お気に入りに追加">
