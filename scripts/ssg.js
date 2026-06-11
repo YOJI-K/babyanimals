@@ -191,6 +191,25 @@ function writeHtml(filePath, html) {
   fs.writeFileSync(filePath, html, 'utf-8');
 }
 
+// ─── 孤児ページの掃除 ───────────────────────────────────────────────
+// DB から削除された赤ちゃん/種の残存ページ（/babies/<slug>/ 等）を除去する。
+// SSG は書き込みのみで削除を行わないため、削除済みエンティティのページが
+// 永久に残り、検索インデックスや内部リンクに混入する問題への恒久対策。
+// 安全策: 呼び出し側で「データ取得が成功している（件数>0）」を確認すること。
+function pruneOrphanDirs(baseDir, validNames, label) {
+  if (!fs.existsSync(baseDir)) return 0;
+  const valid = new Set(validNames);
+  let removed = 0;
+  for (const entry of fs.readdirSync(baseDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;   // index.html 等のファイルは温存
+    if (valid.has(entry.name)) continue;  // 現役エンティティは温存
+    fs.rmSync(path.join(baseDir, entry.name), { recursive: true, force: true });
+    removed++;
+  }
+  if (removed) console.log(`   🧹 ${label}: 孤児ページ ${removed} 件を削除`);
+  return removed;
+}
+
 // ─── 共通 HTML パーツ ───────────────────────────────────────────────
 
 // GA4 計測ID（CF Pages ビルド環境変数 GA_MEASUREMENT_ID が優先、未設定時はプレースホルダ）
@@ -3062,6 +3081,20 @@ async function main() {
   }
   console.log(`   ✅ ${babyCount} 件完了（うち ${withNewsCount} 件はニュース付き / slug + UUID スタブ）`);
 
+  // ── 孤児ページの掃除（DBから削除された赤ちゃんの残存ページを除去）──
+  // babies は limit=500 で全件取得（現状<100件）。取得失敗時は babies=[] となり
+  // ここで何も削除しないため、誤って全削除する事故は起きない。
+  if (babies.length > 0) {
+    const validBabyDirs = [];
+    for (const b of babies) {
+      if (!b.id) continue;
+      const sl = slugMap.get(b.id);
+      if (sl) validBabyDirs.push(sl);     // slug 正規ページ
+      validBabyDirs.push(String(b.id));   // UUID リダイレクトスタブ
+    }
+    pruneOrphanDirs(path.join(WEB_DIR, 'babies'), validBabyDirs, '赤ちゃん');
+  }
+
   // ── ニュース個別ページ ──
   console.log(`\n🗞️  ニュース個別ページ生成中 (${newsItems.length} 件)...`);
   let newsCount = 0;
@@ -3114,6 +3147,11 @@ async function main() {
   }
   writeHtml(path.join(WEB_DIR, 'species', 'index.html'), speciesIndexHtml(babies, slugMap));
   console.log(`   ✅ ${speciesCount}種 + 一覧1`);
+
+  // ── 種別ページの孤児掃除（赤ちゃんが0頭になった種のページを除去）──
+  if (babies.length > 0) {
+    pruneOrphanDirs(path.join(WEB_DIR, 'species'), [...speciesSetForPages], '動物種別');
+  }
 
   // ── 地域（エリア）別ハブ ──
   console.log('\n🗾 エリア別ハブ生成中...');
