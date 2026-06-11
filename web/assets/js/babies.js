@@ -335,7 +335,7 @@ const ZOO_AFFILIATE_MAP = {
     const ageLabel  = ageInfo ? `${ageInfo.y}歳${ageInfo.y===0&&ageInfo.m>0?`（${ageInfo.m}か月）`:''}` : '年齢不明';
     const ageSuf    = ageInfo ? Math.min(ageInfo.y, 3) : '';
 
-    document.title = `${name}（${species}）の赤ちゃん｜${zoo || 'どうベビ'}`;
+    document.title = zoo ? `${zoo}の${species}赤ちゃん「${name}」公開情報・誕生日｜どうベビ` : `${species}赤ちゃん「${name}」公開情報・誕生日｜どうベビ`;
 
     const thumb = b.thumbnail_url
       ? `<img class="ssg-detail__img" src="${escHtml(b.thumbnail_url)}" alt="${escHtml(name)}" loading="eager" decoding="async">`

@@ -535,8 +535,8 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const birthdayYear = b.birthday ? new Date(b.birthday).getFullYear() : null;
   const canonical = `${SITE_BASE}/babies/${slug}/`;
 
-  const title = `${name}（${species}）の赤ちゃん｜${zoo}`;
-  const desc  = `${zoo}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${species}の赤ちゃん「${name}」。誕生日は${bdayFmt || '不明'}、現在${age}。どうベビで動物園の赤ちゃん情報をチェック。`;
+  const title = `${zoo}の${species}赤ちゃん「${name}」公開情報・誕生日｜どうベビ`;
+  const desc  = `${zoo}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${species}の赤ちゃん「${name}」。誕生日は${bdayFmt || '不明'}、現在${age}。公開状況・会える場所・最新情報をどうベビでチェック。`;
 
   // 種別解説マスターからデータ取得（articleLd で参照するため早期に宣言）
   const speciesData = SPECIES_INFO[species] || null;
@@ -545,7 +545,7 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const articleLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
-    headline: `${name}（${species}）の赤ちゃん｜${zoo}`,
+    headline: `${zoo}の${species}赤ちゃん「${name}」公開情報・誕生日`,
     description: desc,
     image: [b.thumbnail_url || `${SITE_BASE}/assets/img/og.png`],
     url: canonical,
@@ -1054,7 +1054,7 @@ function zooHtml(zoo, babies, slugMap = null) {
 
   // SEO: 「○○ 赤ちゃん」検索でヒットしやすい title（コアキーワード前置）
   const title = count > 0
-    ? `${zoo.name}の赤ちゃん｜現在${count}頭・最新情報 | どうベビ`
+    ? `${zoo.name}の赤ちゃん動物｜現在${count}頭の公開状況・最新情報 | どうベビ`
     : `${zoo.name}の赤ちゃん情報 | どうベビ`;
   const desc = count > 0
     ? `${zoo.name}の赤ちゃん動物の最新情報。${sampleNames}${count > 3 ? 'など' : ''}${count}頭の赤ちゃんが暮らしています。誕生日・種類・写真をまとめて掲載。${zoo.description ? zoo.description.slice(0, 60) : ''}`.slice(0, 160)
