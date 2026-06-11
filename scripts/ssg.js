@@ -1919,6 +1919,13 @@ function areaRegionHtml(rn, zm, totalBabies, slugMap, order) {
   const regionTotal = [...zm.values()].reduce((t, x) => t + x.babies.length, 0);
   const regionSp = new Set(); zm.forEach(x => x.babies.forEach(b => b.species && regionSp.add(b.species)));
   const prefSet = new Set([...zm.values()].map(x => x.pref).filter(Boolean));
+  const __prefCounts = {};
+  zm.forEach(x => { if (x.pref) __prefCounts[x.pref] = (__prefCounts[x.pref] || 0) + x.babies.length; });
+  const __prefLinks = Object.keys(__prefCounts)
+    .filter(p => __prefCounts[p] >= 2 && p !== rn)
+    .sort((a, b) => __prefCounts[b] - __prefCounts[a])
+    .map(p => `<a href="/area/${encodeURI(p)}/" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#eaf6f0;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">${esc(p)} <span style="opacity:.55;">${__prefCounts[p]}</span></a>`).join('');
+  const prefNav = __prefLinks ? `<section style="margin:1.2rem 0;"><h2 style="font-size:1.05rem;margin:0 0 .5rem;">${esc(rn)}の都道府県から探す</h2><nav aria-label="都道府県" style="display:flex;flex-wrap:wrap;">${__prefLinks}</nav></section>` : '';
   const canonical = `${SITE_BASE}/area/${encodeURI(rn)}/`;
   const title = `${rn}の動物園で会える赤ちゃん｜会える動物園とベビーまとめ | どうベビ`;
   const desc = `${rn}の動物園・水族館でいま会える赤ちゃんを${zm.size}園・${regionTotal}頭まとめて紹介。${[...regionSp].slice(0, 4).join('・')}など。お出かけ先選びの参考にどうぞ。`.slice(0, 160);
@@ -1973,6 +1980,7 @@ ${siteNav('/zoos/')}
     <p class="page-subtitle">${zm.size}園・${regionTotal}頭・${regionSp.size}種に会えます</p>
   </section>
   <p style="line-height:1.7;margin:1rem 0;">${esc(rn)}（${[...prefSet].slice(0, 8).map(esc).join('・')}）の動物園・水族館で、いま会いに行ける赤ちゃんをまとめました。気になる動物園を見つけて、会いに行く参考にどうぞ。</p>
+  ${prefNav}
   ${areaStatusSections(zm, slugMap)}
   <section style="margin:1.5rem 0;">
     ${areaZooBlocks(zm, slugMap)}
