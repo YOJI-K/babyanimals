@@ -3106,6 +3106,15 @@ async function main() {
   }
   console.log(`   ✅ ${newsCount} 件完了`);
 
+  // ── ニュースの孤児ページ掃除（古いビルド由来の堆積・noindex欠落ページを除去）──
+  // news個別ページは noindex かつサイトマップ除外、一覧からは外部記事へ直リンクで
+  // 内部被リンクが無いため、現ビルドで生成した集合以外は削除して検索上の損失なし。
+  // newsItems が空（取得失敗）の場合は何も削除しない。
+  if (newsItems.length > 0) {
+    const validNewsDirs = newsItems.filter(i => i.id).map(i => String(i.id));
+    pruneOrphanDirs(path.join(WEB_DIR, 'news'), validNewsDirs, 'ニュース');
+  }
+
   // ── 動物園個別ページ ──
   console.log(`\n🏛️  動物園個別ページ生成中 (${ZOOS.length} 園)...`);
   let zooCount = 0;

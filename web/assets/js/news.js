@@ -35,9 +35,12 @@
   let PAGE = 1;
   let all = [];      // サーバー配列
   let filtered = []; // 絞り込み結果
+  const SERVER_BATCH = 200;   // 1回のサーバー取得件数
+  let serverLoaded = 0;       // これまでにサーバーから取得した件数(offset用)
+  let serverEnd = false;      // サーバー側に追加データが無くなったらtrue
 
   // ===== Data =====
-  async function fetchFromSupabase() {
+  async function fetchFromSupabase(offset = 0) {
     const metaUrl = document.querySelector('meta[name="supabase-url"]')?.content?.trim();
     const metaKey = document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim();
     const SUPA_URL = (window.SUPABASE && (window.SUPABASE.URL || window.SUPABASE.SUPABASE_URL))
@@ -52,7 +55,8 @@
     const url = new URL(`${SUPA_URL}/rest/v1/news_feed_v2`);
     url.searchParams.set('select', 'id,title,url,published_at,source_name,source_url,thumbnail_url,kind,featured');
     url.searchParams.set('order', 'published_at.desc,id.desc');
-    url.searchParams.set('limit', '200');
+    url.searchParams.set('limit', String(SERVER_BATCH));
+    if (offset) url.searchParams.set('offset', String(offset));
 
     const res = await fetch(url.toString(), {
       headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
@@ -69,6 +73,20 @@
       if (!res.ok) throw 0;
       return res.json();
     } catch { return []; }
+  }
+
+  // サーバーから次のページ(過去側)を追加取得して all に継ぎ足す
+  async function loadMoreFromServer() {
+    if (serverEnd) return 0;
+    let batch = [];
+    try { batch = await fetchFromSupabase(serverLoaded); }
+    catch (e) { console.warn('[news] load more failed:', e); return 0; }
+    serverLoaded += batch.length;
+    if (batch.length < SERVER_BATCH) serverEnd = true;
+    const seen = new Set(all.map(x => x.id));
+    let added = 0;
+    for (const it of batch) { if (!seen.has(it.id)) { all.push(it); added++; } }
+    return added;
   }
 
   // ===== View helpers =====
@@ -163,7 +181,7 @@
 
     $empty.style.display = slice.length ? 'none' : 'block';
 
-    const hasMore = slice.length < filtered.length;
+    const hasMore = (slice.length < filtered.length) || !serverEnd;
     $more.style.display = hasMore ? 'inline-flex' : 'none';
     $more.disabled = !hasMore;
 
@@ -183,8 +201,13 @@
   $q?.addEventListener('input', debounce(() => { PAGE = 1; render(); }, 200));
   $source?.addEventListener('change', () => { PAGE = 1; render(); });
   $sort?.addEventListener('change', () => { PAGE = 1; render(); });
-  $more?.addEventListener('click', () => {
-  $more.classList.add('loading'); 
+  $more?.addEventListener('click', async () => {
+  $more.classList.add('loading');
+  // 表示に必要な件数が手元に不足し、サーバーにまだ続きがあれば追加取得
+  const needed = (PAGE + 1) * PAGE_SIZE;
+  if (needed > filtered.length && !serverEnd) {
+    await loadMoreFromServer();
+  }
   PAGE += 1;
   render();
 });
@@ -214,10 +237,13 @@
       $error.style.display = 'none';
 
       try {
-        all = await fetchFromSupabase();
+        all = await fetchFromSupabase(0);
+        serverLoaded = all.length;
+        if (all.length < SERVER_BATCH) serverEnd = true;
       } catch (e) {
         console.warn('[news] supabase error, try mock:', e);
         all = await fetchMock();
+        serverEnd = true;
       }
 
       PAGE = 1;
