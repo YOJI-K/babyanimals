@@ -1988,6 +1988,105 @@ ${siteFooter()}
 </html>`;
 }
 
+// ─── 都道府県別ページ（地域の検索クエリ「{県} 動物園 赤ちゃん」を狙う）───
+function areaPrefData(babies, minCount = 2) {
+  const prefRegion = {};
+  REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
+  const prefMap = new Map();
+  for (const b of babies) {
+    if (!b.prefecture || !b.zoo_name) continue;
+    if (!prefMap.has(b.prefecture)) prefMap.set(b.prefecture, new Map());
+    const zm = prefMap.get(b.prefecture);
+    if (!zm.has(b.zoo_name)) zm.set(b.zoo_name, { pref: b.prefecture, babies: [] });
+    zm.get(b.zoo_name).babies.push(b);
+  }
+  // しきい値（頭数）未満は薄いページになるため除外。県名＝地域名（北海道）は地域ページが
+  // 同URLを持つため都道府県ページは作らない（重複・上書き回避）。
+  for (const [p, zm] of [...prefMap]) {
+    const total = [...zm.values()].reduce((t, x) => t + x.babies.length, 0);
+    if (total < minCount || prefRegion[p] === p) prefMap.delete(p);
+  }
+  const order = [];
+  REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { if (prefMap.has(p)) order.push(p); }));
+  return { prefMap, order, prefRegion };
+}
+
+function areaPrefHtml(pref, zm, region, slugMap, siblingPrefs) {
+  const prefTotal = [...zm.values()].reduce((t, x) => t + x.babies.length, 0);
+  const prefSp = new Set(); zm.forEach(x => x.babies.forEach(b => b.species && prefSp.add(b.species)));
+  const canonical = `${SITE_BASE}/area/${encodeURI(pref)}/`;
+  const regionHref = `${SITE_BASE}/area/${encodeURI(region)}/`;
+  const title = `${pref}の動物園で会える赤ちゃん｜会える動物園とベビーまとめ | どうベビ`;
+  const desc = `${pref}の動物園・水族館でいま会える赤ちゃんを${zm.size}園・${prefTotal}頭まとめて紹介。${[...prefSp].slice(0, 4).join('・')}など。お出かけ先選びの参考にどうぞ。`.slice(0, 160);
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'CollectionPage',
+    name: `${pref}で会える動物園の赤ちゃん`, description: desc, url: canonical, inLanguage: 'ja',
+    isPartOf: { '@type': 'WebSite', name: 'どうベビ', url: SITE_BASE },
+  });
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: 'エリアから探す', item: `${SITE_BASE}/area/` },
+      { '@type': 'ListItem', position: 3, name: region, item: regionHref },
+      { '@type': 'ListItem', position: 4, name: pref, item: canonical },
+    ],
+  });
+  const faqItems = [
+    { q: `${pref}で今どんな赤ちゃんに会えますか？`, a: `このページに${pref}の動物園・水族館で会える赤ちゃんを園ごとにまとめています。気になる動物園のページから、公開状況や見どころを確認できます。` },
+    { q: '予約やチケットは必要ですか？', a: '多くの動物園は当日入園できますが、前売り券を用意しておくと当日スムーズです。混雑期は入場制限がある園もあるため、公式サイトで最新情報を確認してからのお出かけが安心です。' },
+    { q: '赤ちゃんは必ず見られますか？', a: '赤ちゃんは体調や月齢により非公開・公開前のことがあります。各動物園ページや公式サイトで公開状況を確認してからのお出かけをおすすめします。' },
+  ];
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
+  });
+  const visibleFaq = `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">❓ ${esc(pref)}のお出かけ前によくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
+  const siblings = (siblingPrefs || []).filter(x => x !== pref).map(x => `<a href="/area/${encodeURI(x)}/" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#f0f7f4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">${esc(x)}</a>`).join('');
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<script type="application/ld+json">${faqLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/zoos/')}
+<main class="container" id="main">
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/area/">エリアから探す</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/area/${encodeURI(region)}/">${esc(region)}</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">${esc(pref)}</span>
+  </nav>
+  <section class="page-hero">
+    <h1 class="page-title">${esc(pref)}で会える動物園の赤ちゃん</h1>
+    <p class="page-subtitle">${zm.size}園・${prefTotal}頭・${prefSp.size}種に会えます</p>
+  </section>
+  <p style="line-height:1.7;margin:1rem 0;">${esc(pref)}の動物園・水族館で、いま会いに行ける赤ちゃんをまとめました。気になる動物園を見つけて、会いに行く参考にどうぞ。<a href="/area/${encodeURI(region)}/" style="color:#0a7a5c;text-decoration:none;font-weight:700;">${esc(region)}全体で見る →</a></p>
+  ${areaStatusSections(zm, slugMap)}
+  <section style="margin:1.5rem 0;">
+    ${areaZooBlocks(zm, slugMap)}
+  </section>
+  ${visibleFaq}
+  ${genericAsoviewCta(`${esc(pref)}の動物園・水族館の電子チケット。当日窓口と同じ料金で、並ばず入園。`)}
+  ${siblings ? `<section style="margin:1.5rem 0;"><h2 style="font-size:1.1rem;margin:0 0 .6rem;">${esc(region)}のほかの都道府県</h2><nav aria-label="近隣県" style="display:flex;flex-wrap:wrap;">${siblings}</nav></section>` : ''}
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/area/">ほかの地域から探す →</a></p>
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 function speciesIndexHtml(babies, slugMap) {
   const grouped = new Map();
   for (const b of babies) {
@@ -2161,6 +2260,120 @@ ${siteFooter()}
 }
 
 
+// ─── 夏の特集ページ ──────────────────────────────────────
+
+function summerSpecialHtml(babies, slugMap) {
+  // 季節ウィンドウ: 2025-09〜2026-08 生まれ（夏に会える新しめのベビー）
+  const inWindow = (b) => {
+    if (!b.birthday) return false;
+    const m = b.birthday.match(/^(\d{4})-(\d{2})-/);
+    if (!m) return false;
+    const y = Number(m[1]), mo = Number(m[2]);
+    return (y === 2026 && mo >= 1 && mo <= 8) || (y === 2025 && mo >= 9);
+  };
+  const hasPhoto = (b) => !!b.thumbnail_url;
+  const byNewest = (a, b) => String(b.birthday).localeCompare(String(a.birthday));
+  const summerBabies = babies.filter(b => inWindow(b) && hasPhoto(b)).sort(byNewest);
+
+  const prefRegion = {};
+  REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
+  const regionMap = new Map();
+  for (const b of summerBabies) {
+    const rn = prefRegion[b.prefecture] || 'その他';
+    if (!regionMap.has(rn)) regionMap.set(rn, []);
+    regionMap.get(rn).push(b);
+  }
+  const regionOrder = REGIONS.map(([rn]) => rn).filter(rn => regionMap.has(rn));
+  if (regionMap.has('その他')) regionOrder.push('その他');
+
+  const speciesList = [...new Set(summerBabies.map(b => b.species).filter(Boolean))];
+  const speciesPhrase = speciesList.slice(0, 4).join('・') || '人気の動物';
+  const prefSet = new Set(summerBabies.map(b => b.prefecture).filter(Boolean));
+
+  const title = '2026年夏の動物園赤ちゃん特集 — 地域別・いま会えるベビーまとめ｜どうベビ';
+  const desc = `2026年夏、全国の動物園で会える赤ちゃん${summerBabies.length}頭を地域別にご紹介。${speciesPhrase}など、夏休みのお出かけに、いま会えるベビーを公開状況つきでまとめました。`.slice(0, 200);
+  const canonical = `${SITE_BASE}/specials/summer-2026/`;
+
+  const sections = regionOrder.map(rn => {
+    const list = regionMap.get(rn).sort(byNewest);
+    const cards = list.map(b => zooBabyCardHtml(b, slugMap)).join('');
+    return `<section style="margin:1.8rem 0;">
+      <h2 style="font-size:1.2rem;margin:0 0 1rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">📍 ${esc(rn)}で会える赤ちゃん <span style="font-size:.82rem;color:#888;font-weight:normal;">${list.length}頭</span></h2>
+      <div class="baby-grid">${cards}</div>
+    </section>`;
+  }).join('');
+
+  const faqItems = [
+    { q: '夏の動物園は赤ちゃんに会いやすいですか？', a: '夏は前年〜春に生まれた赤ちゃんがすくすく育ち、活発に動く姿を観察しやすい時期です。暑い日中は動物が日陰で休むことも多いので、開園直後の午前中の来園がおすすめです。' },
+    { q: '赤ちゃんは毎日会えますか？公開状況の見方は？', a: '各カードに「🟢 公開中（一般公開中）」「🟡 近日公開（一般公開前）」のバッジを表示しています。🟢 は通常展示で会えますが、体調・天候・季節で展示時間や場所が変わることがあります。おでかけ前に各動物園の公式サイトやSNSで当日の展示状況をご確認ください。' },
+    { q: '夏のお出かけで気をつけることは？', a: '熱中症対策として、帽子・水分・日陰での休憩をこまめに。屋内展示や水辺の動物を組み合わせると涼しく楽しめます。前売り券を用意しておくと当日スムーズです。' },
+    { q: '近くの動物園の赤ちゃんはどう探せますか？', a: 'このページは地域別にまとめています。さらに詳しく探すなら、エリア別ハブから全国の動物園と赤ちゃんを地域でしぼり込めます。' },
+  ];
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
+  });
+  const visibleFaq = `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">❓ 夏のお出かけ前によくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'Article',
+    headline: '2026年夏の動物園赤ちゃん特集 — 地域別ガイド',
+    description: desc, url: canonical,
+    datePublished: '2026-06-11', dateModified: new Date().toISOString().slice(0, 10),
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: canonical,
+  });
+  const extraJsonLd = `<script type="application/ld+json">${faqLd}</script>`;
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '特集', item: `${SITE_BASE}/specials/` },
+      { '@type': 'ListItem', position: 3, name: '2026年夏に会える赤ちゃん', item: canonical },
+    ],
+  });
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+  <section class="page-hero">
+    <h1 class="page-title">☀️ 2026年夏に会える<br>動物園の赤ちゃん</h1>
+    <p class="page-subtitle">全国 ${prefSet.size}都道府県・${summerBabies.length}頭の夏ベビーに会いに行こう</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.8;">
+    <p>夏休みのお出かけ先に、動物園の赤ちゃんはいかが？<strong>${esc(speciesPhrase)}</strong>──いま全国の動物園では、たくさんの赤ちゃんがすくすく育っています。</p>
+    <p>このページでは、写真つきの赤ちゃんを<strong>地域別</strong>にご紹介。各カードの<strong>公開状況バッジ</strong>で「いま会えるか」もひと目でわかります。暑い時季は午前中が見頃。お近くの動物園を見つけて、会いに行く参考にどうぞ。</p>
+    <p style="margin-top:.6rem;"><a href="/area/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">🗾 地域・エリアからもっと探す →</a></p>
+  </section>
+
+  ${sections || '<p>赤ちゃん情報を準備中です。</p>'}
+
+  ${genericAsoviewCta('お近くの動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
+
+  ${visibleFaq}
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
+
 /**
  * 特集ハブ: 絶滅危惧種の赤ちゃん特集（/specials/endangered/）
  * 在籍する絶滅危惧種（IUCN: CR/EN/VU/NT）の赤ちゃんを保全ランク順に紹介する
@@ -2285,6 +2498,13 @@ function specialsIndexHtml(babies) {
     const y = Number(m[1]); const mo = Number(m[2]);
     return (y === 2026 && mo >= 1 && mo <= 5) || (y === 2025 && mo >= 7);
   }).length;
+  const summerCount = babies.filter(b => {
+    if (!b.birthday) return false;
+    const m = b.birthday.match(/^(\d{4})-(\d{2})-/);
+    if (!m) return false;
+    const y = Number(m[1]); const mo = Number(m[2]);
+    return (y === 2026 && mo >= 1 && mo <= 8) || (y === 2025 && mo >= 9);
+  }).length;
 
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -2296,6 +2516,12 @@ function specialsIndexHtml(babies) {
   });
 
   const features = [
+    {
+      href: '/specials/summer-2026/',
+      emoji: '☀️',
+      heading: '2026年夏の動物園赤ちゃん特集',
+      text: `夏休みのお出かけに、いま全国で会える夏ベビー${summerCount}頭を地域別にピックアップ。`,
+    },
     {
       href: '/specials/endangered/',
       emoji: '🌍',
@@ -2374,6 +2600,7 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/">📚 特集・まとめ記事一覧</a></li>
       <li><a href="/specials/endangered/">🌍 絶滅危惧種の赤ちゃん特集</a></li>
       <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
+      <li><a href="/specials/summer-2026/">☀️ 2026年夏の動物園赤ちゃん特集</a></li>
       <li><a href="/news/">ニュース一覧</a></li>
       <li><a href="/calendar/">誕生日カレンダー</a></li>
       <li><a href="/area/">エリア（地域）から探す</a></li>
@@ -2445,6 +2672,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/species/`,                  priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/area/`,                     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/spring-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/summer-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
   ];
@@ -2483,7 +2711,12 @@ function buildSitemap(babies, newsItems, slugMap) {
     loc: `${SITE_BASE}/area/${rn}/`, priority: '0.8', changefreq: 'weekly', lastmod: today,
   }));
 
-  const allUrls = [...staticUrls, ...zooUrls, ...speciesUrls, ...areaUrls, ...babyUrls]; // news個別はnoindexのためサイトマップ除外
+  const __pd = areaPrefData(babies, 2);
+  const prefUrls = __pd.order.map(p => ({
+    loc: `${SITE_BASE}/area/${p}/`, priority: '0.7', changefreq: 'weekly', lastmod: today,
+  }));
+
+  const allUrls = [...staticUrls, ...zooUrls, ...speciesUrls, ...areaUrls, ...prefUrls, ...babyUrls]; // news個別はnoindexのためサイトマップ除外
   const entries = allUrls.map(u => `  <url>
     <loc>${encodeURI(u.loc)}</loc>
     <lastmod>${u.lastmod}</lastmod>
@@ -2704,6 +2937,17 @@ function patchIndexHtml(babies, newsItems, slugMap) {
   ]);
 
   const __hero = heroBirthdayHtml(babies, slugMap);
+  // 案1: 季節で「今の特集」カードを自動切替（春→夏→秋→冬）。特集が増えてもトップは3カード維持。
+  const __mon = new Date().getMonth() + 1;
+  let __ss;
+  if (__mon >= 3 && __mon <= 5)      __ss = { href: './specials/spring-2026/', emoji: '🌸', label: '2026年春の<br>赤ちゃん特集' };
+  else if (__mon >= 6 && __mon <= 8) __ss = { href: './specials/summer-2026/', emoji: '☀️', label: '2026年夏の<br>赤ちゃん特集' };
+  else                               __ss = { href: './specials/', emoji: '📚', label: '季節の<br>赤ちゃん特集' };
+  const __seasonCard = `<a href="${__ss.href}" style="display:block;padding:14px 12px;border-radius:14px;background:linear-gradient(135deg,#ffd6e7,#fff1d4);text-decoration:none;color:#5a3a3a;">
+          <div style="font-size:1.6rem;line-height:1;">${__ss.emoji}</div>
+          <div style="font-weight:700;margin-top:4px;font-size:0.95rem;">${__ss.label}</div>
+        </a>`;
+  html = patchSection(html, 'seasonspecial', __seasonCard);
   html = patchSection(html, 'hero', __hero.html);
   html = patchSection(html, 'heromonth', __hero.label);
   html = patchSection(html, 'recent', `\n${recentHtml}\n`);
@@ -3171,10 +3415,25 @@ async function main() {
   }
   console.log('   ✅ /area/ 出力');
 
+  // ── 都道府県別ページ（2頭以上・地域の検索クエリ狙い）──
+  console.log('\n🗾 都道府県別ページ生成中...');
+  const __prefData = areaPrefData(babies, 2);
+  for (const __pref of __prefData.order) {
+    const __region = __prefData.prefRegion[__pref] || '';
+    const __siblings = __prefData.order.filter(p => __prefData.prefRegion[p] === __region);
+    writeHtml(path.join(WEB_DIR, 'area', __pref, 'index.html'), areaPrefHtml(__pref, __prefData.prefMap.get(__pref), __region, slugMap, __siblings));
+  }
+  console.log(`   ✅ 都道府県 ${__prefData.order.length}件 出力`);
+
   // ── 春の特集ページ ──
   console.log('\n🌸 2026年春特集ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'spring-2026', 'index.html'), springSpecialHtml(babies, slugMap));
   console.log(`   ✅ /specials/spring-2026/ 出力`);
+
+  // ── 夏の特集ページ ──
+  console.log('\n☀️ 2026年夏特集ページ生成中...');
+  writeHtml(path.join(WEB_DIR, 'specials', 'summer-2026', 'index.html'), summerSpecialHtml(babies, slugMap));
+  console.log(`   ✅ /specials/summer-2026/ 出力`);
 
   // ── 絶滅危惧種の赤ちゃん特集ページ ──
   console.log('\n🌍 絶滅危惧種特集ページ生成中...');
