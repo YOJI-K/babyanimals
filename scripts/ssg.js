@@ -2178,6 +2178,47 @@ ${siteFooter()}
 </html>`;
 }
 
+// ─── 特集の相互リンク＆注目動物園（流入: 勝ち頭の評価循環＋zooページ押し上げ）──
+
+// 季節特集どうしの相互リンク（評価の循環＋季節をまたいだ回遊）
+function seasonCrossNav(current) {
+  const all = [
+    { key: 'spring', href: '/specials/spring-2026/', label: '\u{1F338} 2026年春の赤ちゃん特集' },
+    { key: 'summer', href: '/specials/summer-2026/', label: '☀️ 2026年夏の赤ちゃん特集' },
+  ];
+  const chips = all.filter(x => x.key !== current).map(x =>
+    `<a href="${x.href}" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">${x.label} →</a>`
+  ).join('');
+  return `<section style="margin:1.8rem 0;padding:1rem 1.2rem;background:rgba(255,255,255,0.55);border-radius:14px;">
+    <h2 style="font-size:1.05rem;margin:0 0 .6rem;">ほかの季節の赤ちゃん特集もチェック</h2>
+    <nav aria-label="季節特集" style="display:flex;flex-wrap:wrap;">${chips}<a href="/specials/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#0a7a5c;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:.92rem;">\u{1F4DA} 特集をすべて見る →</a></nav>
+  </section>`;
+}
+
+// 特集（高評価ページ）から各動物園ページへ内部リンクを流す「注目の動物園」ブロック
+function featuredZoosBlock(babies) {
+  const byZoo = new Map();
+  for (const b of babies) {
+    if (!b.thumbnail_url) continue;
+    if (b.display_status === 'pre') continue;
+    const zname = b.zoo_name;
+    if (!zname) continue;
+    const z = ZOOS.find(x => x.db_name === zname);
+    if (!z) continue;
+    if (!byZoo.has(z.slug)) byZoo.set(z.slug, { name: z.name, count: 0 });
+    byZoo.get(z.slug).count++;
+  }
+  const zoos = [...byZoo.entries()].sort((a, b) => b[1].count - a[1].count).slice(0, 12);
+  if (!zoos.length) return '';
+  const chips = zoos.map(([slug, z]) =>
+    `<a href="/zoos/${esc(slug)}/" style="display:inline-block;padding:.5rem .95rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:12px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">${esc(z.name)}の赤ちゃん <span style="color:#888;font-weight:normal;font-size:.8rem;">${z.count}頭</span></a>`
+  ).join('');
+  return `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{1F4CD} 赤ちゃんに会える注目の動物園</h2>
+    <nav aria-label="注目の動物園" style="display:flex;flex-wrap:wrap;">${chips}</nav>
+  </section>`;
+}
+
 // ─── 春の特集ページ ──────────────────────────────────────
 
 function springSpecialHtml(babies, slugMap) {
@@ -2282,9 +2323,13 @@ ${siteNav('/')}
 
   ${sections || '<p>赤ちゃん情報を準備中です。</p>'}
 
+  ${featuredZoosBlock(babies)}
+
   ${genericAsoviewCta('お近くの動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
 
   ${visibleFaq}
+
+  ${seasonCrossNav('spring')}
 
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
 
@@ -2396,9 +2441,13 @@ ${siteNav('/')}
 
   ${sections || '<p>赤ちゃん情報を準備中です。</p>'}
 
+  ${featuredZoosBlock(babies)}
+
   ${genericAsoviewCta('お近くの動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
 
   ${visibleFaq}
+
+  ${seasonCrossNav('summer')}
 
   <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
 
