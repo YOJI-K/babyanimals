@@ -272,6 +272,18 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd, extraMeta, extraJso
 </head>`;
 }
 
+
+// ─── 代表OG画像の選定（Discover/SNSのCTR向上：ページ内容に合った実写真を使う）──
+function pickOgPhoto(list) {
+  for (const b of (list || [])) { if (b && b.thumbnail_url) return b.thumbnail_url; }
+  return undefined;
+}
+function zmPhoto(zm) {
+  if (!zm) return undefined;
+  for (const x of zm.values()) { const p = pickOgPhoto(x && x.babies); if (p) return p; }
+  return undefined;
+}
+
 function siteHeader() {
   return `<header class="site-header site-header--candy">
   <div class="site-header__left">
@@ -1209,7 +1221,7 @@ function zooHtml(zoo, babies, slugMap = null) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd })}
+${htmlHead({ ogImage: pickOgPhoto(zooBabies), title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/zoos/')}
@@ -1733,7 +1745,7 @@ function speciesHtml(species, babies, slugMap) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd: speciesExtraJsonLd })}
+${htmlHead({ ogImage: pickOgPhoto(speciesBabies), title, desc, canonical, jsonLd, extraJsonLd: speciesExtraJsonLd })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
@@ -1989,7 +2001,7 @@ function areaRegionHtml(rn, zm, totalBabies, slugMap, order) {
   const otherRegions = (order || []).filter(x => x !== rn).map(x => `<a href="/area/${encodeURI(x)}/" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#f0f7f4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">${esc(x)}</a>`).join('');
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd })}
+${htmlHead({ ogImage: zmPhoto(zm), title, desc, canonical, jsonLd })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <script type="application/ld+json">${faqLd}</script>
 <body class="theme">
@@ -2087,7 +2099,7 @@ function areaPrefHtml(pref, zm, region, slugMap, siblingPrefs) {
   const siblings = (siblingPrefs || []).filter(x => x !== pref).map(x => `<a href="/area/${encodeURI(x)}/" style="display:inline-block;padding:.35rem .8rem;margin:.2rem;background:#f0f7f4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-size:.9rem;">${esc(x)}</a>`).join('');
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd })}
+${htmlHead({ ogImage: zmPhoto(zm), title, desc, canonical, jsonLd })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <script type="application/ld+json">${faqLd}</script>
 <body class="theme">
@@ -2304,7 +2316,7 @@ function springSpecialHtml(babies, slugMap) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd })}
+${htmlHead({ ogImage: pickOgPhoto(springBabies), title, desc, canonical, jsonLd, extraJsonLd })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
@@ -2422,7 +2434,7 @@ function summerSpecialHtml(babies, slugMap) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd, extraJsonLd })}
+${htmlHead({ ogImage: pickOgPhoto(summerBabies), title, desc, canonical, jsonLd, extraJsonLd })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
@@ -2527,7 +2539,7 @@ function endangeredSpecialHtml(babies, slugMap) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, canonical, jsonLd })}
+${htmlHead({ ogImage: pickOgPhoto(targets), title, desc, canonical, jsonLd })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/')}
