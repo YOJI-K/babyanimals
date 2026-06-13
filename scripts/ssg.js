@@ -3112,7 +3112,7 @@ function patchIndexHtml(babies, newsItems, slugMap) {
   // ヒーロー画像をDBの実写真へ差し替え（PROP-20260613-01 P2#7・名前確定優先/最新誕生・読込失敗時は従来画像）
   const HERO_FALLBACK_IMG = 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80';
   const heroCand = [...babies]
-    .filter(b => b.thumbnail_url && b.birthday)
+    .filter(b => b.thumbnail_url && b.birthday && !/gstatic\.com|encrypted-tbn/.test(b.thumbnail_url))
     .sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)));
   const heroBaby = heroCand.find(b => displayBabyName(b) !== PROVISIONAL_BABY_NAME) || heroCand[0];
   if (heroBaby) {
