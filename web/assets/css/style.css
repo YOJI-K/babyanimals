@@ -2780,3 +2780,71 @@ body.theme{ background: var(--bg); }
 .fav-btn--detail.is-on .fav-heart path{ fill:#fff; stroke:#fff; }
 .fav-btn--detail.is-on::after{ content:"お気に入り登録済み"; }
 .fav-btn--detail:active{ transform:scale(.98); }
+
+/* ================================================================== */
+/* PROP-20260613-01 UI改善パッケージ                                   */
+/* ================================================================== */
+
+/* P1#3: なまえ募集中バッジ */
+.dbb-badge--naming{ background:#fff4e5; color:#b45309; }
+.dbb-badge--naming .dbb-badge__dot{ background:#f59e0b; }
+
+/* P1#1: 行カード/カレンダーのプレースホルダにもカード同様のやさしい背景 */
+.dbb-brow__thumb.is-placeholder,
+.cal-thumb.is-placeholder{
+  background: linear-gradient(135deg,#ecfdf5 0%,#fefce8 100%);
+}
+
+/* P2#8: 詳細ページ クイックチケット導線（控えめ） */
+.quick-ticket{ margin:.55rem 0 .15rem; font-size:.92rem; }
+.quick-ticket a{
+  color:#0a7a5c; font-weight:700; text-decoration:none;
+  border-bottom:1px dashed rgba(10,122,92,.4);
+}
+.quick-ticket__pr{
+  margin-left:6px; font-size:.72em; color:#999;
+  border:1px solid #ccc; border-radius:4px; padding:0 4px; vertical-align:1px;
+}
+
+/* P2#9: 外部リンクマーク */
+.dbb-ext{ font-size:.8em; opacity:.55; }
+
+/* P2#10: ヘッダー検索ボタン＋オーバーレイ */
+.search-btn{
+  display:inline-grid; place-items:center;
+  width:34px; height:34px; margin-right:10px;
+  border:none; border-radius:50%;
+  background:rgba(255,255,255,.14); color:#fff; cursor:pointer;
+}
+.search-btn:hover{ background:rgba(255,255,255,.26); }
+.search-btn__icon{ width:18px; height:18px; }
+.srch{
+  position:fixed; inset:0; z-index:200; display:none;
+  background:rgba(15,40,30,.45); backdrop-filter:blur(2px);
+}
+.srch.is-open{ display:block; }
+.srch__panel{
+  width:min(560px, calc(100% - 24px)); margin:8vh auto 0;
+  background:#fff; border-radius:16px; padding:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,.25);
+}
+.srch__bar{ display:flex; gap:8px; }
+.srch__input{ flex:1; font-size:16px; padding:10px 12px; border:2px solid #0a7a5c; border-radius:10px; }
+.srch__close{ border:none; background:#f0f4f2; border-radius:10px; width:42px; cursor:pointer; font-size:15px; }
+.srch__hint{ font-size:12px; color:#888; margin:6px 2px 4px; }
+.srch__list{ max-height:55vh; overflow-y:auto; margin-top:4px; }
+.srch__item{ display:flex; align-items:center; gap:8px; padding:9px 8px; border-radius:10px; text-decoration:none; color:#234; }
+.srch__item:hover{ background:#f0f7f4; }
+.srch__type{ flex-shrink:0; }
+.srch__name{ font-weight:700; flex-shrink:0; }
+.srch__sub{ font-size:12px; color:#7a8a93; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.srch__empty{ text-align:center; color:#888; padding:14px 0; }
+.srch-lock{ overflow:hidden; }
+
+/* P2#6: デスクトップ活用（560px固定列→880pxまで拡幅・既存gridを解放） */
+@media (min-width: 960px){
+  .container{ width:min(880px, 100%); }
+  .dbb-rail{ flex-wrap:wrap; overflow-x:visible; }
+  .dbb-nlist{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  #recent-list.dbb-brow-list, #recent-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; }
+}

@@ -107,10 +107,15 @@
     return base('pill--web', '🌐 Web');
   }
 
+  /** ソース由来ノイズ（「画像8 / 10＞」等）を見出しから除去（PROP-20260613-01 P2#9） */
+  function cleanNewsTitle(t) {
+    return String(t || '').replace(/^画像\s*\d+\s*[\/／]\s*\d+\s*[＞>〉]\s*/, '').trim() || '(無題)';
+  }
+
   function cardHTML(item) {
     const dateStr = fmtDate(item.published_at);
     const host = item.source_name || domain(item.url) || '';
-    const title = item.title || '(無題)';
+    const title = cleanNewsTitle(item.title);
     const href = item.url || item.source_url || '#';
     const hasImg = !!item.thumbnail_url;
     const cat = categorize(title);
@@ -118,10 +123,10 @@
     return `
       <a href="${href}" class="news-card" target="_blank" rel="noopener" aria-label="${title.replace(/"/g,'&quot;')}">
         <div class="thumb ${hasImg ? '' : 'is-placeholder'}">
-          ${hasImg ? `<img src="${item.thumbnail_url}" loading="lazy" decoding="async" alt="${title.replace(/"/g,'&quot;')}">` : ''}
+          ${hasImg ? `<img src="${item.thumbnail_url}" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="${title.replace(/"/g,'&quot;')}" onerror="this.parentNode.classList.add('is-placeholder'); this.remove();">` : ''}
         </div>
         <div class="pad">
-          <div class="title">${title}</div>
+          <div class="title">${title} <span class="dbb-ext" aria-hidden="true">↗</span></div>
           <div class="meta">
             <span>${dateStr}</span><span class="dot"></span><span>${host}</span><span class="dot"></span>${sourcePill(item)}
             <span class="pill" style="color:${cat.color};border-color:${cat.border}">${cat.tag}</span>

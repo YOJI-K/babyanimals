@@ -140,6 +140,20 @@ function displayBabyName(b) {
   return n;
 }
 
+/** カード見出し：なまえ待ちは種名主役で表示（PROP-20260613-01 P1#3） */
+function babyCardHeading(b) {
+  const n = displayBabyName(b);
+  if (n === PROVISIONAL_BABY_NAME && b && b.species) return `${b.species}のなまえ待ちベビー`;
+  return n;
+}
+
+/** なまえ募集中バッジ（名前未確定のみ） */
+function namingBadgeHtml(b) {
+  return displayBabyName(b) === PROVISIONAL_BABY_NAME
+    ? '<span class="dbb-badge dbb-badge--naming"><span class="dbb-badge__dot"></span>なまえ募集中</span>'
+    : '';
+}
+
 // ─── slug ユーティリティ ────────────────────────────────────────────
 
 function slugify(str) {
@@ -295,6 +309,9 @@ function siteHeader() {
     </a>
   </div>
   <div class="site-header__right">
+    <button class="search-btn" type="button" data-search-open aria-label="サイト内検索">
+      <svg class="search-btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
+    </button>
     <a class="fav-hdr" href="/favorites/" aria-label="お気に入り">
       <svg class="fav-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       <span class="fav-hdr__badge" style="display:none">0</span>
@@ -329,7 +346,8 @@ function siteFooter() {
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
-<script defer src="/assets/js/favorites.js"></script>`;
+<script defer src="/assets/js/favorites.js"></script>
+<script defer src="/assets/js/search.js"></script>`;
 }
 
 // ─── 動物園アフィリエイトデータ ──────────────────────────────────────
@@ -506,6 +524,13 @@ const SPECIES_INFO = {
   },
 };
 
+/** ファーストビュー直下の控えめチケット導線（PROP-20260613-01 P2#8） */
+function quickTicketHtml(zooName) {
+  const data = ZOO_AFFILIATE_MAP[zooName];
+  const url  = (data && data.asoview_url) ? data.asoview_url : asoviewAffiliate();
+  return `<p class="quick-ticket"><a href="${esc(url)}" target="_blank" rel="noopener sponsored" data-link-type="ticket-quick" data-zoo-name="${esc(zooName)}">🎟️ ${esc(zooName)}のチケットを見る</a><span class="quick-ticket__pr">広告</span></p>`;
+}
+
 /** 動物園リンクボタン HTML を生成（ssg.js 用） */
 function zooLinksHtml(zooName, animalName) {
   const data = ZOO_AFFILIATE_MAP[zooName];
@@ -666,7 +691,7 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   });
 
   const thumbHtml = b.thumbnail_url
-    ? `<img class="ssg-detail__img" src="${esc(b.thumbnail_url)}" alt="${esc(name)}（${esc(species)}）" loading="eager" decoding="async" data-allow-big>`
+    ? `<img class="ssg-detail__img" src="${esc(b.thumbnail_url)}" alt="${esc(name)}（${esc(species)}）" loading="eager" decoding="async" data-allow-big referrerpolicy="no-referrer">`
     : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`;
 
   // 同じ動物園の赤ちゃん（最大6件）
@@ -885,6 +910,7 @@ ${siteNav('/babies/')}
         <span class="pill">🎂 ${esc(bdayFmt) || '—'}</span>
         <span class="pill pill--age-${ageSuffix(b.birthday)}">🎈 ${esc(age)}</span>
       </div>
+      ${quickTicketHtml(zoo)}
       <p class="ssg-detail__desc">
         ${esc(zoo)}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${esc(species)}の赤ちゃん「${esc(name)}」の情報ページです。
         誕生日は${esc(bdayFmt) || '不明'}、現在${esc(age)}。
@@ -1043,6 +1069,7 @@ function favBtnHtml(id, species){
 
 function zooBabyCardHtml(b, slugMap = null) {
   const name     = displayBabyName(b);
+  const heading  = babyCardHeading(b);
   const species  = b.species || '不明';
   const hasSp    = !!b.species;
   const zoo      = b.zoo_name || '園情報なし';
@@ -1051,7 +1078,7 @@ function zooBabyCardHtml(b, slugMap = null) {
   const slug     = slugMap?.get(b.id) || b.id;
   const href     = `/babies/${slug}/`;
   const thumb    = b.thumbnail_url
-    ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
+    ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
     : '';
   const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
 
@@ -1059,11 +1086,11 @@ function zooBabyCardHtml(b, slugMap = null) {
     <a class="dbb-bc" role="listitem" href="${href}" aria-label="${esc(name)}（${esc(species)}、${esc(zoo)}）の詳細">
       <div class="${thumbCls}">${thumb}${favBtnHtml(b.id, species)}${age != null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
       <div class="dbb-bc__body">
-        <div class="dbb-bc__name">${esc(name)}</div>
+        <div class="dbb-bc__name">${esc(heading)}</div>
         <div class="dbb-bc__species">${esc(species)}</div>
         <div class="dbb-bc__zoo">📍 ${esc(zoo)}</div>
         <div class="dbb-bc__bday">🎂 ${esc(date)}</div>
-        <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}</div>
+        <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}${namingBadgeHtml(b)}</div>
       </div>
     </a>${hasSp ? `
     <a class="baby-card__species" href="/species/${esc(species)}/" style="display:block;padding:.1rem .9rem .7rem;font-size:.8rem;color:#0a7a5c;text-decoration:none;">\u{1F43E} ${esc(species)}の仲間をもっと見る →</a>` : ''}
@@ -1115,7 +1142,12 @@ function zooStoryHtml(zoo, zooBabies) {
   }
   if (newest && newest.birthday) {
     const y = new Date(newest.birthday).getFullYear();
-    lines.push(`もっとも新しく仲間入りしたのは${y}年${seasonOf(newest.birthday)}生まれの${esc(newest.species || '動物')}の赤ちゃん「${esc(newest.name)}」。すくすくと成長する姿が見られます。`);
+    const newestDisp = displayBabyName(newest);
+    if (newestDisp === PROVISIONAL_BABY_NAME) {
+      lines.push(`もっとも新しく仲間入りしたのは${y}年${seasonOf(newest.birthday)}生まれの${esc(newest.species || '動物')}の赤ちゃん（なまえ募集中）。すくすくと成長する姿が見られます。`);
+    } else {
+      lines.push(`もっとも新しく仲間入りしたのは${y}年${seasonOf(newest.birthday)}生まれの${esc(newest.species || '動物')}の赤ちゃん「${esc(newestDisp)}」。すくすくと成長する姿が見られます。`);
+    }
   }
   if (endangered.length > 0) {
     lines.push(`なかでも${endangered.slice(0, 3).map(esc).join('・')}は野生での生息数が減少している希少種で、${esc(zoo.name)}での誕生は種の保全にとっても大切な一歩です。`);
@@ -1141,14 +1173,16 @@ function zooHtml(zoo, babies, slugMap = null) {
   const count = zooBabies.length;
   // baby 0頭でも動物園情報(住所/営業/料金/FAQ)は十分なため index する（PROP-20260604-02）。0頭時は関連リンクで補強。
   const isThinZoo = count === 0;
-  const sampleNames = zooBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
+  const sampleList  = zooBabies.map(b => displayBabyName(b)).filter(n => n && n !== PROVISIONAL_BABY_NAME).slice(0, 3);
+  const sampleNames = sampleList.join('・');
+  const sampleLead  = sampleNames ? `${sampleNames}${count > sampleList.length ? 'など' : ''}` : '';
 
   // SEO: 「○○ 赤ちゃん」検索でヒットしやすい title（コアキーワード前置）
   const title = count > 0
     ? `${zoo.name}の赤ちゃん動物｜現在${count}頭の公開状況・最新情報 | どうベビ`
     : `${zoo.name}の赤ちゃん情報 | どうベビ`;
   const desc = count > 0
-    ? `${zoo.name}の赤ちゃん動物の最新情報。${sampleNames}${count > 3 ? 'など' : ''}${count}頭の赤ちゃんが暮らしています。誕生日・種類・写真をまとめて掲載。${zoo.description ? zoo.description.slice(0, 60) : ''}`.slice(0, 160)
+    ? `${zoo.name}の赤ちゃん動物の最新情報。${sampleLead}${count}頭の赤ちゃんが暮らしています。誕生日・種類・写真をまとめて掲載。${zoo.description ? zoo.description.slice(0, 60) : ''}`.slice(0, 160)
     : `${zoo.name}の赤ちゃん動物情報。入園料・営業時間・アクセスもまとめて掲載。${zoo.description || ''}`.slice(0, 160);
   const canonical = `${SITE_BASE}/zoos/${zoo.slug}/`;
 
@@ -1192,7 +1226,7 @@ function zooHtml(zoo, babies, slugMap = null) {
         acceptedAnswer: {
           '@type': 'Answer',
           text: count > 0
-            ? `${zoo.name}には現在${count}頭の赤ちゃん動物が暮らしています。${sampleNames ? `代表的なのは${sampleNames}${count > 3 ? 'など' : ''}` : ''}。最新の誕生情報は本ページで随時更新しています。`
+            ? `${zoo.name}には現在${count}頭の赤ちゃん動物が暮らしています。${sampleNames ? `代表的なのは${sampleLead}。` : ''}最新の誕生情報は本ページで随時更新しています。`
             : `現在${zoo.name}の赤ちゃん動物の登録はありません。新しい情報が入り次第このページで掲載します。`,
         },
       },
@@ -1456,24 +1490,25 @@ function babiesIndexHtml(babies, slugMap = null) {
 
   const cards = preview.map(b => {
     const name    = displayBabyName(b);
+    const heading = babyCardHeading(b);
     const species = b.species || '不明';
     const zoo     = b.zoo_name || '園情報なし';
     const a       = calcAgeYears(b.birthday);
     const date    = fmtBirthdayYMD(b.birthday);
     const bSlug   = slugMap?.get(b.id) || b.id;
     const thumb = b.thumbnail_url
-      ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
+      ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
       : '';
     const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
     return `<div class="baby-card baby-card--v2">
         <a class="dbb-bc" role="listitem" href="/babies/${esc(bSlug)}/" aria-label="${esc(name)}（${esc(species)}、${esc(zoo)}）の詳細">
           <div class="${thumbCls}">${thumb}${a != null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
           <div class="dbb-bc__body">
-            <div class="dbb-bc__name">${esc(name)}</div>
+            <div class="dbb-bc__name">${esc(heading)}</div>
             <div class="dbb-bc__species">${esc(species)}</div>
             <div class="dbb-bc__zoo">📍 ${esc(zoo)}</div>
             <div class="dbb-bc__bday">🎂 ${esc(date)}</div>
-            <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}</div>
+            <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}${namingBadgeHtml(b)}</div>
           </div>
         </a>
       </div>`;
@@ -1589,7 +1624,7 @@ function newsIndexHtml(newsItems) {
     return `<a class="news-card" href="${esc(item.url || '#')}" target="_blank" rel="noopener noreferrer">
         <div class="thumb">${thumbHtml}</div>
         <div class="pad">
-          <div class="title">${esc(item.title || '(無題)')}</div>
+          <div class="title">${esc(cleanNewsTitle(item.title))} <span class="dbb-ext" aria-hidden="true">↗</span></div>
           <div class="meta">
             <span>${esc(date)}</span>
             ${item.source_name ? `<span class="dot"></span><span>${esc(item.source_name)}</span>` : ''}
@@ -1680,13 +1715,15 @@ function speciesHtml(species, babies, slugMap) {
   </section>` : '';
   const speciesBabies = babies.filter(b => b.species === species);
   const count = speciesBabies.length;
-  const sampleNames = speciesBabies.slice(0, 3).map(b => b.name).filter(Boolean).join('・');
+  const sampleList  = speciesBabies.map(b => displayBabyName(b)).filter(n => n && n !== PROVISIONAL_BABY_NAME).slice(0, 3);
+  const sampleNames = sampleList.join('・');
+  const sampleLead  = sampleNames ? `${sampleNames}${count > sampleList.length ? 'など' : ''}` : '';
   const zooSet = new Set(speciesBabies.map(b => b.zoo_name).filter(Boolean));
   const slug = encodeURI(species);  // 日本語URL用（% は二重エンコード防止のため使わない）
 
   const title = `${species}の赤ちゃん（${zooSet.size}園・${count}頭）| どうベビ`;
   const desc = (count > 0
-    ? `動物園にいる${species}の赤ちゃんをまとめて紹介。${sampleNames}${count > 3 ? 'など' : ''}${count}頭が全国${zooSet.size}園で暮らしています。${info ? info.desc.slice(0, 80) + '…' : ''}`
+    ? `動物園にいる${species}の赤ちゃんをまとめて紹介。${sampleLead}${count}頭が全国${zooSet.size}園で暮らしています。${info ? info.desc.slice(0, 80) + '…' : ''}`
     : `${species}の赤ちゃんを動物園で探す。${info ? info.desc.slice(0, 140) + '…' : ''}`
   ).slice(0, 160);
   const canonical = `${SITE_BASE}/species/${slug}/`;
@@ -2863,6 +2900,11 @@ ${entries}
 // ─── 静的ページ差分注入ヘルパー ────────────────────────────────────────
 
 /** SSGマーカー間のコンテンツを置換する */
+/** ソース由来ノイズ（「画像8 / 10＞」等）をニュース見出しから除去（PROP-20260613-01 P2#9） */
+function cleanNewsTitle(t) {
+  return String(t || '').replace(/^画像\s*\d+\s*[\/／]\s*\d+\s*[＞>〉]\s*/, '').trim() || '(無題)';
+}
+
 function patchSection(html, sectionName, newContent) {
   const re = new RegExp(`<!--SSG:${sectionName}:start-->[\\s\\S]*?<!--SSG:${sectionName}:end-->`, 'g');
   return html.replace(re, `<!--SSG:${sectionName}:start-->${newContent}<!--SSG:${sectionName}:end-->`);
@@ -2975,6 +3017,7 @@ function heroBirthdayHtml(babies, slugMap) {
   list = [...list].sort((a, b) => a.birthday.localeCompare(b.birthday));
   const cards = list.map(b => {
     const name = esc(displayBabyName(b));
+    const heading = esc(babyCardHeading(b));
     const sp   = esc(b.species || '不明');
     const zoo  = esc(b.zoo_name || '園情報なし');
     const slug = slugMap?.get(b.id) || b.id;
@@ -2982,17 +3025,17 @@ function heroBirthdayHtml(babies, slugMap) {
     const a    = ageOn(b.birthday, ref);
     const date = fmtBirthdayYMD(b.birthday);
     const thumb = b.thumbnail_url
-      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async">`
+      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
       : '';
     const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
     return `<a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${sp}）">
   <div class="${thumbCls}">${thumb}${a != null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
   <div class="dbb-bc__body">
-    <div class="dbb-bc__name">${name}</div>
+    <div class="dbb-bc__name">${heading}</div>
     <div class="dbb-bc__species">${sp}</div>
     <div class="dbb-bc__zoo">📍 ${zoo}</div>
     <div class="dbb-bc__bday">🎂 ${date}</div>
-    <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}</div>
+    <div class="dbb-bc__status">${displayStatusBadge(b.display_status)}${namingBadgeHtml(b)}</div>
   </div>
 </a>`;
   }).join('\n');
@@ -3012,19 +3055,20 @@ function patchIndexHtml(babies, newsItems, slugMap) {
 
   const recentHtml = recentBabies.map(b => {
     const name    = esc(displayBabyName(b));
+    const heading = esc(babyCardHeading(b));
     const species = esc(b.species || '不明');
     const zoo     = esc(b.zoo_name || '');
     const slug    = slugMap?.get(b.id) || b.id;
     const href    = `/babies/${slug}/`;
     const emoji   = pickEmoji(b.species);
     const thumb   = b.thumbnail_url
-      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async">`
+      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('is-placeholder');this.parentNode.textContent='${emoji}';">`
       : emoji;
     const ago     = agoLabel(b.birthday);
     return `<a class="dbb-brow" href="${href}" role="listitem">
   <div class="dbb-brow__thumb">${thumb}</div>
   <div class="dbb-brow__info">
-    <div class="dbb-brow__name">${name}</div>
+    <div class="dbb-brow__name">${heading}</div>
     <div class="dbb-brow__species">${species}</div>
     ${zoo ? `<div class="dbb-brow__zoo">📍 ${zoo}</div>` : ''}
   </div>
@@ -3036,7 +3080,7 @@ function patchIndexHtml(babies, newsItems, slugMap) {
   const recentNews = newsItems.slice(0, 3);
   const newsHtml = recentNews.map(item => {
     const cat   = categorizeNews(item.title);
-    const title = esc(item.title || '(無題)');
+    const title = esc(cleanNewsTitle(item.title));
     const href  = esc(item.url || '#');
     const date  = fmtDate(item.published_at);
     const src   = item.source_name ? ` · ${esc(item.source_name)}` : '';
@@ -3044,7 +3088,7 @@ function patchIndexHtml(babies, newsItems, slugMap) {
   <div class="dbb-nitem__icon" style="background:${cat.bg}">${cat.icon}</div>
   <div class="dbb-nitem__body">
     <div class="dbb-nitem__tag" style="color:${cat.color}">${cat.tag}</div>
-    <p class="dbb-nitem__title">${title}</p>
+    <p class="dbb-nitem__title">${title} <span class="dbb-ext" aria-hidden="true">↗</span></p>
     <div class="dbb-nitem__date">${date}${src}</div>
   </div>
 </a>`;
@@ -3064,6 +3108,18 @@ function patchIndexHtml(babies, newsItems, slugMap) {
     { '@context': 'https://schema.org', '@type': 'Organization', name: 'どうベビ', url: SITE_BASE, logo: `${SITE_BASE}/assets/img/og.png` },
     { '@context': 'https://schema.org', '@type': 'ItemList', name: '新着の赤ちゃん', itemListElement: recentBabies.map((b, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`, name: `${displayBabyName(b)}（${b.species || ''}）` })) },
   ]);
+
+  // ヒーロー画像をDBの実写真へ差し替え（PROP-20260613-01 P2#7・名前確定優先/最新誕生・読込失敗時は従来画像）
+  const HERO_FALLBACK_IMG = 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80';
+  const heroCand = [...babies]
+    .filter(b => b.thumbnail_url && b.birthday)
+    .sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)));
+  const heroBaby = heroCand.find(b => displayBabyName(b) !== PROVISIONAL_BABY_NAME) || heroCand[0];
+  if (heroBaby) {
+    const hAlt = `${displayBabyName(heroBaby)}（${heroBaby.species || ''}・${heroBaby.zoo_name || ''}）`;
+    html = patchSection(html, 'heroimg',
+      `<img src="${esc(heroBaby.thumbnail_url)}" alt="${esc(hAlt)}" loading="eager" fetchpriority="high" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${HERO_FALLBACK_IMG}';">`);
+  }
 
   const __hero = heroBirthdayHtml(babies, slugMap);
   // 案1: 季節で「今の特集」カードを自動切替（春→夏→秋→冬）。特集が増えてもトップは3カード維持。
@@ -3159,6 +3215,7 @@ function patchCalendarHtml(babies, slugMap) {
     ? '<p class="empty-state__desc">今月は対象がいません。</p>'
     : monthBabies.map(b => {
         const name    = esc(displayBabyName(b));
+        const heading = esc(babyCardHeading(b));
         const species = esc(b.species || '');
         const zoo     = esc(b.zoo_name || '');
         const slug    = slugMap?.get(b.id) || b.id;
@@ -3166,18 +3223,18 @@ function patchCalendarHtml(babies, slugMap) {
         const age     = Y - new Date(b.birthday).getFullYear();
         const hasImg  = !!b.thumbnail_url;
         const thumb   = hasImg
-          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" data-allow-big onerror="this.parentNode.classList.add('is-placeholder'); this.parentNode.textContent='🐾';">`
+          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" data-allow-big referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('is-placeholder'); this.parentNode.textContent='🐾';">`
           : '🐾';
         const bday    = fmtMD(b.birthday);
         const badge   = displayStatusBadge(b.display_status);
         return `<a class="dbb-brow" role="listitem" href="${href}" aria-label="${name}（${species}）">
   <div class="dbb-brow__thumb${hasImg ? '' : ' is-placeholder'}">${thumb}</div>
   <div class="dbb-brow__info">
-    <div class="dbb-brow__name">${name}</div>
+    <div class="dbb-brow__name">${heading}</div>
     <div class="dbb-brow__species">${species}</div>
     ${zoo ? `<div class="dbb-brow__zoo">📍 ${zoo}</div>` : ''}
     <div class="dbb-brow__bday">🎂 ${bday}</div>
-    <div class="dbb-brow__status">${badge}</div>
+    <div class="dbb-brow__status">${badge}${namingBadgeHtml(b)}</div>
   </div>
   ${favBtnHtml(b.id, species)}
   <div class="dbb-brow__badge">${age}歳</div>
@@ -3508,6 +3565,20 @@ async function main() {
   const zoosJson = ZOOS.map(z => ({ db_name: z.db_name, name: z.name, prefecture: z.prefecture }));
   fs.writeFileSync(zoosJsonPath, JSON.stringify(zoosJson, null, 2) + '\n', 'utf-8');
   console.log(`   ✅ /assets/data/zoos.json 出力（${zoosJson.length}園）`);
+
+  // ── サイト内検索インデックス（PROP-20260613-01 P2#10） ──
+  const searchIdx = [];
+  for (const b of babies) {
+    searchIdx.push({ t: 'baby', n: displayBabyName(b), s: b.species || '', z: b.zoo_name || '', p: b.prefecture || '', u: `/babies/${slugMap.get(b.id) || b.id}/` });
+  }
+  for (const z of ZOOS) {
+    if (z.slug) searchIdx.push({ t: 'zoo', n: z.name, p: z.prefecture || '', u: `/zoos/${z.slug}/` });
+  }
+  for (const sp of new Set(babies.map(b => b.species).filter(Boolean))) {
+    searchIdx.push({ t: 'species', n: sp, u: `/species/${encodeURI(sp)}/` });
+  }
+  fs.writeFileSync(path.join(WEB_DIR, 'assets', 'data', 'search-index.json'), JSON.stringify(searchIdx), 'utf-8');
+  console.log(`   ✅ /assets/data/search-index.json 出力（${searchIdx.length}件）`);
 
   // ── 赤ちゃん一覧ページ（SSG） ──
   console.log(`\n🐣 赤ちゃん一覧ページ生成中...`);

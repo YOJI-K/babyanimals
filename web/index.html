@@ -36,12 +36,15 @@
   <!-- ヘッダー（sticky / glass） -->
   <header class="site-header site-header--candy">
     <div class="site-header__left">
-      <a class="brand" href="./index.html" aria-label="ホームへ">
+      <a class="brand" href="/" aria-label="ホームへ">
         <span class="brand__title">どうベビ</span>
       </a>
     </div>
     <div class="site-header__right">
-      <a class="fav-hdr" href="./favorites/index.html" aria-label="お気に入り">
+      <button class="search-btn" type="button" data-search-open aria-label="サイト内検索">
+        <svg class="search-btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z" fill="currentColor"/></svg>
+      </button>
+      <a class="fav-hdr" href="/favorites/" aria-label="お気に入り">
         <svg class="fav-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         <span class="fav-hdr__badge" style="display:none">0</span>
       </a>
@@ -52,13 +55,13 @@
 
     <!-- ヒーロー（フル画像 + グラデーション） -->
     <section class="dbb-hero" aria-label="どうベビへようこそ">
-      <img src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80"
-           alt="" loading="eager">
+      <!--SSG:heroimg:start--><img src="https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80"
+           alt="" loading="eager"><!--SSG:heroimg:end-->
       <div class="dbb-hero__grad" aria-hidden="true"></div>
       <div class="dbb-hero__body">
         <div class="dbb-chip">🌿 今月のお誕生日をチェック</div>
         <h1 class="dbb-hero__title">動物園の<br>赤ちゃんを<br>追いかけよう</h1>
-        <a class="dbb-cta" href="./babies/index.html">赤ちゃんを探す →</a>
+        <a class="dbb-cta" href="/babies/">赤ちゃんを探す →</a>
       </div>
     </section>
 
@@ -90,7 +93,7 @@
           </h2>
           <p class="dbb-sec__sub" id="hero-month-label"><!--SSG:heromonth:start-->0〜3歳 · 今月生まれ<!--SSG:heromonth:end--></p>
         </div>
-        <a class="dbb-sec__more" href="./calendar/index.html">一覧 ›</a>
+        <a class="dbb-sec__more" href="/calendar/">一覧 ›</a>
       </div>
       <!-- 月切り替えタブ（pill） -->
       <div class="dbb-mtabs" role="tablist" aria-label="月切り替え">
@@ -200,7 +203,7 @@
         <h2 id="recent-title" class="dbb-sect">
           <span class="dbb-dot" style="background:#E8963A"></span>新着の赤ちゃん
         </h2>
-        <a class="dbb-sec__more" href="./babies/index.html">もっと見る ›</a>
+        <a class="dbb-sec__more" href="/babies/">もっと見る ›</a>
       </div>
       <div id="recent-list" class="dbb-blist" role="list" aria-live="polite">
 <!--SSG:recent:start-->
@@ -312,7 +315,7 @@
         <h2 id="news-preview-title" class="dbb-sect">
           <span class="dbb-dot" style="background:#5B8AC4"></span>最新ニュース
         </h2>
-        <a class="dbb-sec__more" href="./news/index.html">一覧 ›</a>
+        <a class="dbb-sec__more" href="/news/">一覧 ›</a>
       </div>
       <div id="news-preview-list" class="dbb-nlist" role="list" aria-live="polite">
 <!--SSG:news:start-->
@@ -348,34 +351,35 @@
 
   <!-- グローバルタブバー（ボトム） -->
   <nav class="tabbar tabbar--stack" aria-label="メイン">
-    <a class="tabbar__link is-active" href="./index.html" aria-label="ホーム" aria-current="page" title="ホーム">
+    <a class="tabbar__link is-active" href="/" aria-label="ホーム" aria-current="page" title="ホーム">
       <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       <span class="tabbar__text">ホーム</span>
     </a>
-    <a class="tabbar__link" href="./news/index.html" aria-label="ニュース" title="ニュース">
+    <a class="tabbar__link" href="/news/" aria-label="ニュース" title="ニュース">
       <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"/><path d="M14 4v4h6M8 12h8M8 16h5"/></svg>
       <span class="tabbar__text">ニュース</span>
     </a>
-    <a class="tabbar__link" href="./babies/index.html" aria-label="赤ちゃん" title="赤ちゃん">
+    <a class="tabbar__link" href="/babies/" aria-label="赤ちゃん" title="赤ちゃん">
       <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M8 14c-3 1-5 3-5 5h18c0-2-2-4-5-5"/></svg>
       <span class="tabbar__text">赤ちゃん</span>
     </a>
-    <a class="tabbar__link" href="./zoos/index.html" aria-label="動物園" title="動物園">
+    <a class="tabbar__link" href="/zoos/" aria-label="動物園" title="動物園">
       <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span class="tabbar__text">動物園</span>
     </a>
-    <a class="tabbar__link" href="./calendar/index.html" aria-label="カレンダー" title="カレンダー">
+    <a class="tabbar__link" href="/calendar/" aria-label="カレンダー" title="カレンダー">
       <svg class="tab-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01"/></svg>
       <span class="tabbar__text">カレンダー</span>
     </a>
   </nav>
 
   <footer class="site-footer" aria-label="フッター">
-    <small>© どうベビ（動物園ベビー情報）　<a href="/privacy/" style="color:inherit;opacity:0.7;">プライバシーポリシー</a></small>
+    <small>© どうベビ（動物園ベビー情報）　<a href="/specials/" style="color:inherit;opacity:0.7;font-size:0.9em;">特集</a>　<a href="/about/" style="color:inherit;opacity:0.7;font-size:0.9em;">運営者情報</a>　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a>　<a href="/contact/" style="color:inherit;opacity:0.7;font-size:0.9em;">お問い合わせ</a></small>
   </footer>
 
   <script src="./assets/js/app.js?v=d896c969" defer></script>
   <script src="./assets/js/favorites.js?v=d896c969" defer></script>
   <script src="./assets/js/analytics.js?v=d896c969" defer></script>
+  <script defer src="/assets/js/search.js"></script>
 </body>
 </html>
