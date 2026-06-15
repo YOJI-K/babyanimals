@@ -633,8 +633,6 @@ function pickEmoji(baby){
     if (bell) bell.addEventListener('click', () => {
       const badge = bell.querySelector('.badge'); if (badge) badge.remove();
     }, {passive:true});
-    const search = $('.search-btn');
-    if (search) search.addEventListener('click', () => { alert('検索は準備中です。'); });
   }
 
 })();
