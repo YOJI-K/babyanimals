@@ -1721,7 +1721,7 @@ function speciesHtml(species, babies, slugMap) {
   const zooSet = new Set(speciesBabies.map(b => b.zoo_name).filter(Boolean));
   const slug = encodeURI(species);  // 日本語URL用（% は二重エンコード防止のため使わない）
 
-  const title = `${species}の赤ちゃん（${zooSet.size}園・${count}頭）| どうベビ`;
+  const title = `${species}の赤ちゃんに会える動物園｜${zooSet.size}園${count}頭の最新情報 | どうベビ`;
   const desc = (count > 0
     ? `動物園にいる${species}の赤ちゃんをまとめて紹介。${sampleLead}${count}頭が全国${zooSet.size}園で暮らしています。${info ? info.desc.slice(0, 80) + '…' : ''}`
     : `${species}の赤ちゃんを動物園で探す。${info ? info.desc.slice(0, 140) + '…' : ''}`
