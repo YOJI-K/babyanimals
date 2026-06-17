@@ -140,6 +140,17 @@ function displayBabyName(b) {
   return n;
 }
 
+/** 実写真があるか（gstatic等の不適切サムネは無効扱い） */
+function babyHasPhoto(b) {
+  const u = (b && b.thumbnail_url) || '';
+  return !!u && !/gstatic\.com|encrypted-tbn/.test(u);
+}
+/** 薄ページ判定（AdSense対策C・裾の絞り込み）：写真なし or 名前未確定 で、独自プロフィールも無いページは noindex にする。 */
+function isThinBaby(b) {
+  if (b && b.editorial_note && String(b.editorial_note).trim()) return false;
+  return !babyHasPhoto(b) || (b && b.name_status !== 'confirmed');
+}
+
 /** カード見出し：なまえ待ちは種名主役で表示（PROP-20260613-01 P1#3） */
 function babyCardHeading(b) {
   const n = displayBabyName(b);
@@ -883,7 +894,7 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
     </section>` : '';
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd: articleLd, extraMeta: extraMetaTags })}
+${htmlHead({ title, desc, ogImage: b.thumbnail_url, canonical, jsonLd: articleLd, extraMeta: extraMetaTags, robots: isThinBaby(b) ? 'noindex,follow' : undefined })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <script type="application/ld+json">${babyFaqLd}</script>
 <body class="theme">
@@ -2910,7 +2921,7 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
   const speciesLinks = Array.from(speciesSet).sort().map(sp => `<li><a href="/species/${encodeURI(sp)}/">${esc(sp)}の赤ちゃん</a></li>`).join('');
 
   // 赤ちゃん個別ページ（最新順）
-  const babyLinks = babies.slice(0, 100).map(b => {
+  const babyLinks = babies.filter(b => !isThinBaby(b)).slice(0, 100).map(b => {
     const slug = slugMap?.get(b.id) || b.id;
     const label = b.name ? `${esc(b.name)}（${esc(b.species || '?')}）` : esc(b.species || '名前未判明');
     return `<li><a href="/babies/${slug}/">${label}<small style="color:#888;"> @ ${esc(b.zoo_name || '?')}</small></a></li>`;
@@ -2988,7 +2999,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     lastmod:    today,
   }));
 
-  const babyUrls = babies.map(b => ({
+  const babyUrls = babies.filter(b => !isThinBaby(b)).map(b => ({
     loc:        `${SITE_BASE}/babies/${slugMap?.get(b.id) || b.id}/`,
     priority:   '0.7',
     changefreq: 'monthly',
