@@ -780,11 +780,16 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   // 結び（来園誘導・内部回遊）
   introLines.push(`${esc(zoo)}では${esc(name)}の公開状況が変わることがあります。おでかけ前に最新情報を確認し、${esc(species)}の赤ちゃんの成長をやさしく見守ってください。`);
 
+  // 独自プロフィール本文があればそれを優先。無ければ従来の自動生成文。
+  const _editorial = b.editorial_note && String(b.editorial_note).trim();
+  const _episodeInner = _editorial
+    ? _editorial.split(/\n+/).map(s => s.trim()).filter(Boolean).map(s => `<p>${esc(s)}</p>`).join('\n        ')
+    : introLines.map(l => `<p>${l}</p>`).join('\n        ');
   const babyEpisodeHtml = `
     <section class="baby-episode" aria-labelledby="baby-episode-title">
       <h2 class="baby-episode__title" id="baby-episode-title">📖 ${esc(name)}のストーリー</h2>
       <div class="baby-episode__body">
-        ${introLines.map(l => `<p>${l}</p>`).join('\n        ')}
+        ${_episodeInner}
       </div>
     </section>`;
 
@@ -3413,6 +3418,19 @@ async function mergeDisplayStatus(list) {
   }
 }
 
+// 独自プロフィール本文(editorial_note)を babies から取得し id でマージ。
+// ※ display_status の取得とは独立した try/catch。列が無い/失敗してもサイト全体に影響させない。
+async function mergeEditorialNote(list) {
+  if (USE_MOCK) return;
+  try {
+    const rows = await sbFetch('/rest/v1/babies?select=id,editorial_note&editorial_note=not.is.null&limit=1000');
+    const m = new Map(rows.map(r => [r.id, r.editorial_note]));
+    list.forEach(b => { const v = m.get(b.id); if (v && String(v).trim()) b.editorial_note = v; });
+    const cnt = list.filter(b => b.editorial_note).length;
+    if (cnt) console.log(`   ✍️  独自プロフィール: ${cnt} 頭`);
+  } catch (e) { console.warn(`   ⚠️  editorial_note 取得スキップ (${e.message})`); }
+}
+
 // provisional（なまえ待ち）が babies_public に出ない場合の取りこぼし防止：babies から補完
 async function appendMissingProvisional(list) {
   if (USE_MOCK) return;
@@ -3439,12 +3457,14 @@ async function fetchBabies() {
     const data = await sbFetch('/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_id,zoo_name,prefecture&order=birthday.desc.nullslast&limit=500');
     await mergeDisplayStatus(data);
     await appendMissingProvisional(data);
+    await mergeEditorialNote(data);
     console.log(`   ✅ 赤ちゃん: ${data.length} 件`);
     return data;
   } catch (e) {
     console.warn(`   ⚠️  babies_public 失敗 — babies テーブルで再試行 (${e.message})`);
     const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,name_status,zoo_id,zoo:zoos(name,prefecture)&order=birthday.desc.nullslast&limit=500');
     const data = raw.map(x => ({ ...x, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public', name_status: x.name_status || 'confirmed' }));
+    await mergeEditorialNote(data);
     console.log(`   ✅ 赤ちゃん（フォールバック）: ${data.length} 件`);
     return data;
   }
