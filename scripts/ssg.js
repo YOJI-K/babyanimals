@@ -323,7 +323,6 @@ function siteHeader() {
 function siteNav(activeHref) {
   const tabs = [
     { href: '/',          icon: 'icon-home',      label: 'ホーム'       },
-    { href: '/news/',     icon: 'icon-newspaper', label: 'ニュース'     },
     { href: '/babies/',   icon: 'icon-paw',       label: '赤ちゃん'     },
     { href: '/zoos/',     icon: 'icon-landmark',  label: '動物園'       },
     { href: '/calendar/', icon: 'icon-calendar',  label: 'カレンダー'   },
@@ -776,8 +775,6 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   }
   if (ownStoryCount > 0) {
     introLines.push(`これまでにメディアでも${ownStoryCount}件取り上げられており、${esc(zoo)}の人気者として注目を集めています。`);
-  } else if (newsList.length > 0) {
-    introLines.push(`${esc(zoo)}では他にもさまざまな動物の話題が日々更新されています。最新の情報はこのページの下部もご覧ください。`);
   }
 
   // 結び（来園誘導・内部回遊）
@@ -918,7 +915,6 @@ ${siteNav('/babies/')}
       ${babyEpisodeHtml}
       ${speciesInfoHtml}
       ${specsHtml}
-      ${babyNewsHtml}
       ${babyFaqHtml}
       ${_areaLinkRow}
       ${zooLinksHtml(zoo, name) || genericAsoviewCta()}
@@ -2897,7 +2893,6 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
       <li><a href="/specials/summer-2026/">☀️ 2026年夏の動物園赤ちゃん特集</a></li>
       <li><a href="/specials/kobitokaba/">🦛 コビトカバの赤ちゃん特集</a></li>
-      <li><a href="/news/">ニュース一覧</a></li>
       <li><a href="/calendar/">誕生日カレンダー</a></li>
       <li><a href="/area/">エリア（地域）から探す</a></li>
     </ul>`;
@@ -2961,7 +2956,6 @@ function buildSitemap(babies, newsItems, slugMap) {
   const staticUrls = [
     { loc: `${SITE_BASE}/`,                          priority: '1.0', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/babies/`,                   priority: '0.9', changefreq: 'daily',   lastmod: today },
-    { loc: `${SITE_BASE}/news/`,                     priority: '0.9', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/zoos/`,                     priority: '0.9', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/calendar/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/sitemap/`,                  priority: '0.8', changefreq: 'daily',   lastmod: today },
@@ -3266,7 +3260,6 @@ function patchIndexHtml(babies, newsItems, slugMap) {
   html = patchSection(html, 'hero', __hero.html);
   html = patchSection(html, 'heromonth', __hero.label);
   html = patchSection(html, 'recent', `\n${recentHtml}\n`);
-  html = patchSection(html, 'news', `\n${newsHtml}\n`);
   html = patchSection(html, 'specieshub', `\n${speciesHubHtml}\n`);
   html = patchSection(html, 'jsonld', `\n<script type="application/ld+json">${indexJsonLd}</script>\n`);
   fs.writeFileSync(indexPath, html, 'utf-8');
