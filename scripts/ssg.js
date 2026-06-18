@@ -145,10 +145,18 @@ function babyHasPhoto(b) {
   const u = (b && b.thumbnail_url) || '';
   return !!u && !/gstatic\.com|encrypted-tbn/.test(u);
 }
-/** 薄ページ判定（AdSense対策C・裾の絞り込み）：写真なし or 名前未確定 で、独自プロフィールも無いページは noindex にする。 */
+/**
+ * 薄ページ判定（AdSense対策C 強化版・2026-06-18）：
+ * 「独自プロフィール（editorial_note）がある看板ページ」だけを index 対象とし、
+ * それ以外（独自文なしの非看板ページ＝定型文のみ／写真なし／名前未確定）は noindex にする。
+ * これにより検索対象の赤ちゃんページは全頭が独自文を持つ状態になる。
+ * ※editorial_note を付与すれば自動的に index 対象へ復帰する（後方互換・運用で随時昇格）。
+ */
 function isThinBaby(b) {
+  // 看板（独自プロフィールあり）は常に index
   if (b && b.editorial_note && String(b.editorial_note).trim()) return false;
-  return !babyHasPhoto(b) || (b && b.name_status !== 'confirmed');
+  // 独自文なしの非看板ページは noindex（旧条件: 写真なし/名前未確定 を包含）
+  return true;
 }
 
 /** カード見出し：なまえ待ちは種名主役で表示（PROP-20260613-01 P1#3） */
