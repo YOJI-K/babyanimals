@@ -1191,7 +1191,7 @@ function zooStoryHtml(zoo, zooBabies) {
 function zooHtml(zoo, babies, slugMap = null) {
   const zooBabies = babies.filter(b => b.zoo_name === zoo.db_name);
   const count = zooBabies.length;
-  // baby 0頭でも動物園情報(住所/営業/料金/FAQ)は十分なため index する（PROP-20260604-02）。0頭時は関連リンクで補強。
+  // AdSense対策(2026-06-19): 公開中の赤ちゃんが0頭の動物園ページは内容が薄いため noindex。赤ちゃんが公開されれば自動で index 復帰する。
   const isThinZoo = count === 0;
   const sampleList  = zooBabies.map(b => displayBabyName(b)).filter(n => n && n !== PROVISIONAL_BABY_NAME).slice(0, 3);
   const sampleNames = sampleList.join('・');
@@ -1307,7 +1307,7 @@ function zooHtml(zoo, babies, slugMap = null) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ ogImage: pickOgPhoto(zooBabies), title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd })}
+${htmlHead({ ogImage: pickOgPhoto(zooBabies), title, desc, canonical, jsonLd, extraJsonLd: zooExtraJsonLd, robots: isThinZoo ? 'noindex,follow' : undefined })}
 <body class="theme">
 ${siteHeader()}
 ${siteNav('/zoos/')}
@@ -1834,7 +1834,7 @@ function speciesHtml(species, babies, slugMap) {
 
   return `<!doctype html>
 <html lang="ja">
-${htmlHead({ ogImage: pickOgPhoto(speciesBabies), title, desc, canonical, jsonLd, extraJsonLd: speciesExtraJsonLd })}
+${htmlHead({ ogImage: pickOgPhoto(speciesBabies), title, desc, canonical, jsonLd, extraJsonLd: speciesExtraJsonLd, robots: info ? undefined : 'noindex,follow' })}
 <script type="application/ld+json">${breadcrumbLd}</script>
 <body class="theme">
 ${siteHeader()}
@@ -2992,7 +2992,7 @@ function buildSitemap(babies, newsItems, slugMap) {
   ];
 
   const speciesSet = new Set(babies.map(b => b.species).filter(Boolean));
-  const speciesUrls = Array.from(speciesSet).map(sp => ({
+  const speciesUrls = Array.from(speciesSet).filter(sp => SPECIES_INFO[sp]).map(sp => ({
     // 生の日本語URL（sitemap側の encodeURI() が一度だけエンコードする）
     loc:        `${SITE_BASE}/species/${sp}/`,
     priority:   '0.7',
@@ -3000,7 +3000,8 @@ function buildSitemap(babies, newsItems, slugMap) {
     lastmod:    today,
   }));
 
-  const zooUrls = ZOOS.map(z => ({
+  const zoosWithBabies = new Set(babies.map(b => b.zoo_name).filter(Boolean));
+  const zooUrls = ZOOS.filter(z => zoosWithBabies.has(z.db_name)).map(z => ({
     loc:        `${SITE_BASE}/zoos/${z.slug}/`,
     priority:   '0.8',
     changefreq: 'weekly',
