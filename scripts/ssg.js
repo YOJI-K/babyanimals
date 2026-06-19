@@ -3260,10 +3260,16 @@ function patchIndexHtml(babies, newsItems, slugMap) {
 
   // ヒーロー画像をDBの実写真へ差し替え（PROP-20260613-01 P2#7・名前確定優先/最新誕生・読込失敗時は従来画像）
   const HERO_FALLBACK_IMG = 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800&h=600&fit=crop&auto=format&q=80';
+  // トップHero画像に固定表示する赤ちゃん（手動オーバーライド・2026-06-19）。
+  // 指定IDの子を最優先で表示。null にすると自動選定（確定名・実写真の最新誕生）に戻る。差し替えはこの1行のIDを変えるだけ。
+  const HERO_BABY_ID = 'ac436e03-d4dc-5a81-8c80-d61b63f7d356'; // タオ（アジアゾウ・札幌市円山動物園）
   const heroCand = [...babies]
     .filter(b => b.thumbnail_url && b.birthday && !/gstatic\.com|encrypted-tbn/.test(b.thumbnail_url))
     .sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)));
-  const heroBaby = heroCand.find(b => displayBabyName(b) !== PROVISIONAL_BABY_NAME) || heroCand[0];
+  const heroPinned = HERO_BABY_ID
+    ? babies.find(b => b.id === HERO_BABY_ID && b.thumbnail_url && !/gstatic\.com|encrypted-tbn/.test(b.thumbnail_url))
+    : null;
+  const heroBaby = heroPinned || heroCand.find(b => displayBabyName(b) !== PROVISIONAL_BABY_NAME) || heroCand[0];
   if (heroBaby) {
     const hAlt = `${displayBabyName(heroBaby)}（${heroBaby.species || ''}・${heroBaby.zoo_name || ''}）`;
     html = patchSection(html, 'heroimg',
