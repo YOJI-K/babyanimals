@@ -934,7 +934,9 @@ function inferBirthday(ev: EventForResolve): string | null {
       return candidate.toISOString().slice(0, 10);
     }
   }
-  if (ev.published_at) return (ev.published_at || '').slice(0, 10);
+  // 2026-06-20 修正: 旧実装は published_at（記事公開日）を誕生日に流用していた。
+  // これが「年ズレ」「幻の誕生」の主因（2026年公開の記事→2026年誕生として量産）。
+  // 実日付シグナル（齢・明示日付・M月D日）が無い場合は誕生日を推定しない。
   return null;
 }
 
@@ -1003,6 +1005,12 @@ async function resolveBabyEntitiesJob(env: Env) {
       if (!ev.species) {
         processedIds.splice(processedIds.indexOf(ev.id), 1);
         console.info('[resolve] species unknown, deferring:', ev.title?.slice(0, 60));
+        continue;
+      }
+      // 2026-06-20 修正: 実際の誕生日が題名から取れない誕生イベントは作成しない。
+      // （published_at 由来の幻・年ズレ・赤ちゃん語のみの記事からの偽陽性を防止）
+      if (!bday) {
+        console.info('[resolve] no real birthday from title, skip create:', ev.title?.slice(0, 60));
         continue;
       }
       // フェーズB: 誕生で作成。命名は確度ゲートを通った時だけ confirmed。
