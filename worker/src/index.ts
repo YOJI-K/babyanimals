@@ -1228,6 +1228,21 @@ async function postTweet(env: Env, text: string): Promise<void> {
 }
 
 /** 新着 babies を X へ自動投稿（毎時 :40 に実行） */
+/** baby のページが本番に存在するか。UUID URL `/babies/{id}/` は slug へ 301。404 は未ビルド（新規は翌ビルド後に拾う）。 */
+async function babyPageIsLive(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`https://zoobabies.jp/babies/${id}/`, { method: 'GET', redirect: 'manual' });
+    return res.status === 200 || res.status === 301 || res.status === 308;
+  } catch { return false; }
+}
+
+/**
+ * X 自動投稿（毎日 JST 8時に1件・resolve cron に piggyback）。
+ * 選定：x_posted_at IS NULL かつ 品質ゲート（confirmed / 名前あり / editorial_note あり / public / 写真あり）。
+ * 並び：birthday 新しい順 → 本物の新規誕生が自然に最優先（誕生速報）。在庫は順に消化（今会える赤ちゃん）。
+ * 冪等：投稿後に x_posted_at を記録し二度と投稿しない。失敗時は記録せず翌日リトライ。
+ * URL：UUID 形式（SSG が slug へ 301 リダイレクトを生成済み・堅牢）。投稿前にページ実在を確認。
+ */
 async function runSocialJob(env: Env): Promise<void> {
   const started = new Date();
   // クレデンシャル未設定ならスキップ（設定前は無音）
@@ -1236,23 +1251,34 @@ async function runSocialJob(env: Env): Promise<void> {
     return;
   }
 
-  // 直近 70 分以内に作成された babies を取得（cron 60 分 + バッファ 10 分）
-  const since = new Date(Date.now() - 70 * 60 * 1000).toISOString();
-  const newBabies: Array<{ id: string; name: string; species: string | null; zoo_id: string | null }> =
-    await sbGet(env,
-      `/rest/v1/babies?select=id,name,species,zoo_id` +
-      `&created_at=gte.${encodeURIComponent(since)}` +
-      `&order=created_at.asc&limit=3`
+  // 品質ゲート＋未投稿のみ。birthday 新しい順に候補を数件取得。
+  let candidates: Array<{ id:string; name:string|null; species:string|null; zoo_id:string|null; birthday:string|null }> = [];
+  try {
+    candidates = await sbGet(env,
+      `/rest/v1/babies?select=id,name,species,zoo_id,birthday` +
+      `&x_posted_at=is.null` +
+      `&name_status=eq.confirmed` +
+      `&display_status=eq.public` +
+      `&name=not.is.null` +
+      `&editorial_note=not.is.null` +
+      `&thumbnail_url=not.is.null` +
+      `&order=birthday.desc.nullslast&limit=5`
     );
+  } catch (e) {
+    // x_posted_at 列が未追加など → 安全に中断（piggyback 元の resolve は壊さない）
+    console.error('SOCIAL: candidate query failed (x_posted_at 列未追加の可能性)', String(e));
+    await logJob(env, { job: 'social', ok: false, started_at: started, finished_at: new Date(), error: String(e) });
+    return;
+  }
 
-  if (!Array.isArray(newBabies) || newBabies.length === 0) {
-    console.log('SOCIAL: 新着 babies なし');
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    console.log('SOCIAL: 投稿候補なし');
     await logJob(env, { job: 'social', ok: true, started_at: started, finished_at: new Date(), checked: 0, posted: 0 });
     return;
   }
 
   // zoo_id → 動物園名をまとめて取得
-  const zooIds = [...new Set(newBabies.map(b => b.zoo_id).filter(Boolean))];
+  const zooIds = [...new Set(candidates.map(b => b.zoo_id).filter(Boolean))] as string[];
   const zooMap: Record<string, string> = {};
   if (zooIds.length) {
     const zoos: Array<{ id: string; name: string }> = await sbGet(env,
@@ -1261,20 +1287,33 @@ async function runSocialJob(env: Env): Promise<void> {
     for (const z of (zoos || [])) zooMap[z.id] = z.name;
   }
 
-  let posted = 0;
-  for (const baby of newBabies) {
+  // 1日1件：ページが本番に存在する最初の候補を投稿
+  let posted = 0, checked = 0;
+  for (const baby of candidates) {
+    checked++;
+    if (!(await babyPageIsLive(baby.id))) {
+      console.log(`SOCIAL: page not live yet, skip [${baby.name}]`);
+      continue;
+    }
     const zooName = (baby.zoo_id && zooMap[baby.zoo_id]) || '動物園';
-    const species  = baby.species || '動物';
-    const pageUrl  = `https://zoobabies.jp/babies/${baby.id}/`;
+    const species = baby.species || '動物';
+    const name    = baby.name || '赤ちゃん';
+    const pageUrl = `https://zoobabies.jp/babies/${baby.id}/`;
+
+    // 誕生から45日以内は「誕生速報」、それ以外は「今会える赤ちゃん」
+    const bms = baby.birthday ? Date.parse(baby.birthday) : NaN;
+    const isFresh = Number.isFinite(bms) && (Date.now() - bms) <= 45 * 24 * 3600 * 1000;
+
+    const head = isFresh
+      ? [`🍼【誕生速報】`, ``, `${species}の赤ちゃん「${name}」が生まれました！`]
+      : [`🍼 今会える赤ちゃん`, ``, `${species}の「${name}」`];
 
     const text = [
-      `🍼【誕生速報】`,
-      ``,
-      `${species}の赤ちゃん「${baby.name}」が生まれました！`,
+      ...head,
       ``,
       `📍 ${zooName}`,
       ``,
-      `詳細はこちら👇`,
+      `詳細・写真はこちら👇`,
       pageUrl,
       ``,
       `#どうベビ #動物の赤ちゃん #${species}`,
@@ -1282,16 +1321,17 @@ async function runSocialJob(env: Env): Promise<void> {
 
     try {
       await postTweet(env, text);
-      console.log(`SOCIAL: tweeted [${baby.name}/${species}]`);
+      await sbPatch(env, `/rest/v1/babies?id=eq.${baby.id}`, { x_posted_at: new Date().toISOString() });
+      console.log(`SOCIAL: tweeted [${name}/${species}] fresh=${isFresh}`);
       posted++;
+      break; // 1日1件
     } catch (e) {
-      console.error(`SOCIAL: tweet failed [${baby.name}]`, String(e));
+      console.error(`SOCIAL: tweet failed [${name}]`, String(e));
+      break; // 失敗時は x_posted_at を更新せず、翌日リトライ（レート保護で次候補は試さない）
     }
-    // 投稿間隔（API レート制限対策）
-    if (posted < newBabies.length) await new Promise(r => setTimeout(r, 1500));
   }
 
-  await logJob(env, { job: 'social', ok: true, started_at: started, finished_at: new Date(), checked: newBabies.length, posted });
+  await logJob(env, { job: 'social', ok: true, started_at: started, finished_at: new Date(), checked, posted });
 }
 
 // -------------------------------
@@ -1355,6 +1395,12 @@ export default {
         await runZoosJob(env);
       } else if (event.cron === '10 * * * *') {
         await resolveBabyEntitiesJob(env);
+        // piggyback: JST 8時台に1日1回 X 自動投稿（Free cron 5本上限のため独立cronにしない）
+        const jstHour = (new Date().getUTCHours() + 9) % 24;
+        if (jstHour === 8) {
+          try { await runSocialJob(env); }
+          catch (e) { console.error('SOCIAL piggyback failed', String(e)); }
+        }
       } else if (event.cron === '25 * * * *') {
         await runNameFillJob(env);
       } else if (event.cron === '40 * * * *') {
