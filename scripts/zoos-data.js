@@ -73,7 +73,7 @@ export const ZOOS = [
     fees: '大人 1,000円／中学生以下 無料',
     description: '動物の行動や生態をいきいきと見せる「行動展示」の先駆け。ペンギンの散歩やホッキョクグマ館が国内外から注目される。',
     official_url: 'https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F155291%2F',
     hero_emoji: '🐧',
   },
   {
@@ -106,7 +106,7 @@ export const ZOOS = [
     fees: '大人 800円／高校生 300円／小中学生 200円／小学生未満 無料',
     description: '世界の気候帯・地域別に動物を配置した約45ヘクタールの動物園。オカピなど希少動物に会える。',
     official_url: 'https://www.hama-midorinokyokai.or.jp/zoo/zoorasia/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F155067%2F',
     hero_emoji: '🦒',
   },
   // ── 愛知 ─────────────────────────────────────────────────────────────
@@ -418,7 +418,7 @@ export const ZOOS = [
     fees: '大人 500円／65歳以上 250円／中学生以下無料',
     description: '有蹄類（ウシ・シカの仲間）を中心に展示。コアラ・オランウータン・アフリカゾウも飼育する丘陵の動物園。',
     official_url: 'https://www.hama-midorinokyokai.or.jp/zoo/kanazawa/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F157079%2F',
     hero_emoji: '🦏',
   },
   // ── 静岡 ────────────────────────────────────────────────────
@@ -435,7 +435,7 @@ export const ZOOS = [
     fees: '大人 2,800円／小学生 1,400円／3〜5歳 700円',
     description: '富士山麓に広がる大型サファリパーク。バスや自家用車で草食・肉食獣ゾーンを周遊できる。',
     official_url: 'https://www.fujisafari.co.jp/',
-    asoview_url: 'https://www.asoview.com/item/ticket/act0000023813/',
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fitem%2Fticket%2Fact0000023813%2F',
     hero_emoji: '🦁',
   },
   {
@@ -451,7 +451,7 @@ export const ZOOS = [
     fees: '大人 620円／小中学生 100円／未就学児無料',
     description: 'ホッキョクグマ・ライオン・アジアゾウなど大型動物を多数飼育。眺望の良い高台に位置する。',
     official_url: 'https://www.nhdzoo.jp/',
-    asoview_url: null,
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fbase%2F160313%2F',
     hero_emoji: '🐻‍❄️',
   },
   {
@@ -808,7 +808,7 @@ export const ZOOS = [
     fees: '大人 2,800円／小学生 1,400円／4歳〜 800円',
     description: '自家用車やバスでライオン・ゾウ・クマなどを間近に見られる九州最大規模のサファリパーク。',
     official_url: 'https://www.africansafari.co.jp/',
-    asoview_url: 'https://www.asoview.com/item/ticket/act0000023815/',
+    asoview_url: 'https://px.a8.net/svt/ejp?a8mat=4B1KXR+740FOA+455G+BW0YB&a8ejpredirect=https%3A%2F%2Fwww.asoview.com%2Fitem%2Fticket%2Fact0000023815%2F',
     hero_emoji: '🦁',
   },
   {
