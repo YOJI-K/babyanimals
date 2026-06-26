@@ -1,5 +1,6 @@
 // worker/src/index.ts
 import { parseDateToISODateOnly, inferBirthdayFromTitle } from './birthday';
+import { NULL_BDAY_DEDUP_DAYS, addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, type ZooSpeciesIndex } from './resolve_dedup';
 // Baby Animals - Crawler/Resolver Worker
 // ランタイム: Cloudflare Workers (Service bindings: SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 // 目的:
@@ -879,6 +880,21 @@ function findExistingBaby(idx: BabyMatchIndex, zooId: string, species: string, b
   return null;
 }
 
+// F4: NULL誕生日の回収時に二重作成を防ぐ「(zoo|species)→近接個体」インデックス。
+//   対象＝NULL誕生日（要裏取りのなまえ待ち）＋直近 NULL_BDAY_DEDUP_DAYS 日に作成された個体。
+async function loadRecentZooSpeciesIndex(env: Env): Promise<ZooSpeciesIndex> {
+  const idx: ZooSpeciesIndex = new Map();
+  try {
+    const sinceIso = new Date(Date.now() - NULL_BDAY_DEDUP_DAYS * 86400000).toISOString();
+    const rows = await sbGet(env, `/rest/v1/babies?select=id,zoo_id,species,birthday,created_at&or=(birthday.is.null,created_at.gte.${sinceIso})&limit=2000`);
+    for (const r of (rows as any[] || [])) {
+      if (!r.zoo_id || !r.species) continue;
+      addToZooSpeciesIndex(idx, r.zoo_id, r.species, r.id);
+    }
+  } catch (e) { console.warn('[resolve] loadRecentZooSpeciesIndex failed', e); }
+  return idx;
+}
+
 function scoreForCreate(ev: EventForResolve): number {
   let score = 0;
   if (ev.source_kind === 'site' || ev.source_kind === 'press') score += 2;
@@ -917,6 +933,7 @@ async function resolveBabyEntitiesJob(env: Env) {
   // ここで一度だけ zoo インデックス＋既存baby照合インデックスを読み込む
   const zooIndex = await loadZooIndex(env);
   const babyIndex = await loadBabyMatchIndex(env);
+  const recentIndex = await loadRecentZooSpeciesIndex(env);  // F4 冪等用
 
   let linked = 0, created = 0, processed = 0;
 
@@ -962,11 +979,24 @@ async function resolveBabyEntitiesJob(env: Env) {
         console.info('[resolve] species unknown, deferring:', ev.title?.slice(0, 60));
         continue;
       }
-      // 2026-06-20 修正: 実際の誕生日が題名から取れない誕生イベントは作成しない。
-      // （published_at 由来の幻・年ズレ・赤ちゃん語のみの記事からの偽陽性を防止）
+      // F2(2026-06-25): 実誕生日が題名から取れない誕生イベントの扱い。
+      //   旧実装は一律スキップ→取りこぼし（誕生記事430件で作成ほぼ0）。
+      //   信頼できる出所（公式/プレス）のみ NULL 誕生日の「なまえ待ち」として回収する。
+      //   独自文が無いため SSG の isThinBaby で自動 noindex＝薄ページは検索に出ない。
+      //   日次原文化ルーティンが本文/公式で誕生日と独自文を補完し、index 復帰させる。
       if (!bday) {
-        console.info('[resolve] no real birthday from title, skip create:', ev.title?.slice(0, 60));
-        continue;
+        if (!isTrustedBirthSource(ev.source_kind)) {
+          console.info('[resolve] no date & low-trust source, skip:', ev.title?.slice(0, 60));
+          continue;
+        }
+        // F4 冪等: 同(zoo,species)の近接個体があればリンクのみ（二重作成防止）
+        const dupId = findRecentByZooSpecies(recentIndex, zooIdForEvent as string, ev.species as string);
+        if (dupId) {
+          linkRows.push({ baby_id: dupId, event_id: ev.id });
+          linked++;
+          continue;
+        }
+        // 以降の作成処理へ：birthday は null のまま provisional 作成
       }
       // フェーズB: 誕生で作成。命名は確度ゲートを通った時だけ confirmed。
       // 名前が取れない誕生イベントは provisional（なまえ待ち）として作成する。
@@ -997,6 +1027,8 @@ async function resolveBabyEntitiesJob(env: Env) {
         if (newId) {
           linkRows.push({ baby_id: newId, event_id: ev.id }); created++;
           if (bday) { const k = `${zooIdForEvent}|${ev.species}`; if (!babyIndex.has(k)) babyIndex.set(k, []); babyIndex.get(k)!.push({ id: newId, birthday: bday }); }
+          // F4: NULL/新規も近接インデックスへ積み、同run内の重複作成を防ぐ
+          addToZooSpeciesIndex(recentIndex, zooIdForEvent as string, ev.species as string, newId);
         }
       } else if (babyRes.status === 409) {
         // 重複キー → 名前があれば既存babyのIDを検索してリンクだけ追加（provisionalのnull名はスキップ）
