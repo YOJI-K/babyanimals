@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { inferBirthdayFromTitle, sanitizeTitleForBirthday } from '../src/birthday.ts';
+import { inferBirthdayFromTitle, sanitizeTitleForBirthday, hasBirthContext } from '../src/birthday.ts';
 
 test('掲載日を誕生日にしない（熊本レッサー型・回帰）', () => {
   const t = '【本邦初公開！】熊本市動植物園で生まれたレッサーパンダの赤ちゃん（2026年6月23日掲載）｜KKT NEWS NNN';
@@ -23,4 +23,11 @@ test('齢ベースを最優先（掲載日に影響されない）', () => {
 });
 test('sanitizeで掲載ブロックを除去', () => {
   assert.equal(/掲載/.test(sanitizeTitleForBirthday('赤ちゃん（2026年6月23日掲載）')), false);
+});
+
+test('hasBirthContext: 誕生動詞を検出', () => {
+  assert.equal(hasBirthContext('オオアリクイの双子が誕生'), true);
+  assert.equal(hasBirthContext('熊本で生まれたレッサーパンダ'), true);
+  assert.equal(hasBirthContext('動物の赤ちゃんに会いに行こう'), false);
+  assert.equal(hasBirthContext('赤ちゃんが話題'), false);
 });

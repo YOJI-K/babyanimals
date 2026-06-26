@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, type ZooSpeciesIndex } from '../src/resolve_dedup.ts';
 
-test('信頼ソース判定（site/pressのみ）', () => {
+test('信頼ソース判定（site/press/googlenewsを許可・youtube除外）', () => {
   assert.equal(isTrustedBirthSource('site'), true);
   assert.equal(isTrustedBirthSource('press'), true);
+  assert.equal(isTrustedBirthSource('googlenews'), true);
   assert.equal(isTrustedBirthSource('youtube'), false);
   assert.equal(isTrustedBirthSource('rss'), false);
   assert.equal(isTrustedBirthSource(null), false);

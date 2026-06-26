@@ -1,5 +1,5 @@
 // worker/src/index.ts
-import { parseDateToISODateOnly, inferBirthdayFromTitle } from './birthday';
+import { parseDateToISODateOnly, inferBirthdayFromTitle, hasBirthContext } from './birthday';
 import { NULL_BDAY_DEDUP_DAYS, addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, type ZooSpeciesIndex } from './resolve_dedup';
 // Baby Animals - Crawler/Resolver Worker
 // ランタイム: Cloudflare Workers (Service bindings: SUPABASE_URL, SUPABASE_SERVICE_ROLE)
@@ -985,8 +985,9 @@ async function resolveBabyEntitiesJob(env: Env) {
       //   独自文が無いため SSG の isThinBaby で自動 noindex＝薄ページは検索に出ない。
       //   日次原文化ルーティンが本文/公式で誕生日と独自文を補完し、index 復帰させる。
       if (!bday) {
-        if (!isTrustedBirthSource(ev.source_kind)) {
-          console.info('[resolve] no date & low-trust source, skip:', ev.title?.slice(0, 60));
+        // 出所＋「誕生動詞」を併用して精度を担保（roundup/一覧記事や継続youtubeを除外）。
+        if (!isTrustedBirthSource(ev.source_kind) || !hasBirthContext(ev.title)) {
+          console.info('[resolve] no date & not a clear birth article, skip:', ev.title?.slice(0, 60));
           continue;
         }
         // F4 冪等: 同(zoo,species)の近接個体があればリンクのみ（二重作成防止）

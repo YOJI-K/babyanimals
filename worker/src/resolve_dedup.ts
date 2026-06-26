@@ -21,7 +21,9 @@ export function findRecentByZooSpecies(idx: ZooSpeciesIndex, zooId: string, spec
   return arr && arr.length ? arr[0].id : null;
 }
 
-// NULL誕生日で拾ってよい信頼できる出所か（公式サイト/プレスのみ。youtube/その他は除外）。
+// NULL誕生日で拾ってよい出所か。公式サイト/プレス/Googleニュースを許可し、
+// youtube（継続シリーズのノイズが多い）と不明は除外する。
+// ※出所だけでは精度不足のため、呼び出し側で「誕生動詞＋種＋園の確定」を併用する。
 export function isTrustedBirthSource(sourceKind?: string | null): boolean {
-  return sourceKind === 'site' || sourceKind === 'press';
+  return sourceKind === 'site' || sourceKind === 'press' || sourceKind === 'googlenews';
 }
