@@ -1765,7 +1765,7 @@ function speciesHtml(species, babies, slugMap) {
   const otherSpeciesLinks = otherSpecies.length ? `<section style="margin:1.5rem 0;">
     <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{1F43E} ほかの動物の赤ちゃんも見る</h2>
     <div style="display:flex;flex-wrap:wrap;gap:.5rem;">${otherSpecies.map(s => `<a href="/species/${esc(s)}/" style="display:inline-block;padding:.35rem .8rem;background:#f0f7f4;border-radius:999px;font-size:.9rem;color:#0a7a5c;text-decoration:none;">${esc(s)}</a>`).join('')}</div>
-    <p style="margin:1rem 0 0;font-size:.95rem;">${species === 'コビトカバ' ? '<a href="/specials/kobitokaba/">コビトカバの赤ちゃん特集</a> ・ ' : ''}${species === 'レッサーパンダ' ? '<a href="/specials/red-panda/">レッサーパンダの赤ちゃん特集</a> ・ ' : ''}<a href="/specials/endangered/">絶滅危惧種の赤ちゃん特集</a> ・ <a href="/species/">すべての種を見る</a></p>
+    <p style="margin:1rem 0 0;font-size:.95rem;">${species === 'コビトカバ' ? '<a href="/specials/kobitokaba/">コビトカバの赤ちゃん特集</a> ・ ' : ''}${species === 'レッサーパンダ' ? '<a href="/specials/red-panda/">レッサーパンダの赤ちゃん特集</a> ・ ' : ''}${(SINGLE_SPECIES_SPECIALS.find(c => c.species === species) ? `<a href="/specials/${SINGLE_SPECIES_SPECIALS.find(c => c.species === species).slug}/">${species}の赤ちゃん特集</a> ・ ` : '')}<a href="/specials/endangered/">絶滅危惧種の赤ちゃん特集</a> ・ <a href="/species/">すべての種を見る</a></p>
   </section>` : '';
   const speciesBabies = babies.filter(b => b.species === species);
   const count = speciesBabies.length;
@@ -2743,6 +2743,150 @@ ${siteFooter()}
 </html>`;
 }
 
+const SINGLE_SPECIES_SPECIALS = [
+  {
+    species: 'ホワイトタイガー', slug: 'white-tiger', emoji: '🐯', datePublished: '2026-06-26',
+    hook: '白い体毛と青い瞳が美しい、ベンガルトラの白色変異個体として世界的に人気の<strong>ホワイトタイガー</strong>。',
+    growth: '赤ちゃんは生後2週間ほどで目が開き、生後6ヶ月ごろから母親に暮らし方を学びながら大きく育っていきます。白い毛色は劣性遺伝子によるもので、野生ではほとんど見られない希少な存在です。',
+    season: '出産の時期は決まっておらず通年で生まれる可能性があり、赤ちゃんが公開されるのは健康状態が安定する生後しばらくしてからです。',
+  },
+  {
+    species: 'ライオン', slug: 'lion', emoji: '🦁', datePublished: '2026-06-26',
+    hook: '「百獣の王」として親しまれ、群れ（プライド）で暮らす唯一のネコ科動物<strong>ライオン</strong>。',
+    growth: '赤ちゃんは2〜4頭で生まれ、しばらくは巣で過ごします。群れの母ライオンたちが協力して子育てをする社会的な姿が見られ、きょうだいでじゃれ合いながら成長していきます。',
+    season: '出産は通年で起こり得ます。赤ちゃんは生後数週間は奥で過ごすため、公開時期は各動物園の発表を確認するのがおすすめです。',
+  },
+  {
+    species: 'コツメカワウソ', slug: 'otter', emoji: '🦦', datePublished: '2026-06-26',
+    hook: '器用な前足で貝や小魚をつかんで食べる、世界最小のカワウソ<strong>コツメカワウソ</strong>。',
+    growth: '赤ちゃんは目が閉じた状態で生まれ、両親を含む家族全員で協力して育てます。仲間とのコミュニケーションが豊かで、親から子へ生きるすべを丁寧に教える様子が観察できます。',
+    season: '繁殖は通年で起こり得ます。生まれてしばらくは巣箱の中で過ごすため、公開は生後数週間以降が目安です。',
+  },
+  {
+    species: 'ミーアキャット', slug: 'meerkat', emoji: '🐾', datePublished: '2026-06-26',
+    hook: '後ろ足で直立して周囲を見渡す姿が愛らしい、群れで暮らす<strong>ミーアキャット</strong>。',
+    growth: '赤ちゃんは目が開かない状態で生まれ、巣穴の中で数週間育てられます。群れの仲間が交代で世話をする「ヘルパー」の行動が知られ、家族みんなで子育てする様子が見どころです。',
+    season: '繁殖は通年で起こり得ます。赤ちゃんは生後数週間は巣穴で過ごすため、公開は少し成長してからが目安です。',
+  },
+];
+
+function singleSpeciesSpecialHtml(cfg, babies, slugMap) {
+  const SPECIES = cfg.species;
+  const info = SPECIES_INFO[SPECIES] || {};
+  const targets = babies
+    .filter(b => b.species === SPECIES)
+    .sort((a, b) => String(b.birthday || '').localeCompare(String(a.birthday || '')));
+  const count = targets.length;
+  const zooSet = new Set(targets.map(b => b.zoo_name).filter(Boolean));
+  const zooCount = zooSet.size;
+  const isEndangered = /CR|EN|VU|NT/.test(info.iucn || '');
+
+  const title = `${SPECIES}の赤ちゃんに会える動物園｜全国${zooCount}園${count}頭の最新情報 | どうベビ`;
+  const desc = `日本の動物園で会える${SPECIES}の赤ちゃんを特集。全国${zooCount}園・${count}頭の公開状況・誕生日・見どころ・チケット情報をまとめてご紹介。${info.iucn ? `${SPECIES}はIUCNレッドリストで「${info.iucn}」に指定されています。` : ''}`.slice(0, 200);
+  const canonical = `${SITE_BASE}/specials/${cfg.slug}/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'Article',
+    headline: `${SPECIES}の赤ちゃん特集 — 日本の動物園で会えるベビー`,
+    description: desc, url: canonical,
+    datePublished: cfg.datePublished,
+    dateModified: new Date().toISOString().slice(0, 10),
+    author: { '@type': 'Organization', name: 'どうベビ編集部', url: SITE_BASE },
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: canonical,
+  });
+
+  const faq = [
+    { q: `${SPECIES}の赤ちゃんはどこの動物園で会えますか？`, a: count > 0 ? `現在、${SPECIES}の赤ちゃんは全国${zooCount}園で会えます。${[...zooSet].join('・')}で公開されています。` : `現在、公開中の${SPECIES}の赤ちゃん情報はありません。最新の誕生情報を随時更新しています。` },
+    { q: `${SPECIES}はどんな動物ですか？`, a: info.desc || `${SPECIES}の赤ちゃん情報をまとめています。` },
+    ...(SPECIES_LIFESPAN[SPECIES] ? [{ q: `${SPECIES}の寿命はどのくらいですか？`, a: SPECIES_LIFESPAN[SPECIES] }] : []),
+    ...(isEndangered ? [{ q: `${SPECIES}は絶滅危惧種ですか？`, a: `はい。${SPECIES}はIUCNレッドリストで「${info.iucn}」に指定されている絶滅危惧種です。生息地の減少などにより野生での数が減っており、動物園での飼育・繁殖が種の保全に役立っています。` }] : []),
+    { q: `${SPECIES}の赤ちゃんを見るときのコツはありますか？`, a: '赤ちゃんは午前中の涼しい時間帯に活発なことが多く、親子の様子を観察できます。公開時間や展示場所は季節や体調で変わるため、おでかけ前に各動物園の公式サイトやSNSで当日の展示状況を確認すると安心です。前売り券があると当日スムーズに入園できます。' },
+  ];
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  });
+
+  const cards = count > 0
+    ? `<div class="baby-grid">${targets.map(b => zooBabyCardHtml(b, slugMap)).join('')}</div>`
+    : `<p style="opacity:.85;line-height:1.8;">現在、公開中の${esc(SPECIES)}の赤ちゃん情報はありません。最新情報を更新中です。</p>`;
+
+  const zooListHtml = [...zooSet].map(zn => {
+    const z = ZOOS.find(x => x.db_name === zn);
+    return z
+      ? `<li><a href="/zoos/${esc(z.slug)}/">${esc(z.name)}の赤ちゃん</a></li>`
+      : `<li>${esc(zn)}</li>`;
+  }).join('');
+
+  const faqHtml = faq.map(f => `
+    <details style="margin:.6rem 0;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="font-weight:700;cursor:pointer;">${esc(f.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.8;">${esc(f.a)}</p>
+    </details>`).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ ogImage: pickOgPhoto(targets), title, desc, canonical, jsonLd, extraJsonLd: faqLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/specials/">特集</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">${esc(SPECIES)}の赤ちゃん</span>
+  </nav>
+
+  <section class="page-hero">
+    <h1 class="page-title">${cfg.emoji} ${esc(SPECIES)}の<br>赤ちゃん特集</h1>
+    <p class="page-subtitle">日本の動物園で会える${esc(SPECIES)}のベビー ${count}頭・${zooCount}園</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.9;">
+    <p>${cfg.hook}${esc(info.desc || '')}</p>
+    <p><strong>赤ちゃんの育ち</strong>：${esc(cfg.growth)}</p>
+    <p><strong>会いに行くタイミング</strong>：${esc(cfg.season)}下のカードの<strong>公開状況バッジ</strong>で「いま会えるか」を確認して、お出かけの参考にどうぞ。</p>
+  </section>
+
+  <section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">🐣 いま会える${esc(SPECIES)}の赤ちゃん</h2>
+    ${cards}
+  </section>
+
+  ${zooListHtml ? `<section style="margin:2rem 0;padding:1rem;background:rgba(255,255,255,0.5);border-radius:12px;">
+    <h2 style="font-size:1.15rem;margin:0 0 .6rem;">🏛️ ${esc(SPECIES)}の赤ちゃんに会える動物園</h2>
+    <ul style="line-height:2;margin:0;padding-left:1.2rem;">${zooListHtml}</ul>
+  </section>` : ''}
+
+  ${genericAsoviewCta(`${SPECIES}に会える動物園の電子チケット。当日窓口と同じ料金で、並ばず入園できます。`)}
+
+  <section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 .6rem;">❓ ${esc(SPECIES)}の赤ちゃん よくある質問</h2>
+    ${faqHtml}
+  </section>
+
+  <section style="margin:1.8rem 0;padding:1rem 1.2rem;background:rgba(255,255,255,0.55);border-radius:14px;">
+    <h2 style="font-size:1.05rem;margin:0 0 .6rem;">関連ページ</h2>
+    <nav style="display:flex;flex-wrap:wrap;">
+      <a href="/species/${encodeURI(SPECIES)}/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">${esc(SPECIES)}の種ページ →</a>
+      <a href="/specials/endangered/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">🌍 絶滅危惧種の赤ちゃん特集 →</a>
+      <a href="/specials/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#0a7a5c;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:.92rem;">📚 特集をすべて見る →</a>
+    </nav>
+  </section>
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 function kobitokabaSpecialHtml(babies, slugMap) {
   const SPECIES = 'コビトカバ';
   const info = SPECIES_INFO[SPECIES] || {};
@@ -3032,6 +3176,11 @@ function specialsIndexHtml(babies) {
     },
   ];
 
+  for (const cfg of SINGLE_SPECIES_SPECIALS) {
+    const n = babies.filter(b => b.species === cfg.species).length;
+    features.push({ href: `/specials/${cfg.slug}/`, emoji: cfg.emoji, heading: `${cfg.species}の赤ちゃん特集`, text: `いま全国で会える${cfg.species}の赤ちゃん${n}頭の公開状況・会える動物園をまとめました。` });
+  }
+
   const cards = features.map(f => `
     <a class="card" href="${f.href}" style="display:block;padding:1.25rem;text-decoration:none;color:inherit;">
       <div style="font-size:2rem;">${f.emoji}</div>
@@ -3099,6 +3248,10 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/summer-2026/">☀️ 2026年夏の動物園赤ちゃん特集</a></li>
       <li><a href="/specials/kobitokaba/">🦛 コビトカバの赤ちゃん特集</a></li>
       <li><a href="/specials/red-panda/">🐼 レッサーパンダの赤ちゃん特集</a></li>
+      <li><a href="/specials/white-tiger/">🐯 ホワイトタイガーの赤ちゃん特集</a></li>
+      <li><a href="/specials/lion/">🦁 ライオンの赤ちゃん特集</a></li>
+      <li><a href="/specials/otter/">🦦 コツメカワウソの赤ちゃん特集</a></li>
+      <li><a href="/specials/meerkat/">🐾 ミーアキャットの赤ちゃん特集</a></li>
       <li><a href="/calendar/">誕生日カレンダー</a></li>
       <li><a href="/area/">エリア（地域）から探す</a></li>
     </ul>`;
@@ -3173,6 +3326,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/kobitokaba/`,       priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/red-panda/`,        priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    ...SINGLE_SPECIES_SPECIALS.map(cfg => ({ loc: `${SITE_BASE}/specials/${cfg.slug}/`, priority: '0.8', changefreq: 'weekly', lastmod: today })),
   ];
 
   const speciesSet = new Set(babies.map(b => b.species).filter(Boolean));
@@ -4002,6 +4156,13 @@ async function main() {
   console.log('\n🐼 レッサーパンダ特集ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'red-panda', 'index.html'), redPandaSpecialHtml(babies, slugMap));
   console.log(`   ✅ /specials/red-panda/ 出力`);
+
+  // ── 単独種特集（設定駆動・複数種） ──
+  console.log('\n🐾 単独種特集（設定駆動）生成中...');
+  for (const cfg of SINGLE_SPECIES_SPECIALS) {
+    writeHtml(path.join(WEB_DIR, 'specials', cfg.slug, 'index.html'), singleSpeciesSpecialHtml(cfg, babies, slugMap));
+    console.log(`   ✅ /specials/${cfg.slug}/ 出力`);
+  }
 
   // ── 特集ハブ一覧ページ ──
   console.log('\n📚 特集ハブ一覧ページ生成中...');
