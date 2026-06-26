@@ -1,4 +1,5 @@
 // worker/src/index.ts
+import { parseDateToISODateOnly, inferBirthdayFromTitle } from './birthday';
 // Baby Animals - Crawler/Resolver Worker
 // ランタイム: Cloudflare Workers (Service bindings: SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 // 目的:
@@ -83,27 +84,7 @@ function domain(u: string) {
   try { return new URL(u).hostname.replace(/^www\./,''); } catch { return ''; }
 }
 
-function parseDateToISODateOnly(input?: string | null): string | null {
-  // YYYY-MM-DD を返す（JST起点の曖昧な日付も拾う）
-  if (!input) return null;
-  const iso = input.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
-  const jp = input.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?/);
-  if (jp) {
-    const y = Number(jp[1]);
-    const m = String(Number(jp[2])).padStart(2,'0');
-    const d = String(Number(jp[3])).padStart(2,'0');
-    return `${y}-${m}-${d}`;
-  }
-  const t = Date.parse(input);
-  if (!Number.isNaN(t)) {
-    const d = new Date(t);
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${d.getFullYear()}-${mm}-${dd}`;
-  }
-  return null;
-}
+// parseDateToISODateOnly は ./birthday に移設（F1 2026-06-25）
 
 function toUtcIso(dt: string | Date): string {
   const d = (dt instanceof Date) ? dt : new Date(dt);
@@ -422,17 +403,7 @@ function extractSpeciesAlias(title: string): { species?: string; alias?: string 
   return {};
 }
 
-function decideBirthdayByAge(title: string, fallbackISO?: string | null): string | null {
-  const m = title.match(/(?<m>\d{1,2})月(?<d>\d{1,2})日（(?<age>\d{1,3})日齢）/);
-  if (!m?.groups) return null;
-  const pub = fallbackISO ? new Date(fallbackISO) : null;
-  const nowY = new Date().getFullYear();
-  const refY = pub ? pub.getFullYear() : nowY;
-  const ref = new Date(refY, Number(m.groups.m) - 1, Number(m.groups.d));
-  const refDate = (pub && ref.getTime() > pub.getTime()) ? pub : ref;
-  refDate.setDate(refDate.getDate() - Number(m.groups.age));
-  return refDate.toISOString().slice(0, 10);
-}
+// decideBirthdayByAge は ./birthday に移設（F1 2026-06-25）
 
 function ensureBabyName(givenName?: string | null): string | null {
   if (!givenName || !givenName.trim()) return null;
@@ -920,24 +891,8 @@ function scoreForCreate(ev: EventForResolve): number {
 }
 
 function inferBirthday(ev: EventForResolve): string | null {
-  const byAge = ev.title ? decideBirthdayByAge(ev.title, ev.published_at || null) : null;
-  const byTitle = ev.title ? parseDateToISODateOnly(ev.title) : null;
-  if (byAge) return byAge;
-  if (byTitle) return byTitle;
-  // M月D日 パターン（年なし）→ 記事公開日の年で補完し、未来日なら前年に調整
-  if (ev.title) {
-    const m = ev.title.match(/(\d{1,2})月(\d{1,2})日/);
-    if (m) {
-      const pubDate = ev.published_at ? new Date(ev.published_at) : new Date();
-      const candidate = new Date(pubDate.getFullYear(), Number(m[1]) - 1, Number(m[2]));
-      if (candidate > pubDate) candidate.setFullYear(candidate.getFullYear() - 1);
-      return candidate.toISOString().slice(0, 10);
-    }
-  }
-  // 2026-06-20 修正: 旧実装は published_at（記事公開日）を誕生日に流用していた。
-  // これが「年ズレ」「幻の誕生」の主因（2026年公開の記事→2026年誕生として量産）。
-  // 実日付シグナル（齢・明示日付・M月D日）が無い場合は誕生日を推定しない。
-  return null;
+  // F1(2026-06-25): 掲載/配信日の除外＋誕生文脈ゲートは ./birthday に集約。
+  return inferBirthdayFromTitle(ev.title, ev.published_at || null);
 }
 
 async function resolveBabyEntitiesJob(env: Env) {
