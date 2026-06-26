@@ -375,6 +375,33 @@ const ZOO_AFFILIATE_MAP = toAffiliateMap();
 
 // ─── 種別解説マスター ────────────────────────────────────────────────
 // 各種の説明文・IUCN保全状況。babyHtml() で species キーで参照する。
+const SPECIES_LIFESPAN = {
+  'レッサーパンダ': '野生でおよそ8〜10年、動物園など飼育下では12〜15年ほど生きるとされています。',
+  'ホワイトタイガー': 'トラの寿命は野生でおよそ10〜15年、飼育下では15〜20年ほどで、ホワイトタイガーも同程度とされています。',
+  'トラ': '野生でおよそ10〜15年、飼育下では15〜20年ほど生きるとされています。',
+  'アムールトラ': '野生でおよそ10〜15年、飼育下では15〜20年ほど生きるとされています。',
+  'スマトラトラ': '野生でおよそ10〜15年、飼育下では15〜20年ほど生きるとされています。',
+  'ライオン': '野生でおよそ10〜14年、飼育下では最長20年ほど生きるとされています。',
+  'マルミミゾウ': '野生でおよそ60〜70年と、ゾウの仲間は哺乳類の中でも長寿で知られます。',
+  'ゾウ': '野生でおよそ60〜70年と、哺乳類の中でも長寿な動物です。',
+  'アジアゾウ': '野生でおよそ60〜70年ほど生きるとされる長寿な動物です。',
+  'ゴリラ': '野生でおよそ35〜40年、飼育下では50年を超えることもあります。',
+  'ニシゴリラ': '野生でおよそ35〜40年、飼育下では50年を超えることもあります。',
+  'チンパンジー': '野生でおよそ40〜50年生きるとされ、飼育下ではさらに長生きすることもあります。',
+  'ボルネオオランウータン': '野生でおよそ35〜45年、飼育下では50年近く生きることもあります。',
+  'コアラ': '野生でおよそ10〜15年ほど生きるとされています。',
+  'ホッキョクグマ': '野生でおよそ25〜30年生きるとされています。',
+  'キリン': '野生でおよそ20〜25年ほど生きるとされています。',
+  'アミメキリン': '野生でおよそ20〜25年ほど生きるとされています。',
+  'マサイキリン': '野生でおよそ20〜25年ほど生きるとされています。',
+  'フンボルトペンギン': 'およそ15〜20年、飼育下では20年を超えることもあります。',
+  'コツメカワウソ': 'およそ10〜15年ほど生きるとされています。',
+  'カリフォルニアアシカ': '野生でおよそ20〜30年ほど生きるとされています。',
+  'コビトカバ': '野生でおよそ30〜40年、飼育下では40年を超えた例もあります。',
+  'インドサイ': '野生でおよそ35〜45年ほど生きるとされています。',
+  'コモドオオトカゲ': '野生でおよそ30年前後生きるとされる長寿なトカゲです。',
+};
+
 const SPECIES_INFO = {
   'ヤクシマザル': {
     iucn: 'LC（軽度懸念）',
@@ -1748,7 +1775,7 @@ function speciesHtml(species, babies, slugMap) {
   const zooSet = new Set(speciesBabies.map(b => b.zoo_name).filter(Boolean));
   const slug = encodeURI(species);  // 日本語URL用（% は二重エンコード防止のため使わない）
 
-  const title = `${species}の赤ちゃんに会える動物園｜${zooSet.size}園${count}頭の最新情報 | どうベビ`;
+  const title = `${species}の赤ちゃん ${new Date().getFullYear()}｜会える動物園${zooSet.size}園${count}頭【最新】 | どうベビ`;
   const desc = (count > 0
     ? `動物園にいる${species}の赤ちゃんをまとめて紹介。${sampleLead}${count}頭が全国${zooSet.size}園で暮らしています。${info ? info.desc.slice(0, 80) + '…' : ''}`
     : `${species}の赤ちゃんを動物園で探す。${info ? info.desc.slice(0, 140) + '…' : ''}`
@@ -1799,6 +1826,8 @@ function speciesHtml(species, babies, slugMap) {
     ...(viewingAnswer ? [{ q: `${species}の赤ちゃんの見頃はいつですか？`, a: viewingAnswer }] : []),
     ...(info ? [{ q: `${species}はどんな動物ですか？`, a: info.desc }] : []),
     ...(info ? [{ q: `${species}の保全状況（IUCN）はどうなっていますか？`, a: `${species}は IUCN レッドリストで「${info.iucn}」に指定されています。野生での生息環境を守る取り組みとあわせて、動物園での飼育・繁殖も種の保全に役立っています。` }] : []),
+    ...(info && /CR|EN|VU|NT/.test(info.iucn || '') ? [{ q: `${species}は絶滅危惧種ですか？`, a: `はい。${species}はIUCNレッドリストで「${info.iucn}」に指定されている絶滅危惧種です。生息地の減少などにより野生での数が減っており、動物園での飼育・繁殖が種の保全に役立っています。` }] : []),
+    ...(SPECIES_LIFESPAN[species] ? [{ q: `${species}の寿命はどのくらいですか？`, a: SPECIES_LIFESPAN[species] }] : []),
     { q: `${species}の赤ちゃんを見るときのコツはありますか？`, a: `赤ちゃんは午前中の涼しい時間帯に活発なことが多く、授乳や親子の様子を観察できます。公開時間や展示場所は季節や体調によって変わるため、おでかけ前に各動物園の公式サイトやSNSで当日の展示状況を確認すると安心です。前売り券を用意しておくと当日スムーズに入園できます。` },
   ];
 
@@ -2329,6 +2358,20 @@ function featuredZoosBlock(babies) {
 
 // ─── 春の特集ページ ──────────────────────────────────────
 
+function popularSpeciesNav(babies) {
+  const PRIORITY = ['レッサーパンダ','ホワイトタイガー','コビトカバ','アムールトラ','ライオン','コアラ','ホッキョクグマ','キリン','ゴリラ','フンボルトペンギン'];
+  const present = new Set((babies || []).map(b => b.species).filter(sp => sp && SPECIES_INFO[sp]));
+  const ordered = PRIORITY.filter(sp => present.has(sp));
+  for (const sp of present) { if (ordered.length >= 8) break; if (!ordered.includes(sp)) ordered.push(sp); }
+  const list = ordered.slice(0, 8);
+  if (!list.length) return '';
+  const chips = list.map(sp => `<a href="/species/${encodeURI(sp)}/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">\u{1F43E} ${esc(sp)}の赤ちゃん →</a>`).join('');
+  return `<section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 .8rem;">\u{1F50E} 人気の種から探す</h2>
+    <nav aria-label="人気の種" style="display:flex;flex-wrap:wrap;">${chips}<a href="/species/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#0a7a5c;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:.92rem;">すべての種を見る →</a></nav>
+  </section>`;
+}
+
 function springSpecialHtml(babies, slugMap) {
   // 季節ウィンドウ: 2025-09〜2026-05 生まれ
   const inWindow = (b) => {
@@ -2436,6 +2479,8 @@ ${siteNav('/')}
   ${genericAsoviewCta('お近くの動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
 
   ${visibleFaq}
+
+  ${popularSpeciesNav(babies)}
 
   ${seasonCrossNav('spring')}
 
@@ -2554,6 +2599,8 @@ ${siteNav('/')}
   ${genericAsoviewCta('お近くの動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
 
   ${visibleFaq}
+
+  ${popularSpeciesNav(babies)}
 
   ${seasonCrossNav('summer')}
 
