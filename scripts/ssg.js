@@ -1765,7 +1765,7 @@ function speciesHtml(species, babies, slugMap) {
   const otherSpeciesLinks = otherSpecies.length ? `<section style="margin:1.5rem 0;">
     <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{1F43E} ほかの動物の赤ちゃんも見る</h2>
     <div style="display:flex;flex-wrap:wrap;gap:.5rem;">${otherSpecies.map(s => `<a href="/species/${esc(s)}/" style="display:inline-block;padding:.35rem .8rem;background:#f0f7f4;border-radius:999px;font-size:.9rem;color:#0a7a5c;text-decoration:none;">${esc(s)}</a>`).join('')}</div>
-    <p style="margin:1rem 0 0;font-size:.95rem;">${species === 'コビトカバ' ? '<a href="/specials/kobitokaba/">コビトカバの赤ちゃん特集</a> ・ ' : ''}<a href="/specials/endangered/">絶滅危惧種の赤ちゃん特集</a> ・ <a href="/species/">すべての種を見る</a></p>
+    <p style="margin:1rem 0 0;font-size:.95rem;">${species === 'コビトカバ' ? '<a href="/specials/kobitokaba/">コビトカバの赤ちゃん特集</a> ・ ' : ''}${species === 'レッサーパンダ' ? '<a href="/specials/red-panda/">レッサーパンダの赤ちゃん特集</a> ・ ' : ''}<a href="/specials/endangered/">絶滅危惧種の赤ちゃん特集</a> ・ <a href="/species/">すべての種を見る</a></p>
   </section>` : '';
   const speciesBabies = babies.filter(b => b.species === species);
   const count = speciesBabies.length;
@@ -2623,6 +2623,126 @@ ${siteFooter()}
  * 特集ハブ: コビトカバの赤ちゃん特集（/specials/kobitokaba/）
  * 話題性の高い種の単独特集（特集型の横展開・検索需要の捕捉）
  */
+function redPandaSpecialHtml(babies, slugMap) {
+  const SPECIES = 'レッサーパンダ';
+  const info = SPECIES_INFO[SPECIES] || {};
+  const targets = babies
+    .filter(b => b.species === SPECIES)
+    .sort((a, b) => String(b.birthday || '').localeCompare(String(a.birthday || '')));
+  const count = targets.length;
+  const zooSet = new Set(targets.map(b => b.zoo_name).filter(Boolean));
+  const zooCount = zooSet.size;
+
+  const title = `レッサーパンダの赤ちゃんに会える動物園｜全国${zooCount}園${count}頭の最新情報 | どうベビ`;
+  const desc = `日本の動物園で会えるレッサーパンダの赤ちゃんを特集。全国${zooCount}園・${count}頭の公開状況・誕生日・見どころ・チケット情報をまとめてご紹介。出産は初夏が中心で、赤ちゃんの公開は夏〜秋が見頃。IUCNレッドリストで絶滅危惧種（EN）に指定される人気者です。`.slice(0, 200);
+  const canonical = `${SITE_BASE}/specials/red-panda/`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'レッサーパンダの赤ちゃん特集 — 日本の動物園で会える人気者のベビー',
+    description: desc,
+    url: canonical,
+    datePublished: '2026-06-26',
+    dateModified: new Date().toISOString().slice(0, 10),
+    author: { '@type': 'Organization', name: 'どうベビ編集部', url: SITE_BASE },
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: canonical,
+  });
+
+  const faq = [
+    { q: 'レッサーパンダの赤ちゃんはどこの動物園で会えますか？', a: count > 0 ? `現在、レッサーパンダの赤ちゃんは全国${zooCount}園で会えます。${[...zooSet].join('・')}で公開されています。` : '現在、公開中のレッサーパンダの赤ちゃん情報はありません。最新の誕生情報を随時更新しています。' },
+    { q: 'レッサーパンダの赤ちゃんの見頃はいつですか？', a: 'レッサーパンダの出産は初夏（6〜7月ごろ）が中心で、赤ちゃんが屋外に出て公開されるのは夏〜秋が見頃です。生まれたては巣箱の中で過ごすため、公開時期は各動物園の発表を確認するのがおすすめです。' },
+    { q: 'レッサーパンダはどんな動物ですか？', a: info.desc || 'レッサーパンダはヒマラヤ周辺の高地にすむ、赤茶色の毛とふさふさの尾をもつ動物です。' },
+    { q: 'レッサーパンダの寿命はどのくらいですか？', a: SPECIES_LIFESPAN[SPECIES] || '野生でおよそ8〜10年、飼育下では12〜15年ほどとされています。' },
+    { q: 'レッサーパンダは絶滅危惧種ですか？', a: `はい。レッサーパンダはIUCNレッドリストで「${info.iucn || 'EN（絶滅危惧種）'}」に指定されている絶滅危惧種です。生息地である高地の森林減少が脅威で、動物園での繁殖が種の保全に役立っています。` },
+    { q: 'レッサーパンダの赤ちゃんを見るときのコツはありますか？', a: '赤ちゃんは午前中や夕方の涼しい時間帯に活発なことが多く、木に登る愛らしい姿が見られます。公開時間や展示場所は季節や体調で変わるため、おでかけ前に各動物園の公式サイトやSNSで当日の展示状況を確認すると安心です。前売り券があると当日スムーズに入園できます。' },
+  ];
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  });
+
+  const cards = count > 0
+    ? `<div class="baby-grid">${targets.map(b => zooBabyCardHtml(b, slugMap)).join('')}</div>`
+    : `<p style="opacity:.85;line-height:1.8;">現在、公開中のレッサーパンダの赤ちゃん情報はありません。最新情報を更新中です。</p>`;
+
+  const zooListHtml = [...zooSet].map(zn => {
+    const z = ZOOS.find(x => x.db_name === zn);
+    return z
+      ? `<li><a href="/zoos/${esc(z.slug)}/">${esc(z.name)}の赤ちゃん</a></li>`
+      : `<li>${esc(zn)}</li>`;
+  }).join('');
+
+  const faqHtml = faq.map(f => `
+    <details style="margin:.6rem 0;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="font-weight:700;cursor:pointer;">${esc(f.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.8;">${esc(f.a)}</p>
+    </details>`).join('');
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ ogImage: pickOgPhoto(targets), title, desc, canonical, jsonLd, extraJsonLd: faqLd })}
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/specials/">特集</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">レッサーパンダの赤ちゃん</span>
+  </nav>
+
+  <section class="page-hero">
+    <h1 class="page-title">🐼 レッサーパンダの<br>赤ちゃん特集</h1>
+    <p class="page-subtitle">日本の動物園で会えるレッサーパンダのベビー ${count}頭・${zooCount}園</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.9;">
+    <p>木に登る愛らしい姿と、赤茶色のふさふさの毛で世界的に人気の<strong>レッサーパンダ</strong>。${esc(info.desc || '')}</p>
+    <p><strong>赤ちゃんの育ち</strong>：レッサーパンダの赤ちゃんは巣箱の中で生まれ、最初は目も耳も閉じた状態。母親に守られて育ち、約3ヶ月で巣立ちを迎えます。生まれたては白っぽく、成長とともに親と同じ赤茶色になっていきます。</p>
+    <p><strong>会いに行くベストシーズン</strong>：出産は初夏（6〜7月ごろ）が中心で、赤ちゃんが屋外に出て公開されるのは夏〜秋が見頃。下のカードの<strong>公開状況バッジ</strong>で「いま会えるか」を確認して、お出かけの参考にどうぞ。</p>
+  </section>
+
+  <section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">🐣 いま会えるレッサーパンダの赤ちゃん</h2>
+    ${cards}
+  </section>
+
+  ${zooListHtml ? `<section style="margin:2rem 0;padding:1rem;background:rgba(255,255,255,0.5);border-radius:12px;">
+    <h2 style="font-size:1.15rem;margin:0 0 .6rem;">🏛️ レッサーパンダの赤ちゃんに会える動物園</h2>
+    <ul style="line-height:2;margin:0;padding-left:1.2rem;">${zooListHtml}</ul>
+  </section>` : ''}
+
+  ${genericAsoviewCta('レッサーパンダに会える動物園の電子チケット。当日窓口と同じ料金で、並ばず入園できます。')}
+
+  <section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 .6rem;">❓ レッサーパンダの赤ちゃん よくある質問</h2>
+    ${faqHtml}
+  </section>
+
+  <section style="margin:1.8rem 0;padding:1rem 1.2rem;background:rgba(255,255,255,0.55);border-radius:14px;">
+    <h2 style="font-size:1.05rem;margin:0 0 .6rem;">関連ページ</h2>
+    <nav style="display:flex;flex-wrap:wrap;">
+      <a href="/species/${encodeURI('レッサーパンダ')}/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">レッサーパンダの種ページ →</a>
+      <a href="/specials/endangered/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">🌍 絶滅危惧種の赤ちゃん特集 →</a>
+      <a href="/specials/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#0a7a5c;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:.92rem;">📚 特集をすべて見る →</a>
+    </nav>
+  </section>
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 function kobitokabaSpecialHtml(babies, slugMap) {
   const SPECIES = 'コビトカバ';
   const info = SPECIES_INFO[SPECIES] || {};
@@ -2868,6 +2988,7 @@ function specialsIndexHtml(babies) {
   }).length;
 
   const kobitokabaCount = babies.filter(b => b.species === 'コビトカバ').length;
+  const redPandaCount = babies.filter(b => b.species === 'レッサーパンダ').length;
 
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -2884,6 +3005,12 @@ function specialsIndexHtml(babies) {
       emoji: '🦛',
       heading: 'コビトカバの赤ちゃん特集',
       text: `世界で人気のコビトカバ。いま全国で会える赤ちゃん${kobitokabaCount}頭の公開状況・会える動物園をまとめました。`,
+    },
+    {
+      href: '/specials/red-panda/',
+      emoji: '🐼',
+      heading: 'レッサーパンダの赤ちゃん特集',
+      text: `木に登る愛らしい姿で人気のレッサーパンダ。いま全国で会える赤ちゃん${redPandaCount}頭の公開状況・会える動物園をまとめました。`,
     },
     {
       href: '/specials/summer-2026/',
@@ -2971,6 +3098,7 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
       <li><a href="/specials/summer-2026/">☀️ 2026年夏の動物園赤ちゃん特集</a></li>
       <li><a href="/specials/kobitokaba/">🦛 コビトカバの赤ちゃん特集</a></li>
+      <li><a href="/specials/red-panda/">🐼 レッサーパンダの赤ちゃん特集</a></li>
       <li><a href="/calendar/">誕生日カレンダー</a></li>
       <li><a href="/area/">エリア（地域）から探す</a></li>
     </ul>`;
@@ -3043,6 +3171,8 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/specials/summer-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/kobitokaba/`,       priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/red-panda/`,        priority: '0.8', changefreq: 'weekly',  lastmod: today },
   ];
 
   const speciesSet = new Set(babies.map(b => b.species).filter(Boolean));
@@ -3867,6 +3997,11 @@ async function main() {
   console.log('\n🦛 コビトカバ特集ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'kobitokaba', 'index.html'), kobitokabaSpecialHtml(babies, slugMap));
   console.log(`   ✅ /specials/kobitokaba/ 出力`);
+
+  // ── レッサーパンダの赤ちゃん特集ページ ──
+  console.log('\n🐼 レッサーパンダ特集ページ生成中...');
+  writeHtml(path.join(WEB_DIR, 'specials', 'red-panda', 'index.html'), redPandaSpecialHtml(babies, slugMap));
+  console.log(`   ✅ /specials/red-panda/ 出力`);
 
   // ── 特集ハブ一覧ページ ──
   console.log('\n📚 特集ハブ一覧ページ生成中...');
