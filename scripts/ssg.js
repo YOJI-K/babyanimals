@@ -651,8 +651,15 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const _regionHref = _region ? `/area/${encodeURI(_region)}/` : null;
   const _prefHref = (_pref && _prefHasPage) ? `/area/${encodeURI(_pref)}/` : null;
 
-  const title = `${zoo}の${species}赤ちゃん「${name}」公開情報・誕生日｜どうベビ`;
-  const desc  = `${zoo}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${species}の赤ちゃん「${name}」。誕生日は${bdayFmt || '不明'}、現在${age}。公開状況・会える場所・最新情報をどうベビでチェック。`;
+  // 名前が確定しているページのみタイトル/説明に名前を入れる。
+  // なまえ待ち（provisional）は「○○の赤ちゃん」を主役に（検索語＝種名＋園名）。PROP-20260625
+  const hasRealName = !!(b && b.name && String(b.name).trim() && b.name_status !== 'provisional');
+  const titleCore = hasRealName
+    ? `${zoo}の${species}赤ちゃん「${name}」`
+    : `${zoo}の${species}の赤ちゃん`;
+  const descName = hasRealName ? `${species}の赤ちゃん「${name}」` : `${species}の赤ちゃん`;
+  const title = `${titleCore}公開情報・誕生日｜どうベビ`;
+  const desc  = `${zoo}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${descName}。誕生日は${bdayFmt || '不明'}、現在${age}。公開状況・会える場所・最新情報をどうベビでチェック。`;
 
   // 種別解説マスターからデータ取得（articleLd で参照するため早期に宣言）
   const speciesData = SPECIES_INFO[species] || null;
@@ -661,7 +668,7 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const articleLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
-    headline: `${zoo}の${species}赤ちゃん「${name}」公開情報・誕生日`,
+    headline: `${titleCore}公開情報・誕生日`,
     description: desc,
     image: [b.thumbnail_url || `${SITE_BASE}/assets/img/og.png`],
     url: canonical,
