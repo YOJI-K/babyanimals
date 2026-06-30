@@ -659,6 +659,15 @@ function genericAsoviewCta(lead = '公式提携の電子チケット。当日窓
 
 // ─── 赤ちゃん個別ページ ─────────────────────────────────────────────
 
+// ─── 種→単独種特集 のリンク解決（striking distance内部リンク集中） PROP-20260630 ──
+function speciesSpecialHref(species) {
+  if (species === 'コビトカバ') return { href: '/specials/kobitokaba/', label: 'コビトカバの赤ちゃん特集' };
+  if (species === 'レッサーパンダ') return { href: '/specials/red-panda/', label: 'レッサーパンダの赤ちゃん特集' };
+  const cfg = (typeof SINGLE_SPECIES_SPECIALS !== 'undefined') ? SINGLE_SPECIES_SPECIALS.find(c => c.species === species) : null;
+  if (cfg) return { href: `/specials/${cfg.slug}/`, label: `${species}の赤ちゃん特集` };
+  return null;
+}
+
 // ─── 命名投票CTA（なまえ待ち＋公式投票URLがある時のみ） PROP第1波 ──
 function namingVoteCtaHtml(b) {
   if (!b || b.name_status !== 'provisional' || !b.naming_url) return '';
@@ -836,6 +845,8 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
       <h2 class="species-info__title">🌿 ${esc(species)}について</h2>
       <p class="species-info__desc">${speciesData.desc}</p>
     </section>` : '';
+  const _special = speciesSpecialHref(species);
+  const specialLinkHtml = _special ? `<p class="baby-special-link" style="margin:1rem 0;"><a href="${_special.href}" style="display:inline-block;padding:.55rem 1.1rem;background:#0a7a5c;color:#fff;border-radius:999px;text-decoration:none;font-weight:700;">🔆 ${esc(_special.label)}を見る →</a></p>` : '';
 
   // === 「この子・この園の最新ニュース」（zoo_id経由の紐付け） ===
   const newsList = Array.isArray(babyNews) ? babyNews : [];
@@ -1047,6 +1058,7 @@ ${siteNav('/babies/')}
       </p>
       ${babyEpisodeHtml}
       ${speciesInfoHtml}
+      ${specialLinkHtml}
       ${specsHtml}
       ${babyFaqHtml}
       ${_areaLinkRow}
