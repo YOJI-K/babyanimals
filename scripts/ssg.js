@@ -659,6 +659,28 @@ function genericAsoviewCta(lead = '公式提携の電子チケット。当日窓
 
 // ─── 赤ちゃん個別ページ ─────────────────────────────────────────────
 
+// ─── 家系図（family JSONB がある個体のみ） PROP第2波 ──
+function familyTreeHtml(b) {
+  const f = b && b.family;
+  if (!f || (!f.father && !f.mother)) return '';
+  const box = (label, p) => {
+    if (!p || !p.name) return '';
+    const det = p.detail ? `<div style="font-size:.76rem;color:#5f7a6e;margin-top:.15rem;">${esc(p.detail)}</div>` : '';
+    return `<div style="flex:1;min-width:96px;max-width:190px;background:#fff;border:1px solid #cfeede;border-radius:12px;padding:.6rem .7rem;text-align:center;">
+        <div style="font-size:.72rem;color:#0a7a5c;font-weight:700;">${esc(label)}</div>
+        <div style="font-weight:700;">${esc(p.name)}</div>${det}
+      </div>`;
+  };
+  const parents = [box('父', f.father), box('母', f.mother)].filter(Boolean).join('');
+  return `
+    <section class="baby-family" aria-label="家系図" style="margin:1.3rem 0;padding:1rem;background:#eaf6f0;border:1px solid #d6efe4;border-radius:14px;">
+      <h2 style="font-size:1.05rem;margin:0 0 .7rem;">👪 ${esc(displayBabyName(b))}の家系図</h2>
+      <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;">${parents}</div>
+      <div style="text-align:center;color:#5dcaa5;font-size:1.3rem;line-height:1;margin:.15rem 0;">▾</div>
+      <div style="text-align:center;"><span style="display:inline-block;background:#0a7a5c;color:#fff;border-radius:12px;padding:.5rem 1rem;font-weight:700;">${esc(displayBabyName(b))}（${esc(b.species || '赤ちゃん')}）</span></div>
+    </section>`;
+}
+
 // ─── 種→単独種特集 のリンク解決（striking distance内部リンク集中） PROP-20260630 ──
 function speciesSpecialHref(species) {
   if (species === 'コビトカバ') return { href: '/specials/kobitokaba/', label: 'コビトカバの赤ちゃん特集' };
@@ -1060,6 +1082,7 @@ ${siteNav('/babies/')}
       ${speciesInfoHtml}
       ${specialLinkHtml}
       ${specsHtml}
+      ${familyTreeHtml(b)}
       ${babyFaqHtml}
       ${_areaLinkRow}
       ${zooLinksHtml(zoo, name) || genericAsoviewCta()}
@@ -3861,9 +3884,9 @@ const USE_MOCK = process.argv.includes('--mock');
 async function mergeDisplayStatus(list) {
   if (USE_MOCK) { list.forEach(b => { if (!b.display_status) b.display_status = 'public'; if (!b.name_status) b.name_status = 'confirmed'; }); return; }
   try {
-    const rows = await sbFetch('/rest/v1/babies?select=id,display_status,name_status,naming_url,naming_deadline,public_date&limit=1000');
+    const rows = await sbFetch('/rest/v1/babies?select=id,display_status,name_status,naming_url,naming_deadline,public_date,family&limit=1000');
     const m = new Map(rows.map(r => [r.id, r]));
-    list.forEach(b => { const r = m.get(b.id); b.display_status = (r && r.display_status) || 'public'; b.name_status = (r && r.name_status) || 'confirmed'; b.naming_url = (r && r.naming_url) || null; b.naming_deadline = (r && r.naming_deadline) || null; b.public_date = (r && r.public_date) || null; });
+    list.forEach(b => { const r = m.get(b.id); b.display_status = (r && r.display_status) || 'public'; b.name_status = (r && r.name_status) || 'confirmed'; b.naming_url = (r && r.naming_url) || null; b.naming_deadline = (r && r.naming_deadline) || null; b.public_date = (r && r.public_date) || null; b.family = (r && r.family) || null; });
   } catch (e) {
     console.warn(`   \u26A0\uFE0F  status \u53D6\u5F97\u5931\u6557 \u2014 \u65E2\u5B9A\u5024 (${e.message})`);
     list.forEach(b => { b.display_status = 'public'; b.name_status = 'confirmed'; });
@@ -3888,10 +3911,10 @@ async function appendMissingProvisional(list) {
   if (USE_MOCK) return;
   try {
     const ids = new Set(list.map(b => b.id));
-    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,name_status,naming_url,naming_deadline,public_date,zoo_id,zoo:zoos(name,prefecture)&name_status=eq.provisional&order=birthday.desc.nullslast&limit=500');
+    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,name_status,naming_url,naming_deadline,public_date,family,zoo_id,zoo:zoos(name,prefecture)&name_status=eq.provisional&order=birthday.desc.nullslast&limit=500');
     for (const x of raw) {
       if (ids.has(x.id)) continue;
-      list.push({ id: x.id, name: x.name, species: x.species, birthday: x.birthday, thumbnail_url: x.thumbnail_url, zoo_id: x.zoo_id, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public', name_status: 'provisional', naming_url: x.naming_url || null, naming_deadline: x.naming_deadline || null, public_date: x.public_date || null });
+      list.push({ id: x.id, name: x.name, species: x.species, birthday: x.birthday, thumbnail_url: x.thumbnail_url, zoo_id: x.zoo_id, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public', name_status: 'provisional', naming_url: x.naming_url || null, naming_deadline: x.naming_deadline || null, public_date: x.public_date || null, family: x.family || null });
     }
   } catch (e) { console.warn(`   \u26A0\uFE0F  provisional \u88DC\u5B8C\u5931\u6557 (${e.message})`); }
 }
