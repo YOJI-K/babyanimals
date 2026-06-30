@@ -358,7 +358,7 @@ function siteNav(activeHref) {
 
 function siteFooter() {
   return `<footer class="site-footer" aria-label="フッター">
-  <small>© どうベビ（動物園ベビー情報）　<a href="/specials/" style="color:inherit;opacity:0.7;font-size:0.9em;">特集</a>　<a href="/about/" style="color:inherit;opacity:0.7;font-size:0.9em;">運営者情報</a>　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a>　<a href="/contact/" style="color:inherit;opacity:0.7;font-size:0.9em;">お問い合わせ</a></small>
+  <small>© どうベビ（動物園ベビー情報）　<a href="/specials/" style="color:inherit;opacity:0.7;font-size:0.9em;">特集</a>　<a href="/naming/" style="color:inherit;opacity:0.7;font-size:0.9em;">命名投票</a>　<a href="/about/" style="color:inherit;opacity:0.7;font-size:0.9em;">運営者情報</a>　<a href="/sitemap/" style="color:inherit;opacity:0.7;font-size:0.9em;">サイトマップ</a>　<a href="/privacy/" style="color:inherit;opacity:0.7;font-size:0.9em;">プライバシーポリシー</a>　<a href="/contact/" style="color:inherit;opacity:0.7;font-size:0.9em;">お問い合わせ</a></small>
 </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
@@ -658,6 +658,80 @@ function genericAsoviewCta(lead = '公式提携の電子チケット。当日窓
 }
 
 // ─── 赤ちゃん個別ページ ─────────────────────────────────────────────
+
+// ─── 命名投票CTA（なまえ待ち＋公式投票URLがある時のみ） PROP第1波 ──
+function namingVoteCtaHtml(b) {
+  if (!b || b.name_status !== 'provisional' || !b.naming_url) return '';
+  const dl = b.naming_deadline ? ` <span style="font-weight:700;color:#8a6d00;">締切 ${esc(fmtMonthDay(b.naming_deadline))}</span>` : '';
+  return `
+      <aside aria-label="命名投票" style="margin:.9rem 0;padding:.9rem 1rem;background:#f4f0ff;border:1px solid #ddd2fb;border-radius:14px;">
+        <p style="margin:0 0 .55rem;font-weight:700;color:#5a45c8;">🗳️ この子の名前を決める公式投票を受付中${dl}</p>
+        <a href="${esc(b.naming_url)}" target="_blank" rel="nofollow noopener" data-link-type="naming-vote" data-zoo-name="${esc(b.zoo_name || '')}" style="display:inline-block;padding:.55rem 1.1rem;background:#5a45c8;color:#fff;border-radius:999px;text-decoration:none;font-weight:700;">公式サイトで投票する ↗</a>
+        <span style="display:block;margin-top:.45rem;font-size:.8rem;color:#7a6fa6;">外部サイト（${esc(b.zoo_name || '動物園公式')}）に移動します</span>
+      </aside>`;
+}
+
+// ─── 命名投票うけつけ中ハブ（/naming/） PROP第1波 ──
+function namingHubHtml(babies, slugMap) {
+  const title = '命名投票うけつけ中の動物園の赤ちゃん｜どうベビ';
+  const desc = '名前を募集中（なまえ待ち）の動物園の赤ちゃんと、公式の命名投票ページのまとめ。生まれたばかりの赤ちゃんの名づけに参加できます。締切が近い順に紹介。';
+  const canonical = `${SITE_BASE}/naming/`;
+  const targets = (babies || [])
+    .filter(b => b.name_status === 'provisional' && b.display_status !== 'pre')
+    .sort((a, b) => String(a.naming_deadline || '9999').localeCompare(String(b.naming_deadline || '9999')));
+  const voteCount = targets.filter(b => b.naming_url).length;
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'CollectionPage',
+    name: title, description: desc, url: canonical,
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+  });
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '命名投票うけつけ中', item: canonical },
+    ],
+  });
+  const rows = targets.map(b => {
+    const href = `/babies/${esc((slugMap && slugMap.get(b.id)) || b.id)}/`;
+    const sp = esc(b.species || '赤ちゃん');
+    const zo = esc(b.zoo_name || '');
+    const dl = b.naming_deadline ? `<span style="display:inline-block;margin-left:.4rem;padding:.05rem .5rem;background:#fff4d6;color:#8a6d00;border-radius:999px;font-size:.78rem;font-weight:700;">締切 ${esc(fmtMonthDay(b.naming_deadline))}</span>` : '';
+    const action = b.naming_url
+      ? `<a href="${esc(b.naming_url)}" target="_blank" rel="nofollow noopener" data-link-type="naming-vote" data-zoo-name="${zo}" style="flex:none;padding:.5rem .95rem;background:#5a45c8;color:#fff;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem;">投票する ↗</a>`
+      : `<a href="${href}" style="flex:none;padding:.5rem .95rem;background:#fff;border:1px solid #ddd2fb;color:#5a45c8;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem;">くわしく</a>`;
+    return `<li style="display:flex;align-items:center;gap:.7rem;padding:.7rem .2rem;border-bottom:1px solid #eee;">
+        <div style="flex:1;min-width:0;">
+          <a href="${href}" style="color:#222;text-decoration:none;font-weight:700;">${sp}のなまえ待ちベビー</a>${dl}
+          <div style="font-size:.82rem;color:#777;">${zo}</div>
+        </div>${action}
+      </li>`;
+  }).join('\n      ');
+  const listHtml = targets.length
+    ? `<ul style="list-style:none;padding:0;margin:1rem 0;">${rows}</ul>`
+    : `<p>いまは命名投票うけつけ中の赤ちゃんはいません。新しい赤ちゃんが生まれたら、ここでお知らせします。</p>`;
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ title, desc, canonical, jsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/babies/')}
+<main class="container" id="main">
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a><span aria-hidden="true"> › </span><span aria-current="page">命名投票うけつけ中</span>
+  </nav>
+  <h1 style="font-size:1.4rem;margin:.6rem 0 .3rem;">🗳️ 命名投票うけつけ中の赤ちゃん</h1>
+  <p style="color:#555;margin:0 0 .4rem;">名前を募集中（なまえ待ち）の動物園の赤ちゃんです。${voteCount ? `いま${voteCount}頭が公式の投票を受付中。` : ''}締切が近い順に並べています。投票は各動物園の公式サイトで受け付けています。</p>
+  ${listHtml}
+  <p style="margin:1.2rem 0;font-size:.92rem;"><a href="/babies/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">すべての赤ちゃんを見る →</a></p>
+  ${ADSENSE_ENABLED ? `<div class="ad-wrap ad-wrap--labeled" aria-label="広告"><ins class="adsbygoogle adsense-slot" data-ad-client="${ADSENSE_CLIENT}" data-ad-slot="${ADSENSE_SLOT_BABY}" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>` : ''}
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
 
 function babyHtml(b, slug, allBabies, slugMap, babyNews) {
   const name     = displayBabyName(b);
@@ -965,6 +1039,7 @@ ${siteNav('/babies/')}
         <span class="pill">🎂 ${esc(bdayFmt) || '—'}</span>
         <span class="pill pill--age-${ageSuffix(b.birthday)}">🎈 ${esc(age)}</span>
       </div>
+      ${namingVoteCtaHtml(b)}
       ${quickTicketHtml(zoo)}
       <p class="ssg-detail__desc">
         ${esc(zoo)}で${birthdayYear ? `${birthdayYear}年に` : ''}生まれた${esc(species)}の赤ちゃん「${esc(name)}」の情報ページです。
@@ -3323,6 +3398,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/specials/spring-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/summer-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/naming/`,                   priority: '0.7', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/kobitokaba/`,       priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/red-panda/`,        priority: '0.8', changefreq: 'weekly',  lastmod: today },
@@ -3773,9 +3849,9 @@ const USE_MOCK = process.argv.includes('--mock');
 async function mergeDisplayStatus(list) {
   if (USE_MOCK) { list.forEach(b => { if (!b.display_status) b.display_status = 'public'; if (!b.name_status) b.name_status = 'confirmed'; }); return; }
   try {
-    const rows = await sbFetch('/rest/v1/babies?select=id,display_status,name_status&limit=1000');
+    const rows = await sbFetch('/rest/v1/babies?select=id,display_status,name_status,naming_url,naming_deadline,public_date&limit=1000');
     const m = new Map(rows.map(r => [r.id, r]));
-    list.forEach(b => { const r = m.get(b.id); b.display_status = (r && r.display_status) || 'public'; b.name_status = (r && r.name_status) || 'confirmed'; });
+    list.forEach(b => { const r = m.get(b.id); b.display_status = (r && r.display_status) || 'public'; b.name_status = (r && r.name_status) || 'confirmed'; b.naming_url = (r && r.naming_url) || null; b.naming_deadline = (r && r.naming_deadline) || null; b.public_date = (r && r.public_date) || null; });
   } catch (e) {
     console.warn(`   \u26A0\uFE0F  status \u53D6\u5F97\u5931\u6557 \u2014 \u65E2\u5B9A\u5024 (${e.message})`);
     list.forEach(b => { b.display_status = 'public'; b.name_status = 'confirmed'; });
@@ -3800,10 +3876,10 @@ async function appendMissingProvisional(list) {
   if (USE_MOCK) return;
   try {
     const ids = new Set(list.map(b => b.id));
-    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,name_status,zoo_id,zoo:zoos(name,prefecture)&name_status=eq.provisional&order=birthday.desc.nullslast&limit=500');
+    const raw = await sbFetch('/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,display_status,name_status,naming_url,naming_deadline,public_date,zoo_id,zoo:zoos(name,prefecture)&name_status=eq.provisional&order=birthday.desc.nullslast&limit=500');
     for (const x of raw) {
       if (ids.has(x.id)) continue;
-      list.push({ id: x.id, name: x.name, species: x.species, birthday: x.birthday, thumbnail_url: x.thumbnail_url, zoo_id: x.zoo_id, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public', name_status: 'provisional' });
+      list.push({ id: x.id, name: x.name, species: x.species, birthday: x.birthday, thumbnail_url: x.thumbnail_url, zoo_id: x.zoo_id, zoo_name: x.zoo?.name || '', prefecture: x.zoo?.prefecture || '', display_status: x.display_status || 'public', name_status: 'provisional', naming_url: x.naming_url || null, naming_deadline: x.naming_deadline || null, public_date: x.public_date || null });
     }
   } catch (e) { console.warn(`   \u26A0\uFE0F  provisional \u88DC\u5B8C\u5931\u6557 (${e.message})`); }
 }
@@ -4168,6 +4244,11 @@ async function main() {
   console.log('\n📚 特集ハブ一覧ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'index.html'), specialsIndexHtml(babies));
   console.log(`   ✅ /specials/ 出力`);
+
+  // ── 命名投票うけつけ中ハブ（PROP第1波） ──
+  console.log('\n🗳️  命名投票ハブ生成中...');
+  writeHtml(path.join(WEB_DIR, 'naming', 'index.html'), namingHubHtml(babies, slugMap));
+  console.log(`   ✅ /naming/ 出力`);
 
   // ── サイトマップ ──
   // ── HTMLサイトマップ ──
