@@ -301,7 +301,7 @@ function htmlHead({ title, desc, ogImage, canonical, jsonLd, extraMeta, extraJso
   ${ADSENSE_ENABLED ? `<!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}" crossorigin="anonymous"></script>` : '<!-- Google AdSense: 環境変数 ADSENSE_CLIENT を設定すると有効化されます -->'}
   <script type="application/ld+json">${jsonLd}</script>
-  ${extraJsonLd || ''}
+  ${extraJsonLd ? (String(extraJsonLd).trim().startsWith('<') ? extraJsonLd : `<script type="application/ld+json">${extraJsonLd}</script>`) : ''}
 </head>`;
 }
 
@@ -3488,10 +3488,10 @@ function specialsIndexHtml(babies) {
   }
 
   const cards = features.map(f => `
-    <a class="card" href="${f.href}" style="display:block;padding:1.25rem;text-decoration:none;color:inherit;">
-      <div style="font-size:2rem;">${f.emoji}</div>
-      <h2 style="font-size:1.15rem;margin:.5rem 0;">${esc(f.heading)}</h2>
-      <p style="opacity:.85;line-height:1.7;margin:0;">${esc(f.text)}</p>
+    <a href="${f.href}" style="display:block;padding:.85rem;background:#fff;border:1px solid #e3efe8;border-radius:14px;text-decoration:none;color:inherit;">
+      <div style="font-size:1.5rem;line-height:1;">${f.emoji}</div>
+      <h2 style="font-size:.97rem;margin:.4rem 0 .3rem;line-height:1.35;">${esc(f.heading)}</h2>
+      <p style="margin:0;font-size:.8rem;opacity:.8;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${esc(f.text)}</p>
     </a>`).join('');
 
   return `<!doctype html>
@@ -3513,7 +3513,7 @@ ${siteNav('/')}
     <p class="page-subtitle">テーマ別に動物園の赤ちゃんを深掘り</p>
   </section>
 
-  <div class="baby-grid" style="margin:1.5rem 0;">${cards}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem;margin:1.2rem 0;">${cards}</div>
 
   ${genericAsoviewCta()}
 
