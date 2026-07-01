@@ -953,6 +953,13 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
       </div>
     </section>`;
 
+  // 来園前の確認メモ：本文（editorial_note）には書かず、UI側の共通要素として1回だけ表示する。
+  // 個体ごとの本文に定型文を重ねないことで、記事本文の均質化（テンプレート的に見える）を避ける。
+  const visitNoteHtml = `
+    <p class="baby-visit-note" style="margin:.8rem 0 0;padding:.7rem .9rem;background:#f7f9f4;border:1px solid #e6ebe0;border-radius:8px;font-size:.9rem;color:#556;">
+      💡 ${esc(zoo)}での${esc(name)}の公開状況・展示時間は変わることがあります。おでかけ前に${esc(zoo)}の公式サイト・SNSで最新情報をご確認ください。
+    </p>`;
+
   // スペック表（種類・動物園は内部ページへリンク＝相互リンク強化）
   const _zooSlug = (ZOOS.find(z => z.db_name === b.zoo_name) || {}).slug || null;
   const speciesCell = b.species ? `<a href="/species/${esc(b.species)}/">${esc(species)}</a>` : esc(species);
@@ -1079,6 +1086,7 @@ ${siteNav('/babies/')}
         誕生日は${esc(bdayFmt) || '不明'}、現在${esc(age)}。
       </p>
       ${babyEpisodeHtml}
+      ${_editorial ? visitNoteHtml : ''}
       ${speciesInfoHtml}
       ${specialLinkHtml}
       ${specsHtml}
