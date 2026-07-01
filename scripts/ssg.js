@@ -663,21 +663,50 @@ function genericAsoviewCta(lead = '公式提携の電子チケット。当日窓
 function familyTreeHtml(b) {
   const f = b && b.family;
   if (!f || (!f.father && !f.mother)) return '';
-  const box = (label, p) => {
-    if (!p || !p.name) return '';
-    const det = p.detail ? `<div style="font-size:.76rem;color:#5f7a6e;margin-top:.15rem;">${esc(p.detail)}</div>` : '';
-    return `<div style="flex:1;min-width:96px;max-width:190px;background:#fff;border:1px solid #cfeede;border-radius:12px;padding:.6rem .7rem;text-align:center;">
-        <div style="font-size:.72rem;color:#0a7a5c;font-weight:700;">${esc(label)}</div>
-        <div style="font-weight:700;">${esc(p.name)}</div>${det}
+  // 先祖ノードを世代・続柄つきで収集（父母→祖父母→曽祖父母…と何世代でも対応）
+  const nodes = [];
+  const walk = (p, depth, topSide, isFather) => {
+    if (!p || !p.name) return;
+    nodes.push({ depth, topSide, isFather, person: p });
+    const nextTop = depth === 1 ? (isFather ? '父方' : '母方') : topSide;
+    if (p.father) walk(p.father, depth + 1, nextTop, true);
+    if (p.mother) walk(p.mother, depth + 1, nextTop, false);
+  };
+  walk(f.father, 1, null, true);
+  walk(f.mother, 1, null, false);
+  if (!nodes.length) return '';
+  const relLabel = (n) => {
+    const g = n.depth === 1 ? (n.isFather ? '父' : '母')
+      : n.depth === 2 ? (n.isFather ? '祖父' : '祖母')
+      : n.depth === 3 ? (n.isFather ? '曽祖父' : '曽祖母')
+      : (n.isFather ? '高祖父' : '高祖母');
+    return n.depth === 1 ? g : `${n.topSide}の${g}`;
+  };
+  const personCard = (label, p) => {
+    const loc = p.zoo ? `<div style="font-size:.74rem;color:#0a7a5c;margin-top:.15rem;">📍 ${esc(p.zoo)}</div>` : '';
+    const det = p.detail ? `<div style="font-size:.72rem;color:#5f7a6e;margin-top:.12rem;">${esc(p.detail)}</div>` : '';
+    return `<div style="flex:1 1 auto;min-width:104px;max-width:200px;background:#fff;border:1px solid #cfeede;border-radius:12px;padding:.55rem .65rem;text-align:center;">
+        <div style="font-size:.7rem;color:#0a7a5c;font-weight:700;">${esc(label)}</div>
+        <div style="font-weight:700;line-height:1.3;">${esc(p.name)}</div>${loc}${det}
       </div>`;
   };
-  const parents = [box('父', f.father), box('母', f.mother)].filter(Boolean).join('');
+  const maxDepth = Math.max(...nodes.map(n => n.depth));
+  const rows = [];
+  for (let d = maxDepth; d >= 1; d--) {
+    const gen = nodes.filter(n => n.depth === d);
+    if (!gen.length) continue;
+    rows.push(`<div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;">${gen.map(n => personCard(relLabel(n), n.person)).join('')}</div>`);
+    rows.push(`<div style="text-align:center;color:#5dcaa5;font-size:1.25rem;line-height:1;margin:.1rem 0;">▾</div>`);
+  }
+  const childLoc = b.zoo_name ? ` <span style="font-weight:500;font-size:.82rem;opacity:.92;">📍${esc(b.zoo_name)}</span>` : '';
+  const child = `<div style="text-align:center;"><span style="display:inline-block;background:#0a7a5c;color:#fff;border-radius:12px;padding:.5rem 1rem;font-weight:700;">${esc(displayBabyName(b))}（${esc(b.species || '赤ちゃん')}）${childLoc}</span></div>`;
+  const note = maxDepth >= 2 ? `<p style="font-size:.78rem;color:#5f7a6e;margin:0 0 .6rem;">祖父母より前の世代も、記録がわかっている範囲で載せています。</p>` : '';
   return `
     <section class="baby-family" aria-label="家系図" style="margin:1.3rem 0;padding:1rem;background:#eaf6f0;border:1px solid #d6efe4;border-radius:14px;">
-      <h2 style="font-size:1.05rem;margin:0 0 .7rem;">👪 ${esc(displayBabyName(b))}の家系図</h2>
-      <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;">${parents}</div>
-      <div style="text-align:center;color:#5dcaa5;font-size:1.3rem;line-height:1;margin:.15rem 0;">▾</div>
-      <div style="text-align:center;"><span style="display:inline-block;background:#0a7a5c;color:#fff;border-radius:12px;padding:.5rem 1rem;font-weight:700;">${esc(displayBabyName(b))}（${esc(b.species || '赤ちゃん')}）</span></div>
+      <h2 style="font-size:1.05rem;margin:0 0 .5rem;">👪 ${esc(displayBabyName(b))}の家系図</h2>
+      ${note}
+      ${rows.join('')}
+      ${child}
     </section>`;
 }
 
