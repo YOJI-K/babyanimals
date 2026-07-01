@@ -2143,6 +2143,52 @@ function areaStatusSections(zm, slugMap) {
 }
 
 // /area/ ハブ：8地域への入口（PROP-20260608-03 ③ エリア別個別ページ化）
+// ─── エリア独自解説（実データ駆動・地域ごとに内容と言い回しが変わる）PROP-20260701 ──
+function areaNarrative(areaName, zm) {
+  const zoos = [...zm.entries()].map(([name, x]) => ({ name, count: x.babies.length, babies: x.babies })).sort((a, b) => b.count - a.count);
+  if (!zoos.length) return '';
+  const allB = zoos.flatMap(z => z.babies);
+  const spSet = [...new Set(allB.map(b => b.species).filter(Boolean))];
+  const top = zoos[0];
+  const topSp = [...new Set(top.babies.map(b => b.species).filter(Boolean))];
+  const endangered = spSet.filter(sp => { const i = (typeof SPECIES_INFO !== 'undefined') && SPECIES_INFO[sp]; return i && /CR|EN|VU/.test(i.iucn || ''); });
+  const newest = allB.filter(b => b.birthday).sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)))[0];
+  const naming = allB.filter(b => b.name_status === 'provisional');
+  const RX = /(国内初|日本初|[0-9０-９]+年ぶり|[0-9０-９]+頭目|特別天然記念物|世界三大珍獣)/;
+  let rec = null;
+  for (const b of allB) { const m = (b.editorial_note || '').match(RX); if (m) { rec = { zoo: b.zoo_name, word: m[1], sp: b.species }; break; } }
+  const h = [...areaName].reduce((a, c) => a + c.charCodeAt(0), 0);
+  const pick = (arr) => arr[h % arr.length];
+  const pick2 = (arr, off) => arr[(h + off) % arr.length];
+  const parts = [];
+  parts.push(pick([
+    `${areaName}の動物園・水族館では、いま${zm.size}園で${allB.length}頭の赤ちゃんに会えます。`,
+    `いま${areaName}で会える動物の赤ちゃんは、${zm.size}園あわせて${allB.length}頭。`,
+    `${areaName}で赤ちゃんに会える動物園は${zm.size}園。あわせて${allB.length}頭がすくすく育っています。`,
+    `${areaName}の${zm.size}園で、${allB.length}頭の動物の赤ちゃんに会うことができます。`,
+  ]));
+  if (top.count >= 2 && topSp.length) {
+    const sw = topSp.slice(0, 3).join('・');
+    parts.push(pick([
+      `なかでも${top.name}はにぎやかで、${sw}など${top.count}頭の赤ちゃんに会えます。`,
+      `いちばん赤ちゃんが多いのは${top.name}（${top.count}頭）。${sw}などがそろっています。`,
+      `${top.name}には${top.count}頭が集まり、${sw}などの赤ちゃんが見られます。`,
+    ]));
+  } else if (top.count === 1 && topSp.length) {
+    parts.push(pick2([`${top.name}では${topSp[0]}の赤ちゃんに会えます。`, `会えるのは${top.name}の${topSp[0]}の赤ちゃんです。`, `${topSp[0]}の赤ちゃんが${top.name}で公開されています。`], 1));
+  }
+  if (rec && rec.word && rec.sp && rec.zoo) parts.push(`${rec.zoo}の${rec.sp}のように「${rec.word}」と話題になった赤ちゃんもいます。`);
+  if (endangered.length) { const e = endangered.slice(0, 3).join('・'); parts.push(pick2([`${e}といった絶滅危惧種の赤ちゃんも含まれ、動物園での繁殖は種の保全にもつながっています。`, `${e}など、絶滅が心配される種の赤ちゃんに会えるのもこの地域の見どころです。`, `保全上たいせつな${e}などの希少種の赤ちゃんも育っています。`], 2)); }
+  if (naming.length) parts.push(pick2([`まだ名前が決まっていない「なまえ待ち」の赤ちゃんも${naming.length}頭。公式の名前募集が始まれば投票で参加できます。`, `名前がこれからの「なまえ待ち」の子も${naming.length}頭いて、投票で名づけに参加できることもあります。`, `${naming.length}頭は名前が未定の「なまえ待ち」。命名投票が始まればこのサイトからも案内します。`], 3));
+  if (newest && newest.species) { const z = newest.zoo_name || ''; parts.push(pick2([`最も新しく生まれたのは${z}の${newest.species}です。`, `いちばん新しい仲間は${z}の${newest.species}の赤ちゃん。`, `直近では${z}で${newest.species}の赤ちゃんが誕生しています。`], 4)); }
+  parts.push(pick([
+    '会いに行く前に、各動物園ページで公開状況を確かめておくと安心です。',
+    '赤ちゃんの時期は短いので、気になる子がいたら早めのお出かけがおすすめです。',
+    '公開状況は各園のページで随時更新しています。お出かけの参考にどうぞ。',
+  ]));
+  return `<p style="line-height:1.85;margin:1rem 0;">${parts.map(esc).join('')}</p>`;
+}
+
 function areaIndexHtml(babies, slugMap, areaData) {
   const { regionMap, order } = areaData || areaRegionData(babies);
   const totalBabies = babies.length;
@@ -2264,7 +2310,7 @@ ${siteNav('/zoos/')}
     <h1 class="page-title">${esc(rn)}で会える動物園の赤ちゃん</h1>
     <p class="page-subtitle">${zm.size}園・${regionTotal}頭・${regionSp.size}種に会えます</p>
   </section>
-  <p style="line-height:1.7;margin:1rem 0;">${esc(rn)}（${[...prefSet].slice(0, 8).map(esc).join('・')}）の動物園・水族館で、いま会いに行ける赤ちゃんをまとめました。気になる動物園を見つけて、会いに行く参考にどうぞ。</p>
+  ${areaNarrative(rn, zm)}
   ${prefNav}
   ${areaStatusSections(zm, slugMap)}
   <section style="margin:1.5rem 0;">
@@ -2364,7 +2410,8 @@ ${siteNav('/zoos/')}
     <h1 class="page-title">${esc(pref)}で会える動物園の赤ちゃん</h1>
     <p class="page-subtitle">${zm.size}園・${prefTotal}頭・${prefSp.size}種に会えます</p>
   </section>
-  <p style="line-height:1.7;margin:1rem 0;">${esc(pref)}の動物園・水族館で、いま会いに行ける赤ちゃんをまとめました。気になる動物園を見つけて、会いに行く参考にどうぞ。<a href="/area/${encodeURI(region)}/" style="color:#0a7a5c;text-decoration:none;font-weight:700;">${esc(region)}全体で見る →</a></p>
+  ${areaNarrative(pref, zm)}
+  <p style="line-height:1.7;margin:.2rem 0 1rem;"><a href="/area/${encodeURI(region)}/" style="color:#0a7a5c;text-decoration:none;font-weight:700;">${esc(region)}全体で見る →</a></p>
   ${areaStatusSections(zm, slugMap)}
   <section style="margin:1.5rem 0;">
     ${areaZooBlocks(zm, slugMap)}
