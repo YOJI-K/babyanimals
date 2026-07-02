@@ -897,7 +897,8 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
     </section>` : '';
   const _special = speciesSpecialHref(species);
   const _kantoSpecial = (typeof KANTO_PREFS !== 'undefined' && KANTO_PREFS.has(b.prefecture)) ? { href: '/specials/kanto-baby-animals/', label: '関東で会える動物の赤ちゃんまとめ' } : null;
-  const _specialLinks = [_special, _kantoSpecial].filter(Boolean);
+  const _kansaiSpecial = (typeof KANSAI_PREFS !== 'undefined' && KANSAI_PREFS.has(b.prefecture)) ? { href: '/specials/kansai-baby-animals/', label: '関西で会える動物の赤ちゃんまとめ' } : null;
+  const _specialLinks = [_special, _kantoSpecial, _kansaiSpecial].filter(Boolean);
   const specialLinkHtml = _specialLinks.length ? `<p class="baby-special-link" style="margin:1rem 0;display:flex;flex-wrap:wrap;gap:.5rem;">${_specialLinks.map(sx => `<a href="${sx.href}" style="display:inline-block;padding:.55rem 1.1rem;background:#0a7a5c;color:#fff;border-radius:999px;text-decoration:none;font-weight:700;">🔆 ${esc(sx.label)}を見る →</a>`).join('')}</p>` : '';
 
   // === 「この子・この園の最新ニュース」（zoo_id経由の紐付け） ===
@@ -1379,12 +1380,16 @@ function zooHtml(zoo, babies, slugMap = null) {
   const sampleNames = sampleList.join('・');
   const sampleLead  = sampleNames ? `${sampleNames}${count > sampleList.length ? 'など' : ''}` : '';
 
-  // SEO: 「○○ 赤ちゃん」検索でヒットしやすい title（コアキーワード前置）
+  // 公開状況の内訳（「{園} 赤ちゃん 公開/公開日」検索意図に応える）PROP-20260702 P4
+  const pubBabies = zooBabies.filter(b => b.display_status !== 'pre');
+  const preBabies = zooBabies.filter(b => b.display_status === 'pre');
+
+  // SEO: 「○○ 赤ちゃん」検索でヒットしやすい title（コアキーワード前置＋公開状況・年号）
   const title = count > 0
-    ? `${zoo.name}の赤ちゃん動物｜現在${count}頭の公開状況・最新情報 | どうベビ`
+    ? `${zoo.name}の赤ちゃん動物 2026｜公開中${pubBabies.length}頭${preBabies.length ? `・近日公開${preBabies.length}頭` : ''}の最新情報 | どうベビ`
     : `${zoo.name}の赤ちゃん情報 | どうベビ`;
   const desc = count > 0
-    ? `${zoo.name}の赤ちゃん動物の最新情報。${sampleLead}${count}頭の赤ちゃんが暮らしています。誕生日・種類・写真をまとめて掲載。${zoo.description ? zoo.description.slice(0, 60) : ''}`.slice(0, 160)
+    ? `${zoo.name}の赤ちゃん動物の公開状況まとめ。${sampleLead}${count}頭のうち公開中は${pubBabies.length}頭。誕生日・種類・公開日・写真を掲載。${zoo.description ? zoo.description.slice(0, 60) : ''}`.slice(0, 160)
     : `${zoo.name}の赤ちゃん動物情報。入園料・営業時間・アクセスもまとめて掲載。${zoo.description || ''}`.slice(0, 160);
   const canonical = `${SITE_BASE}/zoos/${zoo.slug}/`;
 
@@ -1432,6 +1437,14 @@ function zooHtml(zoo, babies, slugMap = null) {
             : `現在${zoo.name}の赤ちゃん動物の登録はありません。新しい情報が入り次第このページで掲載します。`,
         },
       },
+      ...(count > 0 ? [{
+        '@type': 'Question',
+        name: `${zoo.name}の赤ちゃんはいま公開されていますか？`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `現在${count}頭のうち${pubBabies.length}頭が一般公開中です${preBabies.length ? `。${preBabies.length}頭は近日公開予定${preBabies.filter(b => b.public_date).map(b => `（${b.species || ''}は${fmtMonthDay(b.public_date)}公開予定）`).join('')}` : ''}。展示は体調や天候で変わるため、来園前に公式サイトで当日の状況をご確認ください。`,
+        },
+      }] : []),
       ...(zoo.hours ? [{
         '@type': 'Question',
         name: `${zoo.name}の営業時間を教えてください。`,
@@ -1508,9 +1521,24 @@ ${siteNav('/zoos/')}
     <div class="zoo-hero__body">
       <p class="zoo-hero__region">${esc(zoo.prefecture)} ${esc(zoo.city)}</p>
       <h1 class="zoo-hero__title">${esc(zoo.name)}の赤ちゃん動物</h1>
-      <p class="zoo-hero__count">現在 <strong>${count}</strong> 頭の赤ちゃんが暮らしています</p>
+      <p class="zoo-hero__count">現在 <strong>${count}</strong> 頭の赤ちゃんが暮らしています${count > 0 ? `（\u{1F7E2} 公開中 ${pubBabies.length}頭${preBabies.length ? ` ・ \u{1F7E1} 近日公開 ${preBabies.length}頭` : ''}）` : ''}</p>
     </div>
   </section>
+
+  ${count > 0 ? `
+  <section class="card zoo-section" aria-labelledby="zoo-status-title">
+    <header class="panel-head">
+      <div class="panel-icon" aria-hidden="true"><svg class="panel-icon__svg" focusable="false"><use href="/assets/icons/icons.svg#icon-info"></use></svg></div>
+      <div>
+        <h2 id="zoo-status-title" class="panel-title">いま会える？公開状況まとめ</h2>
+        <p class="panel-desc">来園前チェック用の早見表</p>
+      </div>
+    </header>
+    <ul style="margin:.3rem 0 0;padding:0 0 0 1.1rem;line-height:2;">
+      ${zooBabies.map(b => `<li><a href="/babies/${esc(slugMap?.get(b.id) || b.id)}/" style="font-weight:700;text-decoration:none;color:inherit;">${esc(displayBabyName(b))}</a>（${esc(b.species || '種別調査中')}）: ${b.display_status === 'pre' ? `\u{1F7E1} 近日公開${b.public_date ? `・${fmtMonthDay(b.public_date)}公開予定` : ''}` : '\u{1F7E2} 公開中'}</li>`).join('')}
+    </ul>
+    <p style="margin:.7rem 0 0;font-size:.82rem;opacity:.75;">体調・天候・季節で展示時間や場所が変わることがあります。おでかけ前に公式サイトで当日の状況をご確認ください。</p>
+  </section>` : ''}
 
   ${zoo.description ? `
   <section class="card zoo-section">
@@ -2529,6 +2557,8 @@ function seasonCrossNav(current) {
     { key: 'summer', href: '/specials/summer-2026/', label: '☀️ 2026年夏の赤ちゃん特集' },
     { key: 'rush', href: '/specials/baby-rush-2026/', label: '\u{1F389} 2026年ベビーラッシュ全記録' },
     { key: 'y2025', href: '/specials/born-2025/', label: '\u{1F43E} 2025年生まれの赤ちゃんまとめ' },
+    { key: 'kanto', href: '/specials/kanto-baby-animals/', label: '\u{1F5FE} 関東で会える赤ちゃんまとめ' },
+    { key: 'kansai', href: '/specials/kansai-baby-animals/', label: '\u{26E9}\u{FE0F} 関西で会える赤ちゃんまとめ' },
   ];
   const chips = all.filter(x => x.key !== current).map(x =>
     `<a href="${x.href}" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">${x.label} →</a>`
@@ -2594,7 +2624,16 @@ const ZOO_VISIT_INFO = {
   '市原ぞうの国': { fee:'大人（中学生以上）2,400円／小人（3歳〜小学生）900円／シニア2,000円', hours:'9:30〜16:30（3〜10月）／10:00〜16:00（11〜2月）', access:'小湊鐡道「高滝」駅・市原鶴舞BTから無料送迎バス（要予約）', kids:'小学生以下は18歳以上の同伴が必要／ふれあい・ゾウさんライドが名物' },
   '市川市動植物園': { fee:'大人440円／小・中学生110円／未就学児無料', hours:'開園時間・休園日は公式で確認', access:'JR「市川大野」駅から徒歩約30分／本八幡駅北口から京成バス（土日祝）', kids:'なかよし広場・ミニ鉄道（1歳以上110円）・ふれあい充実' },
   '那須どうぶつ王国': { fee:'入国料は時期で変動・公式で確認', hours:'10:00〜16:30（季節変動・冬季短縮）', access:'那須塩原・新白河駅などからシャトルバス／那須ICから約30分', kids:'授乳室2か所／ベビーカー貸出1日500円／ショー・ふれあい充実' },
+  // ── 関西（PROP-20260702 P6・各園公式/案内で裏取り）──
+  '京都市動物園': { fee:'一般750円／中学生以下無料', hours:'9:00〜17:00（12〜2月は16:30まで・入園は閉園30分前）・月曜休園', access:'地下鉄東西線「蹴上」駅から徒歩約5分／「東山」駅から徒歩約10分', kids:'岡崎公園内で平安神宮・美術館とセットで回れる／コンパクトで半日コース向き' },
+  '神戸市立王子動物園': { fee:'大人（高校生以上）600円／中学生以下無料', hours:'9:00〜17:00（11〜2月は16:30まで）・水曜休園', access:'阪急「王子公園」駅から西へ徒歩3分', kids:'中学生以下無料でファミリーの定番／園内に遊園地エリアあり／桜の名所' },
+  '神戸どうぶつ王国': { fee:'大人2,200円／小学生1,200円／幼児（4〜5歳）500円', hours:'10:00〜17:00（季節変動あり・公式で確認）', access:'三宮からポートライナー約14分「計算科学センター（神戸どうぶつ王国・「富岳」前）」駅すぐ', kids:'屋内エリア中心の全天候型で雨の日も安心／ふれあい・パフォーマンス充実' },
+  '姫路セントラルパーク': { fee:'入園日により変動（大人3,800円前後〜）・最新は公式の料金カレンダーで確認', hours:'おおむね10:00〜17:00（季節変動・公式で確認）', access:'JR・山陽「姫路」駅から神姫バス直通約25分', kids:'ドライブスルーサファリは車に乗ったまま観覧でき、小さな子連れでも回りやすい／遊園地併設' },
+  '姫路市立動物園': { fee:'大人210円／5歳〜中学生30円', hours:'9:00〜17:00（入園16:30まで）', access:'JR・山陽「姫路」駅から北へ徒歩15分（姫路城のすぐ東側）', kids:'姫路城観光とセットで楽しめる／ミニ遊具・乗り物あり／ワンコイン以下で入れる' },
+  '五月山動物園': { fee:'入園無料', hours:'9:15〜16:45・火曜休園（祝日の場合は翌平日）', access:'阪急宝塚線「池田」駅から徒歩約15分', kids:'ウォンバットで有名な小さな動物園／五月山公園の遊具・ハイキングと合わせて1日遊べる' },
 };
+
+const KANSAI_PREFS = new Set(['大阪府','兵庫県','京都府','奈良県','和歌山県','滋賀県','三重県']);
 function kantoBabyAnimalsSpecialHtml(babies, slugMap) {
   const prefOrder = ['東京都','神奈川県','埼玉県','千葉県','栃木県','茨城県','群馬県'];
   const list = babies.filter(b => KANTO_PREFS.has(b.prefecture) && b.zoo_name && !isThinBaby(b));
@@ -2711,6 +2750,120 @@ ${siteFooter()}
 
 
 // ─── （関東特集ここまで）
+
+// ─── 関西 動物の赤ちゃんに会える動物園まとめ（PROP-20260702 P6・関東型の横展開）──
+function kansaiBabyAnimalsSpecialHtml(babies, slugMap) {
+  const prefOrder = ['大阪府','兵庫県','京都府','奈良県','和歌山県','滋賀県','三重県'];
+  const list = babies.filter(b => KANSAI_PREFS.has(b.prefecture) && b.zoo_name && !isThinBaby(b));
+  const byPref = new Map();
+  for (const b of list) {
+    if (!byPref.has(b.prefecture)) byPref.set(b.prefecture, new Map());
+    const zm = byPref.get(b.prefecture);
+    if (!zm.has(b.zoo_name)) zm.set(b.zoo_name, []);
+    zm.get(b.zoo_name).push(b);
+  }
+  const zoosCount = new Set(list.map(b => b.zoo_name)).size;
+  const speciesList = [...new Set(list.map(b => b.species).filter(Boolean))];
+  const speciesPhrase = speciesList.slice(0, 5).join('・') || '人気の動物';
+  const zooSlug = (name) => { const z = (typeof ZOOS !== 'undefined') ? ZOOS.find(x => x.db_name === name) : null; return z ? z.slug : null; };
+  const infoRow = (label, val) => val ? `<div style="font-size:.85rem;line-height:1.65;margin:.1rem 0;"><span style="color:#0a7a5c;font-weight:700;">${label}</span> ${esc(val)}</div>` : '';
+  const sections = prefOrder.filter(p => byPref.has(p)).map(pref => {
+    const zm = byPref.get(pref);
+    const zblocks = [...zm.entries()].sort((a, b) => b[1].length - a[1].length).map(([zname, bs]) => {
+      const slug = zooSlug(zname);
+      const head = slug
+        ? `<a href="/zoos/${esc(slug)}/" style="color:#0a7a5c;text-decoration:none;">${esc(zname)}</a>`
+        : esc(zname);
+      const vi = ZOO_VISIT_INFO[zname];
+      const infoBox = vi ? `<div style="margin:.4rem 0 .8rem;padding:.7rem .9rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+        ${infoRow('💴 料金', vi.fee)}${infoRow('🕘 時間', vi.hours)}${infoRow('🚉 アクセス', vi.access)}${infoRow('👶 子連れ', vi.kids)}
+      </div>` : '';
+      const cards = bs.map(b => zooBabyCardHtml(b, slugMap)).join('');
+      return `<div style="margin:0 0 1.6rem;">
+        <h3 style="font-size:1.08rem;margin:0 0 .2rem;">${head} <span style="color:#888;font-size:.8rem;font-weight:normal;">${esc(pref)}・${bs.length}頭</span></h3>
+        ${infoBox}
+        <div class="baby-grid">${cards}</div>
+      </div>`;
+    }).join('');
+    return `<section style="margin:1.8rem 0;">
+      <h2 style="font-size:1.25rem;margin:0 0 1rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">📍 ${esc(pref)}</h2>
+      ${zblocks}
+    </section>`;
+  }).join('');
+
+  const title = `関西で“動物の赤ちゃん”に会える動物園まとめ2026｜園別に料金・アクセスつきで紹介`;
+  const desc = `関西（大阪・兵庫・京都ほか）でいま動物の赤ちゃんに会える動物園${zoosCount}園・${list.length}頭を園別に掲載。${speciesPhrase}など、入園料・アクセス・子連れ向け情報とあわせて毎日更新しています。`.slice(0, 200);
+  const canonical = `${SITE_BASE}/specials/kansai-baby-animals/`;
+
+  const faqItems = [
+    { q: '関西で動物の赤ちゃんに会える動物園はどこですか？', a: `兵庫（神戸市立王子動物園・神戸どうぶつ王国・姫路セントラルパーク・姫路市立動物園）、京都（京都市動物園）、大阪（五月山動物園）などで、いま${speciesPhrase}などの赤ちゃんに会えます。園ごとの最新状況はこのページで随時更新しています。` },
+    { q: '安く入れる関西の動物園はありますか？', a: '五月山動物園（池田市）は入園無料、姫路市立動物園は大人210円・こども30円と格安です。神戸市立王子動物園と京都市動物園は中学生以下が無料なので、家族連れなら大人の入園料だけで楽しめます。' },
+    { q: '雨の日でも赤ちゃんに会えますか？', a: '神戸どうぶつ王国は屋内エリア中心の全天候型で、雨の日でもゆっくり赤ちゃんを観察できます。屋外中心の園では雨天時に展示が変わることがあるため、当日の公式情報の確認がおすすめです。' },
+    { q: '公開状況はどう確認すればいいですか？', a: '各カードに「🟢 公開中」「🟡 近日公開」のバッジを表示しています。展示は体調・天候・季節で変わることがあるので、来園直前に各園の公式サイト・SNSで当日の状況をご確認ください。' },
+  ];
+  const faqLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })) });
+  const visibleFaq = `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">❓ お出かけ前によくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
+  const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: '関西で動物の赤ちゃんに会える動物園まとめ2026', description: desc, url: canonical, datePublished: '2026-07-02', dateModified: new Date().toISOString().slice(0, 10), publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE }, mainEntityOfPage: canonical });
+  const extraJsonLd = `<script type="application/ld+json">${faqLd}</script>`;
+  const breadcrumbLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+    { '@type': 'ListItem', position: 2, name: '特集', item: `${SITE_BASE}/specials/` },
+    { '@type': 'ListItem', position: 3, name: '関西で会える動物の赤ちゃんまとめ', item: canonical },
+  ] });
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ ogImage: pickOgPhoto(list), title, desc, canonical, jsonLd, extraJsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a><span aria-hidden="true"> › </span>
+    <a href="/specials/">特集</a><span aria-hidden="true"> › </span>
+    <span aria-current="page">関西で会える動物の赤ちゃん</span>
+  </nav>
+
+  <section class="page-hero">
+    <h1 class="page-title">⛩️ 関西で“動物の赤ちゃん”に<br>会える動物園まとめ</h1>
+    <p class="page-subtitle">いま関西 ${zoosCount}園・${list.length}頭の赤ちゃんに会いに行こう</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.8;">
+    <p>関西の動物園めぐりは、実は<strong>コスパの良さ</strong>が光ります。入園無料の五月山動物園、大人210円の姫路市立動物園、中学生以下無料の王子動物園と京都市動物園——赤ちゃん目当てのおでかけを、財布にやさしく計画できるのがこのエリアの魅力。姫路城や岡崎エリアなど、<strong>観光名所とセットで回れる園が多い</strong>のも関西ならではです。</p>
+    <p>このページでは、いま関西で動物の赤ちゃんに会える動物園を園別に整理し、会える子の種類・愛称と、入園料・アクセス・子連れ向け情報をあわせて掲載しています。</p>
+    <p style="margin:.6rem 0 0;padding:.6rem .8rem;background:#fffaf0;border:1px solid #ffe6b3;border-radius:8px;font-size:.9rem;">⚠️ 赤ちゃんの展示は体調や天候で変わることがあります。料金・営業時間も改定されることがあるため、おでかけ直前に各園の公式サイトで最新情報をご確認ください。</p>
+  </section>
+
+  ${sections || '<p>関西の赤ちゃん情報を準備中です。</p>'}
+
+  ${featuredZoosBlock(list)}
+
+  ${genericAsoviewCta('関西の動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
+
+  ${visibleFaq}
+
+  ${popularSpeciesNav(babies)}
+
+  ${areaQuickNav()}
+
+  ${seasonCrossNav('kansai')}
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 function springSpecialHtml(babies, slugMap) {
   // 季節ウィンドウ: 2025-09〜2026-05 生まれ
   const inWindow = (b) => {
@@ -3643,6 +3796,7 @@ function specialsIndexHtml(babies) {
   const rush26Count = babies.filter(b => (b.birthday || '').startsWith('2026')).length;
   const born25Count = babies.filter(b => (b.birthday || '').startsWith('2025')).length;
   const kantoCount = babies.filter(b => KANTO_PREFS.has(b.prefecture) && !isThinBaby(b)).length;
+  const kansaiCount = babies.filter(b => KANSAI_PREFS.has(b.prefecture) && !isThinBaby(b)).length;
   const redPandaCount = babies.filter(b => b.species === 'レッサーパンダ').length;
 
   const jsonLd = JSON.stringify({
@@ -3660,6 +3814,12 @@ function specialsIndexHtml(babies) {
       emoji: '🗾',
       heading: '関東で会える動物の赤ちゃんまとめ',
       text: `関東の動物園でいま会える赤ちゃん${kantoCount}頭を、園別に料金・アクセス・子連れ情報つきでまとめました。`,
+    },
+    {
+      href: '/specials/kansai-baby-animals/',
+      emoji: '⛩️',
+      heading: '関西で会える動物の赤ちゃんまとめ',
+      text: `関西の動物園でいま会える赤ちゃん${kansaiCount}頭を、園別に料金・アクセス・子連れ情報つきで紹介します。`,
     },
     {
       href: '/specials/baby-rush-2026/',
@@ -3773,6 +3933,7 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/born-2025/">🐾 2025年生まれの赤ちゃんまとめ</a></li>
       <li><a href="/specials/red-panda/">🐼 レッサーパンダの赤ちゃん特集</a></li>
       <li><a href="/specials/kanto-baby-animals/">🗾 関東で会える動物の赤ちゃんまとめ</a></li>
+      <li><a href="/specials/kansai-baby-animals/">⛩️ 関西で会える動物の赤ちゃんまとめ</a></li>
       <li><a href="/specials/white-tiger/">🐯 ホワイトタイガーの赤ちゃん特集</a></li>
       <li><a href="/specials/lion/">🦁 ライオンの赤ちゃん特集</a></li>
       <li><a href="/specials/otter/">🦦 コツメカワウソの赤ちゃん特集</a></li>
@@ -3850,6 +4011,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/specials/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/naming/`,                   priority: '0.7', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/specials/kanto-baby-animals/`, priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/kansai-baby-animals/`, priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/baby-rush-2026/`,  priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/born-2025/`,       priority: '0.8', changefreq: 'weekly',  lastmod: today },
@@ -4672,6 +4834,8 @@ async function main() {
   // ── 関東 動物の赤ちゃんまとめ特集 ──
   console.log('\n🗾 関東特集ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'kanto-baby-animals', 'index.html'), kantoBabyAnimalsSpecialHtml(babies, slugMap));
+  writeHtml(path.join(WEB_DIR, 'specials', 'kansai-baby-animals', 'index.html'), kansaiBabyAnimalsSpecialHtml(babies, slugMap));
+  console.log(`   ✅ /specials/kansai-baby-animals/ 出力`);
   console.log(`   ✅ /specials/kanto-baby-animals/ 出力`);
 
   // ── 春の特集ページ ──
