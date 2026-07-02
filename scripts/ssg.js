@@ -712,7 +712,6 @@ function familyTreeHtml(b) {
 
 // ─── 種→単独種特集 のリンク解決（striking distance内部リンク集中） PROP-20260630 ──
 function speciesSpecialHref(species) {
-  if (species === 'コビトカバ') return { href: '/specials/kobitokaba/', label: 'コビトカバの赤ちゃん特集' };
   if (species === 'レッサーパンダ') return { href: '/specials/red-panda/', label: 'レッサーパンダの赤ちゃん特集' };
   const cfg = (typeof SINGLE_SPECIES_SPECIALS !== 'undefined') ? SINGLE_SPECIES_SPECIALS.find(c => c.species === species) : null;
   if (cfg) return { href: `/specials/${cfg.slug}/`, label: `${species}の赤ちゃん特集` };
@@ -1914,7 +1913,7 @@ function speciesHtml(species, babies, slugMap) {
   const otherSpeciesLinks = otherSpecies.length ? `<section style="margin:1.5rem 0;">
     <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{1F43E} ほかの動物の赤ちゃんも見る</h2>
     <div style="display:flex;flex-wrap:wrap;gap:.5rem;">${otherSpecies.map(s => `<a href="/species/${esc(s)}/" style="display:inline-block;padding:.35rem .8rem;background:#f0f7f4;border-radius:999px;font-size:.9rem;color:#0a7a5c;text-decoration:none;">${esc(s)}</a>`).join('')}</div>
-    <p style="margin:1rem 0 0;font-size:.95rem;">${species === 'コビトカバ' ? '<a href="/specials/kobitokaba/">コビトカバの赤ちゃん特集</a> ・ ' : ''}${species === 'レッサーパンダ' ? '<a href="/specials/red-panda/">レッサーパンダの赤ちゃん特集</a> ・ ' : ''}${(SINGLE_SPECIES_SPECIALS.find(c => c.species === species) ? `<a href="/specials/${SINGLE_SPECIES_SPECIALS.find(c => c.species === species).slug}/">${species}の赤ちゃん特集</a> ・ ` : '')}<a href="/specials/endangered/">絶滅危惧種の赤ちゃん特集</a> ・ <a href="/species/">すべての種を見る</a></p>
+    <p style="margin:1rem 0 0;font-size:.95rem;">${species === 'レッサーパンダ' ? '<a href="/specials/red-panda/">レッサーパンダの赤ちゃん特集</a> ・ ' : ''}${(SINGLE_SPECIES_SPECIALS.find(c => c.species === species) ? `<a href="/specials/${SINGLE_SPECIES_SPECIALS.find(c => c.species === species).slug}/">${species}の赤ちゃん特集</a> ・ ` : '')}<a href="/specials/endangered/">絶滅危惧種の赤ちゃん特集</a> ・ <a href="/species/">すべての種を見る</a></p>
   </section>` : '';
   const speciesBabies = babies.filter(b => b.species === species);
   const count = speciesBabies.length;
@@ -2514,10 +2513,22 @@ ${siteFooter()}
 // ─── 特集の相互リンク＆注目動物園（流入: 勝ち頭の評価循環＋zooページ押し上げ）──
 
 // 季節特集どうしの相互リンク（評価の循環＋季節をまたいだ回遊）
+// ─── エリア8地域へのクイック導線（クロール未到達エリアページの回収）PROP-20260702 P1-② ──
+function areaQuickNav() {
+  const regions = ['北海道', '東北', '関東', '中部', '近畿', '中国', '四国', '九州・沖縄'];
+  const chips = regions.map(rn => `<a href="/area/${encodeURI(rn)}/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">\u{1F4CD} ${esc(rn)} →</a>`).join('');
+  return `<section style="margin:1.5rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 .8rem;">\u{1F5FE} エリアから探す</h2>
+    <nav aria-label="エリア" style="display:flex;flex-wrap:wrap;">${chips}<a href="/area/" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#0a7a5c;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:.92rem;">エリア一覧 →</a></nav>
+  </section>`;
+}
+
 function seasonCrossNav(current) {
   const all = [
     { key: 'spring', href: '/specials/spring-2026/', label: '\u{1F338} 2026年春の赤ちゃん特集' },
     { key: 'summer', href: '/specials/summer-2026/', label: '☀️ 2026年夏の赤ちゃん特集' },
+    { key: 'rush', href: '/specials/baby-rush-2026/', label: '\u{1F389} 2026年ベビーラッシュ全記録' },
+    { key: 'y2025', href: '/specials/born-2025/', label: '\u{1F43E} 2025年生まれの赤ちゃんまとめ' },
   ];
   const chips = all.filter(x => x.key !== current).map(x =>
     `<a href="${x.href}" style="display:inline-block;padding:.45rem .9rem;margin:.25rem;background:#fff;border:1px solid #d6efe4;border-radius:999px;color:#0a7a5c;text-decoration:none;font-weight:700;font-size:.92rem;">${x.label} →</a>`
@@ -2797,7 +2808,7 @@ ${siteNav('/')}
   <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.8;">
     <p>春は動物園に新しい命があふれる季節。<strong>${esc(speciesPhrase)}</strong>──いま全国の動物園では、たくさんの赤ちゃんがすくすく育っています。</p>
     <p>このページでは、<strong>2025年夏〜2026年春に誕生</strong>した写真つきの赤ちゃんを<strong>地域別</strong>にご紹介。各カードの<strong>公開状況バッジ</strong>で「いま会えるか」もひと目でわかります。お近くの動物園を見つけて、会いに行く参考にどうぞ。</p>
-    <p style="margin-top:.6rem;"><a href="/area/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">\u{1F5FE} 地域・エリアからもっと探す →</a></p>
+    <p style="margin-top:.6rem;"><a href="/area/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">\u{1F5FE} 地域・エリアからもっと探す →</a>　<a href="/specials/baby-rush-2026/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">\u{1F389} 2026年生まれ全頭の記録はこちら →</a></p>
   </section>
 
   ${sections || '<p>赤ちゃん情報を準備中です。</p>'}
@@ -2809,6 +2820,8 @@ ${siteNav('/')}
   ${visibleFaq}
 
   ${popularSpeciesNav(babies)}
+
+  ${areaQuickNav()}
 
   ${seasonCrossNav('spring')}
 
@@ -2929,6 +2942,8 @@ ${siteNav('/')}
   ${visibleFaq}
 
   ${popularSpeciesNav(babies)}
+
+  ${areaQuickNav()}
 
   ${seasonCrossNav('summer')}
 
@@ -3215,6 +3230,172 @@ ${siteFooter()}
 </html>`;
 }
 
+// ─── 年別まとめ特集（2026ベビーラッシュ／2025年生まれ）PROP-20260702 P2・P3 ──
+// 検索実態: 「2026年 ベビーラッシュ」8〜12位（受け皿強化）／「動物園 赤ちゃん 2025」45表示・32位（受け皿新設）
+const YEAR_SPECIALS = [
+  { year: 2026, slug: 'baby-rush-2026', emoji: '\u{1F389}', datePublished: '2026-07-02', groupBy: 'month', crossKey: 'rush' },
+  { year: 2025, slug: 'born-2025', emoji: '\u{1F43E}', datePublished: '2026-07-02', groupBy: 'region', crossKey: 'y2025' },
+];
+
+function yearSpecialHtml(cfg, babies, slugMap) {
+  const yearStr = String(cfg.year);
+  const targets = babies
+    .filter(b => (b.birthday || '').startsWith(yearStr))
+    .sort((a, b) => String(b.birthday).localeCompare(String(a.birthday)));
+  const count = targets.length;
+  const zooSet = new Set(targets.map(b => b.zoo_name).filter(Boolean));
+  const speciesList = [...new Set(targets.map(b => b.species).filter(Boolean))];
+  const spPhrase = speciesList.slice(0, 4).join('・') || '人気の動物';
+  const canonical = `${SITE_BASE}/specials/${cfg.slug}/`;
+  const latest = targets[0];
+  let latestPhrase = '';
+  if (latest && latest.birthday) {
+    const [, m, d] = latest.birthday.slice(0, 10).split('-');
+    latestPhrase = `${Number(m)}月${Number(d)}日生まれの${latest.species || '赤ちゃん'}（${latest.zoo_name || ''}）`;
+  }
+
+  let title, desc, h1, sub, intro, faqItems;
+  if (cfg.year === 2026) {
+    title = `2026年の動物園ベビーラッシュ｜今年生まれた赤ちゃん${count}頭を月別に総まとめ｜どうベビ`;
+    desc = `2026年に日本の動物園で誕生した赤ちゃん${count}頭を月別タイムラインで総まとめ。${spPhrase}など今年のベビーラッシュを、誕生日・公開状況・会える動物園とあわせて随時更新中。`.slice(0, 200);
+    h1 = `${cfg.emoji} 2026年<br>動物園ベビーラッシュ`;
+    sub = `今年生まれた赤ちゃん${count}頭の誕生タイムライン【随時更新】`;
+    intro = `
+    <p>「今年はどの動物園で、どんな赤ちゃんが生まれた？」に一気に答える、<strong>2026年生まれ全頭の記録ページ</strong>です。掲載するのは各園の公式発表・プレスリリースで誕生を確認できた子だけ。新しい誕生がわかりしだい、このタイムラインに追加していきます。</p>
+    <p>いちばん新しいのは${esc(latestPhrase)}。名前がまだ決まっていない子は「なまえ待ちベビー」として掲載し、命名されたら更新します。<a href="/naming/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">\u{1F5F3}\u{FE0F} 命名投票うけつけ中の子はこちら →</a></p>`;
+    faqItems = [
+      { q: '2026年は動物園で何頭の赤ちゃんが生まれましたか？', a: `当サイトが園公式・プレスリリースで確認できた2026年生まれは現在${count}頭です（新しい発表があり次第追加します）。園が公表していない誕生もあるため、実際の総数はこれより多くなります。` },
+      { q: '生まれたばかりの赤ちゃんにはいつ会えますか？', a: '多くの園では母子の健康状態が安定するまで非公開で育て、生後数週間〜数か月してから一般公開が始まります。各カードの公開状況バッジで「いま会えるか」を確認できます。' },
+      { q: '赤ちゃんの名前はいつ決まりますか？', a: '園によってさまざまで、飼育員が名付ける園もあれば、公式の愛称投票で来園者と一緒に決める園もあります。投票を受付中の子は当サイトの命名投票ハブでまとめています。' },
+    ];
+  } else {
+    title = `動物園の赤ちゃん 2025年生まれ${count}頭まとめ｜成長中のこどもたちに会いに行く｜どうベビ`;
+    desc = `2025年に日本の動物園で生まれた赤ちゃん${count}頭を地域別に掲載。${spPhrase}など、生後半年〜1年のいちばん活発な時期を迎えたこどもたちの誕生日・公開状況・会える動物園がわかります。`.slice(0, 200);
+    h1 = `${cfg.emoji} 2025年生まれの<br>赤ちゃんたち`;
+    sub = `全国${zooSet.size}園・${count}頭。よちよち期を卒業した、いまが見頃`;
+    intro = `
+    <p>2025年に生まれた子たちは、いま生後半年〜1年ほど。よちよち歩きを卒業して、走る・登る・じゃれ合うが日ごとに上手になる、<strong>見ていていちばん飽きない時期</strong>を迎えています。</p>
+    <p>「赤ちゃんのうちに会いそびれた」という方もご安心を。体は少し大きくなっても、遊び盛りの今しか見られない表情があります。お住まいの地域のセクションからどうぞ。</p>`;
+    faqItems = [
+      { q: '2025年生まれはまだ「赤ちゃん」ですか？', a: 'ゾウやキリンのように成長がゆっくりな種では、1歳前後はまだ母親と一緒に過ごす立派な「こども」です。小型の種でも遊び盛りで、幼い仕草がたくさん残る時期です。' },
+      { q: 'どの地域で会えますか？', a: `2025年生まれの${count}頭は全国${zooSet.size}園で暮らしています。このページの地域別セクションからお近くの園を探せます。` },
+      { q: '今年（2026年）生まれの最新ベビーはどこで見られますか？', a: '「2026年ベビーラッシュ」特集で、今年生まれた赤ちゃんを月別タイムラインで随時更新しています。' },
+    ];
+  }
+
+  let sections = '';
+  if (cfg.groupBy === 'month') {
+    const mMap = new Map();
+    for (const b of targets) {
+      const mo = Number((b.birthday || '').slice(5, 7)) || 0;
+      if (!mMap.has(mo)) mMap.set(mo, []);
+      mMap.get(mo).push(b);
+    }
+    sections = [...mMap.keys()].sort((a, b) => b - a).map(mo => {
+      const list = mMap.get(mo);
+      const cards = list.map(b => zooBabyCardHtml(b, slugMap)).join('');
+      return `<section style="margin:1.8rem 0;">
+      <h2 style="font-size:1.2rem;margin:0 0 1rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">\u{1F5D3}\u{FE0F} ${cfg.year}年${mo}月生まれ <span style="font-size:.82rem;color:#888;font-weight:normal;">${list.length}頭</span></h2>
+      <div class="baby-grid">${cards}</div>
+    </section>`;
+    }).join('');
+  } else {
+    const prefRegion = {};
+    REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
+    const regionMap = new Map();
+    for (const b of targets) {
+      const rn = prefRegion[b.prefecture] || 'その他';
+      if (!regionMap.has(rn)) regionMap.set(rn, []);
+      regionMap.get(rn).push(b);
+    }
+    const regionOrder = REGIONS.map(([rn]) => rn).filter(rn => regionMap.has(rn));
+    if (regionMap.has('その他')) regionOrder.push('その他');
+    sections = regionOrder.map(rn => {
+      const cards = regionMap.get(rn).map(b => zooBabyCardHtml(b, slugMap)).join('');
+      return `<section style="margin:1.8rem 0;">
+      <h2 style="font-size:1.2rem;margin:0 0 1rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">\u{1F4CD} ${esc(rn)}の${cfg.year}年生まれ <span style="font-size:.82rem;color:#888;font-weight:normal;">${regionMap.get(rn).length}頭</span></h2>
+      <div class="baby-grid">${cards}</div>
+    </section>`;
+    }).join('');
+  }
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'Article',
+    headline: cfg.year === 2026 ? '2026年の動物園ベビーラッシュ — 今年生まれた赤ちゃん総まとめ' : '動物園の赤ちゃん 2025年生まれまとめ',
+    description: desc, url: canonical,
+    datePublished: cfg.datePublished, dateModified: new Date().toISOString().slice(0, 10),
+    author: { '@type': 'Organization', name: 'どうベビ編集部', url: SITE_BASE },
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: canonical,
+  });
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
+  });
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '特集', item: `${SITE_BASE}/specials/` },
+      { '@type': 'ListItem', position: 3, name: cfg.year === 2026 ? '2026年ベビーラッシュ' : '2025年生まれまとめ', item: canonical },
+    ],
+  });
+  const extraJsonLd = `<script type="application/ld+json">${faqLd}</script>`;
+
+  const visibleFaq = `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">\u{2753} よくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ ogImage: pickOgPhoto(targets), title, desc, canonical, jsonLd, extraJsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+
+  <nav class="ssg-breadcrumb" aria-label="パンくず">
+    <a href="/">ホーム</a>
+    <span aria-hidden="true"> › </span>
+    <a href="/specials/">特集</a>
+    <span aria-hidden="true"> › </span>
+    <span aria-current="page">${cfg.year === 2026 ? '2026年ベビーラッシュ' : '2025年生まれまとめ'}</span>
+  </nav>
+
+  <section class="page-hero">
+    <h1 class="page-title">${h1}</h1>
+    <p class="page-subtitle">${esc(sub)}</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.8;">${intro}
+  </section>
+
+  ${sections || '<p>情報を準備中です。</p>'}
+
+  ${genericAsoviewCta()}
+
+  ${visibleFaq}
+
+  ${popularSpeciesNav(babies)}
+
+  ${areaQuickNav()}
+
+  ${seasonCrossNav(cfg.crossKey)}
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
 function kobitokabaSpecialHtml(babies, slugMap) {
   const SPECIES = 'コビトカバ';
   const info = SPECIES_INFO[SPECIES] || {};
@@ -3459,7 +3640,8 @@ function specialsIndexHtml(babies) {
     return (y === 2026 && mo >= 1 && mo <= 8) || (y === 2025 && mo >= 9);
   }).length;
 
-  const kobitokabaCount = babies.filter(b => b.species === 'コビトカバ').length;
+  const rush26Count = babies.filter(b => (b.birthday || '').startsWith('2026')).length;
+  const born25Count = babies.filter(b => (b.birthday || '').startsWith('2025')).length;
   const kantoCount = babies.filter(b => KANTO_PREFS.has(b.prefecture) && !isThinBaby(b)).length;
   const redPandaCount = babies.filter(b => b.species === 'レッサーパンダ').length;
 
@@ -3480,10 +3662,16 @@ function specialsIndexHtml(babies) {
       text: `関東の動物園でいま会える赤ちゃん${kantoCount}頭を、園別に料金・アクセス・子連れ情報つきでまとめました。`,
     },
     {
-      href: '/specials/kobitokaba/',
-      emoji: '🦛',
-      heading: 'コビトカバの赤ちゃん特集',
-      text: `世界で人気のコビトカバ。いま全国で会える赤ちゃん${kobitokabaCount}頭の公開状況・会える動物園をまとめました。`,
+      href: '/specials/baby-rush-2026/',
+      emoji: '\u{1F389}',
+      heading: '2026年ベビーラッシュ 全記録',
+      text: `今年、日本の動物園で生まれた赤ちゃん${rush26Count}頭を月別タイムラインで総まとめ。随時更新中。`,
+    },
+    {
+      href: '/specials/born-2025/',
+      emoji: '\u{1F43E}',
+      heading: '2025年生まれの赤ちゃんまとめ',
+      text: `去年生まれの${born25Count}頭はいまが見頃。成長した姿に、地域別で会いに行けます。`,
     },
     {
       href: '/specials/red-panda/',
@@ -3581,7 +3769,8 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/endangered/">🌍 絶滅危惧種の赤ちゃん特集</a></li>
       <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
       <li><a href="/specials/summer-2026/">☀️ 2026年夏の動物園赤ちゃん特集</a></li>
-      <li><a href="/specials/kobitokaba/">🦛 コビトカバの赤ちゃん特集</a></li>
+      <li><a href="/specials/baby-rush-2026/">🎉 2026年ベビーラッシュ 全記録</a></li>
+      <li><a href="/specials/born-2025/">🐾 2025年生まれの赤ちゃんまとめ</a></li>
       <li><a href="/specials/red-panda/">🐼 レッサーパンダの赤ちゃん特集</a></li>
       <li><a href="/specials/kanto-baby-animals/">🗾 関東で会える動物の赤ちゃんまとめ</a></li>
       <li><a href="/specials/white-tiger/">🐯 ホワイトタイガーの赤ちゃん特集</a></li>
@@ -3662,7 +3851,8 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/naming/`,                   priority: '0.7', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/specials/kanto-baby-animals/`, priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/endangered/`,      priority: '0.8', changefreq: 'weekly',  lastmod: today },
-    { loc: `${SITE_BASE}/specials/kobitokaba/`,       priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/baby-rush-2026/`,  priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/born-2025/`,       priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/red-panda/`,        priority: '0.8', changefreq: 'weekly',  lastmod: today },
     ...SINGLE_SPECIES_SPECIALS.map(cfg => ({ loc: `${SITE_BASE}/specials/${cfg.slug}/`, priority: '0.8', changefreq: 'weekly', lastmod: today })),
   ];
@@ -4100,6 +4290,15 @@ function updateRedirects(slugMap) {
     // マーカーがなければ先頭近くに挿入
     content = content.replace('/sitemap.xml  /sitemap.xml  200\n', `/sitemap.xml  /sitemap.xml  200\n\n${section}\n`);
   }
+  // 特集の301統合セクション（PROP-20260702 P5）
+  const spSection = `# --- SSG:special-redirects:start ---\n/specials/kobitokaba/ /species/コビトカバ/ 301\n# --- SSG:special-redirects:end ---`;
+  const spRe = /# --- SSG:special-redirects:start ---[\s\S]*?# --- SSG:special-redirects:end ---/;
+  if (spRe.test(content)) {
+    content = content.replace(spRe, spSection);
+  } else {
+    content = content.replace('# --- SSG:UUID-redirects:start ---', `${spSection}\n\n# --- SSG:UUID-redirects:start ---`);
+  }
+
   fs.writeFileSync(redirectsPath, content, 'utf-8');
 }
 
@@ -4490,10 +4689,16 @@ async function main() {
   writeHtml(path.join(WEB_DIR, 'specials', 'endangered', 'index.html'), endangeredSpecialHtml(babies, slugMap));
   console.log(`   ✅ /specials/endangered/ 出力`);
 
-  // ── コビトカバの赤ちゃん特集ページ ──
-  console.log('\n🦛 コビトカバ特集ページ生成中...');
-  writeHtml(path.join(WEB_DIR, 'specials', 'kobitokaba', 'index.html'), kobitokabaSpecialHtml(babies, slugMap));
-  console.log(`   ✅ /specials/kobitokaba/ 出力`);
+  // ── コビトカバ特集は /species/コビトカバ/ へ301統合（PROP-20260702 P5・評価一本化）──
+  console.log('\n🦛 コビトカバ特集: 生成停止・旧ディレクトリ削除（301は_redirectsで配信）');
+  try { fs.rmSync(path.join(WEB_DIR, 'specials', 'kobitokaba'), { recursive: true, force: true }); } catch (e) { /* noop */ }
+
+  // ── 年別まとめ特集（2026ベビーラッシュ／2025年生まれ）──
+  console.log('\n🎉 年別まとめ特集ページ生成中...');
+  for (const cfg of YEAR_SPECIALS) {
+    writeHtml(path.join(WEB_DIR, 'specials', cfg.slug, 'index.html'), yearSpecialHtml(cfg, babies, slugMap));
+    console.log(`   ✅ /specials/${cfg.slug}/ 出力`);
+  }
 
   // ── レッサーパンダの赤ちゃん特集ページ ──
   console.log('\n🐼 レッサーパンダ特集ページ生成中...');
