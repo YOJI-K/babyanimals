@@ -4831,6 +4831,14 @@ async function main() {
   }
   console.log(`   ✅ 都道府県 ${__prefData.order.length}件 出力`);
 
+  // ── エリアの孤児掃除（しきい値割れ等でページ非生成になった都道府県の旧HTMLを除去）──
+  // 恒久対策: 現役の地域ページ(__areaData.order)＋現役の都道府県ページ(__prefData.order)以外の
+  // /area/<dir>/ を削除。SSGは書き込みのみで削除しないため、頭数が2未満に減った県の旧HTMLが
+  // 孤児として残り、sitemap外indexや誤った頭数表示を生む問題への根治。
+  if (babies.length > 0) {
+    pruneOrphanDirs(path.join(WEB_DIR, 'area'), [...__areaData.order, ...__prefData.order], 'エリア');
+  }
+
   // ── 関東 動物の赤ちゃんまとめ特集 ──
   console.log('\n🗾 関東特集ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'kanto-baby-animals', 'index.html'), kantoBabyAnimalsSpecialHtml(babies, slugMap));
