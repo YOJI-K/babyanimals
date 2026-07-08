@@ -3018,8 +3018,8 @@ function summerSpecialHtml(babies, slugMap) {
   const speciesPhrase = speciesList.slice(0, 4).join('・') || '人気の動物';
   const prefSet = new Set(summerBabies.map(b => b.prefecture).filter(Boolean));
 
-  const title = '2026年夏の動物園赤ちゃん特集 — 地域別・いま会えるベビーまとめ｜どうベビ';
-  const desc = `2026年夏、全国の動物園で会える赤ちゃん${summerBabies.length}頭を地域別にご紹介。${speciesPhrase}など、夏休みのお出かけに、いま会えるベビーを公開状況つきでまとめました。`.slice(0, 200);
+  const title = '2026年 夏休み・お盆に会える動物園の赤ちゃん｜地域別おでかけガイド｜どうベビ';
+  const desc = `2026年の夏休み・お盆のおでかけに。全国の動物園で会える赤ちゃん${summerBabies.length}頭を地域別にまとめました。${speciesPhrase}など、公開状況つきで「いま会えるベビー」がひと目でわかる地域別おでかけガイドです。`.slice(0, 200);
   const canonical = `${SITE_BASE}/specials/summer-2026/`;
 
   const sections = regionOrder.map(rn => {
@@ -3035,6 +3035,8 @@ function summerSpecialHtml(babies, slugMap) {
     { q: '夏の動物園は赤ちゃんに会いやすいですか？', a: '夏は前年〜春に生まれた赤ちゃんがすくすく育ち、活発に動く姿を観察しやすい時期です。暑い日中は動物が日陰で休むことも多いので、開園直後の午前中の来園がおすすめです。' },
     { q: '赤ちゃんは毎日会えますか？公開状況の見方は？', a: '各カードに「🟢 公開中（一般公開中）」「🟡 近日公開（一般公開前）」のバッジを表示しています。🟢 は通常展示で会えますが、体調・天候・季節で展示時間や場所が変わることがあります。おでかけ前に各動物園の公式サイトやSNSで当日の展示状況をご確認ください。' },
     { q: '夏のお出かけで気をつけることは？', a: '熱中症対策として、帽子・水分・日陰での休憩をこまめに。屋内展示や水辺の動物を組み合わせると涼しく楽しめます。前売り券を用意しておくと当日スムーズです。' },
+    { q: 'お盆に動物園の赤ちゃんに会えますか？', a: 'お盆期間もほとんどの動物園は開園していますが、来園者が増えて混雑しやすく、臨時の開園時間や入園制限が設けられることもあります。おでかけ前に各動物園の公式サイトで開園日・時間と当日の展示状況をご確認ください。' },
+    { q: '夏休みの自由研究に動物園の赤ちゃんは使えますか？', a: '赤ちゃんの誕生日・種類・成長の様子は、観察日記や自由研究の題材にぴったりです。各赤ちゃんのページで誕生日や種の解説を確認し、実際に会いに行って気づいたことをまとめると、オリジナルの研究になります。' },
     { q: '近くの動物園の赤ちゃんはどう探せますか？', a: 'このページは地域別にまとめています。さらに詳しく探すなら、エリア別ハブから全国の動物園と赤ちゃんを地域でしぼり込めます。' },
   ];
   const faqLd = JSON.stringify({
@@ -3042,16 +3044,27 @@ function summerSpecialHtml(babies, slugMap) {
     mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
   });
   const visibleFaq = `<section style="margin:2rem 0;">
-    <h2 style="font-size:1.2rem;margin:0 0 1rem;">❓ 夏のお出かけ前によくある質問</h2>
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">❓ 夏休み・お盆のおでかけ前によくある質問</h2>
     ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
       <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
       <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
     </details>`).join('')}
   </section>`;
 
+  const outingGuide = `<section style="margin:2rem 0;padding:1.1rem 1.2rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.9;">
+    <h2 style="font-size:1.2rem;margin:0 0 .8rem;">\uD83E\uDDF3 夏休み・お盆の動物園おでかけガイド</h2>
+    <ul style="margin:0;padding-left:1.2rem;">
+      <li><strong>涼しく回るなら午前中</strong>：暑い日中は動物が日陰で休みがち。開園直後〜午前中は、赤ちゃんが活発に動く姿を見やすい時間帯です。</li>
+      <li><strong>お盆期間は混雑・開園時間に注意</strong>：お盆（8月中旬）は来園者が増え、臨時の開園時間や整理券制になる園もあります。おでかけ前に各動物園の公式サイトで当日の情報を確認しましょう。</li>
+      <li><strong>暑さ対策を万全に</strong>：帽子・水分・日陰での休憩をこまめに。屋内展示や水辺の動物（カワウソ・ペンギン・カバなど）を組み合わせると涼しく楽しめます。</li>
+      <li><strong>前売り券で並ばず入園</strong>：夏休みは窓口が混みやすいので、電子チケットの事前購入がスムーズです。</li>
+      <li><strong>夏休みの自由研究にも</strong>：赤ちゃんの誕生日や成長の様子は、観察日記や自由研究の題材にぴったり。各ページの誕生日・種の解説もあわせてどうぞ。</li>
+    </ul>
+  </section>`;
+
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org', '@type': 'Article',
-    headline: '2026年夏の動物園赤ちゃん特集 — 地域別ガイド',
+    headline: '2026年 夏休み・お盆に会える動物園の赤ちゃん — 地域別おでかけガイド',
     description: desc, url: canonical,
     datePublished: '2026-06-11', dateModified: new Date().toISOString().slice(0, 10),
     publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
@@ -3063,7 +3076,7 @@ function summerSpecialHtml(babies, slugMap) {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
       { '@type': 'ListItem', position: 2, name: '特集', item: `${SITE_BASE}/specials/` },
-      { '@type': 'ListItem', position: 3, name: '2026年夏に会える赤ちゃん', item: canonical },
+      { '@type': 'ListItem', position: 3, name: '夏休み・お盆に会える赤ちゃん', item: canonical },
     ],
   });
 
@@ -3076,8 +3089,8 @@ ${siteHeader()}
 ${siteNav('/')}
 <main class="container" id="main">
   <section class="page-hero">
-    <h1 class="page-title">☀️ 2026年夏に会える<br>動物園の赤ちゃん</h1>
-    <p class="page-subtitle">全国 ${prefSet.size}都道府県・${summerBabies.length}頭の夏ベビーに会いに行こう</p>
+    <h1 class="page-title">☀️ 2026年 夏休み・お盆に会える<br>動物園の赤ちゃん</h1>
+    <p class="page-subtitle">全国 ${prefSet.size}都道府県・${summerBabies.length}頭｜夏休みのおでかけ地域別ガイド</p>
   </section>
 
   <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.8;">
@@ -3097,6 +3110,8 @@ ${siteNav('/')}
   ${popularSpeciesNav(babies)}
 
   ${areaQuickNav()}
+
+  ${outingGuide}
 
   ${seasonCrossNav('summer')}
 
