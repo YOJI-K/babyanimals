@@ -2555,6 +2555,7 @@ function seasonCrossNav(current) {
   const all = [
     { key: 'spring', href: '/specials/spring-2026/', label: '\u{1F338} 2026年春の赤ちゃん特集' },
     { key: 'summer', href: '/specials/summer-2026/', label: '☀️ 2026年夏の赤ちゃん特集' },
+    { key: 'holiday', href: '/specials/july-holiday-2026/', label: '\u{1F3D6}\u{FE0F} 7月の3連休に会える赤ちゃん' },
     { key: 'rush', href: '/specials/baby-rush-2026/', label: '\u{1F389} 2026年ベビーラッシュ全記録' },
     { key: 'y2025', href: '/specials/born-2025/', label: '\u{1F43E} 2025年生まれの赤ちゃんまとめ' },
     { key: 'kanto', href: '/specials/kanto-baby-animals/', label: '\u{1F5FE} 関東で会える赤ちゃんまとめ' },
@@ -3787,6 +3788,153 @@ ${siteFooter()}
 /**
  * 特集ハブ一覧（/specials/）— 各特集記事への入口。クロール経路と回遊を強化。
  */
+// ─── 7月の3連休（海の日）特集（編集部キュレーション：名前が決まった話題のベビー）──
+// 検索意図: 「動物園 赤ちゃん 7月 / 海の日 / 3連休 / 名前 決まった」。
+// 季節フィルタ型ではなく、SNS(X)で話題かつ命名済みの個体を編集部が選ぶキュレーション特集。
+const HOLIDAY_2026_PICKS = [
+  { name: 'イロハ', species: 'コビトカバ', hook: 'いま最も勢いのある「赤ちゃんジャンル」がコビトカバ。上野のイロハは母モミジ由来の名前で、命名投票は3,142票の1位に。同じ年に生まれた「コブシ」と母親違いの親子を並べて追えるのも、今年ならではの楽しみです。' },
+  { name: 'カロ', species: 'テングザル', hook: 'テングザルに会えるのは国内でズーラシアだけ。2026年1月生まれのカロは約4年ぶりの誕生で、赤ちゃんのうちは鼻も小さく顔つきも大人とは別もの。「赤ちゃんの顔から、あの独特の大人の顔へ」の変化を最初から見届けられます。' },
+  { name: 'ふく', species: 'ミナミコアリクイ', hook: '入園無料の野毛山動物園で会えるミナミコアリクイの赤ちゃん。頭の形が「たまねぎ」、丸くなると「大福」——担当者ブログの観察がキャラクターを際立たせます。母アンの背中では、模様が重なって遠目には見つけにくいことも。' },
+  { name: 'モナカ', species: 'レッサーパンダ', hook: '和菓子のような名前がぴったりの、まんまるレッサーパンダ。両親はグミと大福です。516件の応募から選ばれた愛称で、木の上で丸まって眠る姿が人気。那須高原の避暑とセットで会いに行きたい1頭です。' },
+  { name: 'カズキ', species: 'チンパンジー', hook: '今回いちばんSNSを沸かせたのがカズキ。命名式を伝えた東山動植物園公式の投稿は表示100万回超・いいね数千を記録しました。母カズミと兄リキから一文字ずつ受け継いだ名で、群れ全体に見守られて育つ姿が見どころです。' },
+  { name: 'ウタ', species: 'コビトカバ', hook: '関西でコビトカバに会うなら神戸どうぶつ王国のウタ。母コウメと父タムタムから一字ずつ取った名前です。誕生翌日は6kg台だった体重も数か月で27kgほどに。専用インスタ(@kobe_kobitokaba)で近況も追え、上野のイロハと東西で見比べても面白い存在です。' },
+  { name: 'アオ', species: 'マルミミゾウ', hook: '「国内初繁殖」の肩書を持つマルミミゾウ。愛称募集には10,458件もの応募が集まり、「夏の青く広い空のように」との願いから「アオ」に決まりました。丸い耳とずんぐりした体つき、鼻の使い方を練習する仕草が愛らしい赤ちゃんです。' },
+  { name: 'タワ', species: 'アジアゾウ', hook: '九州まで足をのばすなら大分・アフリカンサファリのタワ。名前はラオス語で12月を意味する「タンワー」にちなみます。ゾウの赤ちゃんは成長が速く、来園のたびに「ひとまわり大きくなった」を実感しやすいのも魅力です。' },
+];
+
+function julyHolidaySpecialHtml(babies, slugMap) {
+  const prefRegion = {};
+  REGIONS.forEach(([rn, prefs]) => prefs.forEach(p => { prefRegion[p] = rn; }));
+
+  const resolved = HOLIDAY_2026_PICKS
+    .map(p => {
+      const b = babies.find(x => x.species === p.species && displayBabyName(x) === p.name);
+      return b ? { b, hook: p.hook } : null;
+    })
+    .filter(Boolean);
+
+  const regionMap = new Map();
+  for (const r of resolved) {
+    const rn = prefRegion[r.b.prefecture] || 'その他';
+    if (!regionMap.has(rn)) regionMap.set(rn, []);
+    regionMap.get(rn).push(r);
+  }
+  const regionOrder = REGIONS.map(([rn]) => rn).filter(rn => regionMap.has(rn));
+  if (regionMap.has('その他')) regionOrder.push('その他');
+
+  const count = resolved.length;
+  const prefSet = new Set(resolved.map(r => r.b.prefecture).filter(Boolean));
+  const speciesList = [...new Set(resolved.map(r => r.b.species).filter(Boolean))];
+  const speciesPhrase = speciesList.slice(0, 4).join('・') || '人気の動物';
+
+  const title = '7月の3連休（海の日）に会える動物園の赤ちゃん2026｜名前が決まった話題のベビー｜どうベビ';
+  const desc = `2026年7月の3連休（海の日・7/18〜20）のおでかけに。名前が決まったばかりで、いまSNSでも話題の人気赤ちゃん${count}頭を地域別にまとめました。${speciesPhrase}など、公開状況つきで会える動物園がひと目でわかります。`.slice(0, 200);
+  const canonical = `${SITE_BASE}/specials/july-holiday-2026/`;
+
+  const sections = regionOrder.map(rn => {
+    const list = regionMap.get(rn);
+    const blocks = list.map(r => `<article style="margin:0 0 1.4rem;padding:0 0 1.1rem;border-bottom:1px dashed #d6efe4;">
+        <div class="baby-grid" style="margin-bottom:.7rem;">${zooBabyCardHtml(r.b, slugMap)}</div>
+        <p style="margin:0;line-height:1.9;">${esc(r.hook)}</p>
+      </article>`).join('');
+    return `<section style="margin:1.8rem 0;">
+      <h2 style="font-size:1.2rem;margin:0 0 1rem;border-bottom:2px solid #d6efe4;padding-bottom:.35rem;">📍 ${esc(rn)}で会える赤ちゃん <span style="font-size:.82rem;color:#888;font-weight:normal;">${list.length}頭</span></h2>
+      ${blocks}
+    </section>`;
+  }).join('');
+
+  const faqItems = [
+    { q: '2026年の海の日はいつ？3連休は？', a: '2026年の海の日は7月20日（月）です。7月18日（土）・19日（日）・20日（月・海の日）の3連休になります。夏本番前の、この夏いちばん最初の遠出のチャンスです。' },
+    { q: 'この特集の赤ちゃんは名前が決まっていますか？', a: 'はい。この特集で紹介しているのは、すべて愛称（名前）が正式に決まった赤ちゃんです。命名の由来や投票のエピソードも、それぞれのページで紹介しています。' },
+    { q: '赤ちゃんは連休中に必ず会えますか？', a: '各カードに「🟢 公開中」などの公開状況バッジを表示していますが、体調・天候・季節によって展示時間や場所が変わることがあります。おでかけ前に各動物園の公式サイトやSNSで、当日の展示状況を必ずご確認ください。' },
+    { q: '夏の連休のおでかけで気をつけることは？', a: '熱中症対策として帽子・水分・日陰での休憩をこまめに。赤ちゃんは涼しい午前中のほうが活発なことが多いです。連休は混雑しやすいので、電子チケットの事前購入がスムーズです。' },
+    { q: '近くの動物園の赤ちゃんはどう探せますか？', a: 'この特集は地域別にまとめています。さらに詳しく探すなら、エリア別ハブから全国の動物園と赤ちゃんを地域でしぼり込めます。ページ下部の「エリアから探す」もご活用ください。' },
+  ];
+  const faqLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
+  });
+  const visibleFaq = `<section style="margin:2rem 0;">
+    <h2 style="font-size:1.2rem;margin:0 0 1rem;">❓ 3連休のおでかけ前によくある質問</h2>
+    ${faqItems.map(it => `<details style="margin:0 0 .6rem;padding:.8rem 1rem;background:rgba(255,255,255,0.6);border-radius:10px;">
+      <summary style="cursor:pointer;font-weight:600;line-height:1.5;">${esc(it.q)}</summary>
+      <p style="margin:.6rem 0 0;line-height:1.7;">${esc(it.a)}</p>
+    </details>`).join('')}
+  </section>`;
+
+  const outingGuide = `<section style="margin:2rem 0;padding:1.1rem 1.2rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.9;">
+    <h2 style="font-size:1.2rem;margin:0 0 .8rem;">🧳 3連休の動物園おでかけガイド</h2>
+    <ul style="margin:0;padding-left:1.2rem;">
+      <li><strong>赤ちゃんが活発なのは午前中</strong>：暑い日中は動物が日陰で休みがち。開園直後〜午前中は、赤ちゃんが動く姿を見やすい時間帯です。</li>
+      <li><strong>連休は混雑・開園時間に注意</strong>：来園者が増え、臨時の開園時間や整理券制になる園もあります。おでかけ前に各動物園の公式サイトで当日の情報を確認しましょう。</li>
+      <li><strong>暑さ対策を万全に</strong>：帽子・水分・日陰での休憩をこまめに。屋内展示や水辺の動物（カバ・カワウソなど）を組み合わせると涼しく楽しめます。</li>
+      <li><strong>前売り券で並ばず入園</strong>：連休は窓口が混みやすいので、電子チケットの事前購入がスムーズです。</li>
+    </ul>
+  </section>`;
+
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'Article',
+    headline: '7月の3連休（海の日）に会える動物園の赤ちゃん2026 — 名前が決まった話題のベビー',
+    description: desc, url: canonical,
+    datePublished: '2026-07-15', dateModified: new Date().toISOString().slice(0, 10),
+    publisher: { '@type': 'Organization', name: 'どうベビ', url: SITE_BASE },
+    mainEntityOfPage: canonical,
+  });
+  const extraJsonLd = `<script type="application/ld+json">${faqLd}</script>`;
+  const breadcrumbLd = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: `${SITE_BASE}/` },
+      { '@type': 'ListItem', position: 2, name: '特集', item: `${SITE_BASE}/specials/` },
+      { '@type': 'ListItem', position: 3, name: '7月の3連休に会える赤ちゃん', item: canonical },
+    ],
+  });
+
+  return `<!doctype html>
+<html lang="ja">
+${htmlHead({ ogImage: pickOgPhoto(resolved.map(r => r.b)), title, desc, canonical, jsonLd, extraJsonLd })}
+<script type="application/ld+json">${breadcrumbLd}</script>
+<body class="theme">
+${siteHeader()}
+${siteNav('/')}
+<main class="container" id="main">
+  <section class="page-hero">
+    <h1 class="page-title">🏖️ 7月の3連休に会える<br>動物園の赤ちゃん 2026</h1>
+    <p class="page-subtitle">海の日をはさむ3連休（7/18〜20）のおでかけに｜名前が決まった話題のベビー ${count}頭・${prefSet.size}都道府県</p>
+  </section>
+
+  <section style="margin:1.5rem 0;padding:1rem;background:rgba(255,255,255,0.6);border-radius:12px;line-height:1.85;">
+    <p>海の日をはさむ3連休（7月18日〜20日）は、この夏いちばん最初の遠出のチャンス。各地の動物園では<strong>名前が決まったばかりの赤ちゃん</strong>がそろい、SNSでもかわいさが話題になっています。</p>
+    <p>なかでも<strong>コビトカバ</strong>の赤ちゃんは、ここ最近Xで見ない日がないほどの人気ぶり。<strong>チンパンジーやゾウ</strong>の命名式の様子も、動物園公式アカウントの投稿が100万回以上表示されるなど、赤ちゃんの話題は今いちばん人が集まるジャンルです。この特集では「いま話題」で「もう名前が決まっている」赤ちゃんを、おでかけしやすい地域別にまとめました。</p>
+    <p style="margin-top:.6rem;"><a href="/area/" style="color:#0a7a5c;font-weight:700;text-decoration:none;">🗾 地域・エリアからもっと探す →</a></p>
+  </section>
+
+  ${sections || '<p>赤ちゃん情報を準備中です。</p>'}
+
+  ${featuredZoosBlock(babies)}
+
+  ${genericAsoviewCta('お近くの動物園の電子チケット。当日窓口と同じ料金で、並ばず入園。')}
+
+  ${visibleFaq}
+
+  ${popularSpeciesNav(babies)}
+
+  ${areaQuickNav()}
+
+  ${outingGuide}
+
+  ${seasonCrossNav('holiday')}
+
+  <p style="text-align:center;margin:2rem 0;"><a class="dbb-cta" href="/babies/">全ての赤ちゃんを見る →</a></p>
+
+</main>
+${siteFooter()}
+<script defer src="/assets/js/analytics.js"></script>
+</body>
+</html>`;
+}
+
+
 function specialsIndexHtml(babies) {
   const title = '特集・まとめ記事｜どうベビ';
   const desc = '日本の動物園で生まれた赤ちゃん動物の特集・まとめ記事一覧。絶滅危惧種の赤ちゃん特集、季節ごとのベビーラッシュ特集など、テーマ別に動物園の赤ちゃんを紹介します。';
@@ -3853,6 +4001,12 @@ function specialsIndexHtml(babies) {
       emoji: '🐼',
       heading: 'レッサーパンダの赤ちゃん特集',
       text: `木に登る愛らしい姿で人気のレッサーパンダ。いま全国で会える赤ちゃん${redPandaCount}頭の公開状況・会える動物園をまとめました。`,
+    },
+    {
+      href: '/specials/july-holiday-2026/',
+      emoji: '\u{1F3D6}\u{FE0F}',
+      heading: '7月の3連休に会える赤ちゃん2026',
+      text: '海の日をはさむ3連休（7/18〜20）のおでかけに。名前が決まった、いまSNSで話題の人気ベビーを地域別にまとめました。',
     },
     {
       href: '/specials/summer-2026/',
@@ -3944,6 +4098,7 @@ function buildSitemapHtml(babies, newsItems, slugMap) {
       <li><a href="/specials/endangered/">🌍 絶滅危惧種の赤ちゃん特集</a></li>
       <li><a href="/specials/spring-2026/">🌸 2026年春の赤ちゃんラッシュ特集</a></li>
       <li><a href="/specials/summer-2026/">☀️ 2026年夏の動物園赤ちゃん特集</a></li>
+      <li><a href="/specials/july-holiday-2026/">🏖️ 7月の3連休に会える赤ちゃん2026</a></li>
       <li><a href="/specials/baby-rush-2026/">🎉 2026年ベビーラッシュ 全記録</a></li>
       <li><a href="/specials/born-2025/">🐾 2025年生まれの赤ちゃんまとめ</a></li>
       <li><a href="/specials/red-panda/">🐼 レッサーパンダの赤ちゃん特集</a></li>
@@ -4023,6 +4178,7 @@ function buildSitemap(babies, newsItems, slugMap) {
     { loc: `${SITE_BASE}/area/`,                     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/spring-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/summer-2026/`,     priority: '0.8', changefreq: 'weekly',  lastmod: today },
+    { loc: `${SITE_BASE}/specials/july-holiday-2026/`, priority: '0.9', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/specials/`,                 priority: '0.8', changefreq: 'weekly',  lastmod: today },
     { loc: `${SITE_BASE}/naming/`,                   priority: '0.7', changefreq: 'daily',   lastmod: today },
     { loc: `${SITE_BASE}/specials/kanto-baby-animals/`, priority: '0.8', changefreq: 'weekly',  lastmod: today },
@@ -4870,6 +5026,11 @@ async function main() {
   console.log('\n☀️ 2026年夏特集ページ生成中...');
   writeHtml(path.join(WEB_DIR, 'specials', 'summer-2026', 'index.html'), summerSpecialHtml(babies, slugMap));
   console.log(`   ✅ /specials/summer-2026/ 出力`);
+
+  // ── 7月の3連休（海の日）特集 ──
+  console.log('\n🏖️ 7月3連休特集ページ生成中...');
+  writeHtml(path.join(WEB_DIR, 'specials', 'july-holiday-2026', 'index.html'), julyHolidaySpecialHtml(babies, slugMap));
+  console.log(`   ✅ /specials/july-holiday-2026/ 出力`);
 
   // ── 絶滅危惧種の赤ちゃん特集ページ ──
   console.log('\n🌍 絶滅危惧種特集ページ生成中...');
