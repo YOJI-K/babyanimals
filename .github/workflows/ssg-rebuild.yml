@@ -40,5 +40,5 @@ jobs:
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "build: SSG 自動再生成 [skip ci]"
+          git commit -m "build: SSG 自動再生成"
           git push origin main
