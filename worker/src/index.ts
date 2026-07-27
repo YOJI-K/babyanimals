@@ -1,5 +1,6 @@
 // worker/src/index.ts
 import { parseDateToISODateOnly, inferBirthdayFromTitle, hasBirthContext } from './birthday';
+import { extractSpeciesAlias } from './species';
 import { NULL_BDAY_DEDUP_DAYS, addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, type ZooSpeciesIndex } from './resolve_dedup';
 // Baby Animals - Crawler/Resolver Worker
 // ランタイム: Cloudflare Workers (Service bindings: SUPABASE_URL, SUPABASE_SERVICE_ROLE)
@@ -43,6 +44,12 @@ const LINKS_CHUNK = 500;          // baby_links 一括 POST のチャンク
 // 公式サイト収集ジョブの上限（サブリクエスト抑制）
 const MAX_SITE_SOURCES_PER_RUN = 5;          // 1回で回す site ソース数（控えめ）
 const SITE_DETAIL_FETCH_LIMIT   = 8;          // 1サイトから記事詳細を掘る最大件数
+// UA無しだと空レスポンスを返す園サイトがあるため明示する（2026-07-27）
+const SITE_FETCH_HEADERS = {
+  'Accept': 'text/html,application/xhtml+xml',
+  'User-Agent': 'Mozilla/5.0 (compatible; DoubebiBot/1.0; +https://zoobabies.jp/)',
+  'Accept-Language': 'ja,en;q=0.8'
+};
 const BIRTH_KW = /(誕生|出産|赤ちゃん|赤仔|ベビー|命名|生まれ)/; // 一覧テキストの事前フィルタ
 
 function nowIso() { return new Date().toISOString(); }
@@ -251,62 +258,6 @@ function parseSiteOG(html: string, fallbackUrl: string): FeedItem {
 // -------------------------------
 const BABY_KEYWORDS = /(誕生|出産|赤ちゃん|赤仔|ベビー|生まれ|命名|名前に決定)/;
 
-const SPECIES_MAP = new Map<string, string>([
-  // パンダ・クマ系（長い名前を先に置くことで substring マッチ優先）
-  ["ジャイアントパンダ", "ジャイアントパンダ"],
-  ["レッサーパンダ", "レッサーパンダ"],
-  ["ホッキョクグマ", "ホッキョクグマ"],
-  ["シロクマ", "ホッキョクグマ"],
-  ["マレーグマ", "マレーグマ"],
-  // ネコ科
-  ["アムールトラ", "トラ"],
-  ["スマトラトラ", "トラ"],
-  ["トラ", "トラ"],
-  ["ライオン", "ライオン"],
-  ["チーター", "チーター"],
-  ["ユキヒョウ", "ユキヒョウ"],
-  ["ヒョウ", "ヒョウ"],
-  // 霊長類
-  ["ニシゴリラ", "ゴリラ"],
-  ["ゴリラ", "ゴリラ"],
-  ["チンパンジー", "チンパンジー"],
-  ["オランウータン", "オランウータン"],
-  ["ヤクシマザル", "ヤクシマザル"],
-  ["アカゲザル", "ニホンザル"],
-  ["ニホンザル", "ニホンザル"],
-  ["マンドリル", "マンドリル"],
-  // 草食大型獣
-  ["キリン", "キリン"],
-  ["コビトカバ", "カバ"],
-  ["カバ", "カバ"],
-  ["シロサイ", "サイ"],
-  ["クロサイ", "サイ"],
-  ["サイ", "サイ"],
-  ["ゾウ", "ゾウ"],
-  ["ニホンジカ", "シカ"],
-  ["エゾシカ", "シカ"],
-  ["ホンドジカ", "シカ"],
-  ["アクシスジカ", "シカ"],
-  // 小型哺乳類
-  ["コツメカワウソ", "コツメカワウソ"],
-  ["コアラ", "コアラ"],
-  ["カンガルー", "カンガルー"],
-  ["シマウマ", "シマウマ"],
-  // 鳥類
-  ["コウテイペンギン", "ペンギン"],
-  ["フンボルトペンギン", "ペンギン"],
-  ["ペンギン", "ペンギン"],
-  ["フラミンゴ", "フラミンゴ"],
-  // は虫類・水生
-  ["ナイルワニ", "ワニ"],
-  ["ワニ", "ワニ"],
-  ["コモドオオトカゲ", "コモドオオトカゲ"],
-  ["カリフォルニアアシカ", "アシカ"],
-  ["アシカ", "アシカ"],
-  ["セイウチ", "セイウチ"],
-  ["バンドウイルカ", "イルカ"],
-  ["イルカ", "イルカ"],
-]);
 
 // === 案B: タイトル前処理 ===
 // 抽出ノイズ源（「○○の赤ちゃん」「○○の子」「#ハッシュタグ」「動画タイトル定型句」）を削除
@@ -397,12 +348,6 @@ function validateExtractedName(name: string): string | null {
   return null;
 }
 
-function extractSpeciesAlias(title: string): { species?: string; alias?: string } {
-  for (const [alias, canonical] of SPECIES_MAP) {
-    if (title.includes(alias)) return { species: canonical, alias };
-  }
-  return {};
-}
 
 // decideBirthdayByAge は ./birthday に移設（F1 2026-06-25）
 
@@ -731,31 +676,37 @@ async function runSiteNewsJob(env: Env) {
 
   const events: BabyEventRow[] = [];
   const processedIds: string[] = [];
+  const failedUrls: string[] = [];
   let total = 0, skipped = 0;
 
   for (const s of sources as any[]) {
     try {
-      if (s?.id) processedIds.push(s.id);
-      const res = await fetch(s.url, { headers: { 'Accept': 'text/html' }, cf: { cacheTtl: 0 } });
+      // 2026-07-27: fetch 成功後に「処理済み」へ入れる。
+      // 以前は fetch 前に push していたため、取得に失敗しても last_checked が更新され、
+      // 死んでいるソースが「巡回済み」に見えていた（実測: かみね動物園・いしかわ動物園）。
+      const res = await fetch(s.url, { headers: SITE_FETCH_HEADERS, cf: { cacheTtl: 0 } });
       if (!res.ok) throw new Error(`fetch listing ${s.url} -> ${res.status}`);
+      if (s?.id) processedIds.push(s.id);
       const listingHtml = await res.text();
 
       // a[href] + 表示テキスト抽出
       const links = extractLinksFromListingWithText(listingHtml, s.url);
 
       // 出生系キーワードで事前フィルタ → 多すぎる場合は cap
-      let pick = links.filter(a => BIRTH_KW.test(a.text || ''));
+      // 2026-07-27: 「0件なら先頭3リンクを拾う」フォールバックを撤去。
+      // 自治体CMSでは先頭がスキップナビ（「エンターキーを押すと…」「文字サイズ・配色の変更」）のため、
+      // 実益ゼロのナビゲーションをイベント化していた（実測: 9件中6件がゴミ）。
+      const pick = links
+        .filter(a => BIRTH_KW.test(a.text || ''))
+        .slice(0, SITE_DETAIL_FETCH_LIMIT);
       if (pick.length === 0) {
-        // 0件のときは上から少数だけ拾う（サイト構造が特殊な園対策）
-        pick = links.slice(0, Math.min(3, SITE_DETAIL_FETCH_LIMIT));
-      } else {
-        pick = pick.slice(0, SITE_DETAIL_FETCH_LIMIT);
+        console.log('site listing: no birth-keyword links', s.url);
       }
 
       // 記事詳細から OGP 等を抽出してイベント化
       for (const a of pick) {
         try {
-          const art = await fetch(a.href, { headers: { 'Accept': 'text/html' }, cf: { cacheTtl: 0 } });
+          const art = await fetch(a.href, { headers: SITE_FETCH_HEADERS, cf: { cacheTtl: 0 } });
           if (!art.ok) continue;
           const html = await art.text();
           const item = parseSiteOG(html, a.href);
@@ -788,7 +739,9 @@ async function runSiteNewsJob(env: Env) {
         }
       }
     } catch (e) {
-      console.error('site listing failed', s?.url, e);
+      // 失敗ソースをURL付きで残す（次回 last_checked が古いまま＝優先的に再試行される）
+      console.error('SITE LISTING FAILED', { url: s?.url, zoo_id: s?.zoo_id, error: String(e) });
+      failedUrls.push(String(s?.url || ''));
       skipped++;
     }
   }
@@ -803,7 +756,8 @@ async function runSiteNewsJob(env: Env) {
   }
 
   console.log('SITE->EVENTS STATS (filtered)', {
-    total, events: events.length, skipped, sources: (sources as any[]).length, perSiteLimit: SITE_DETAIL_FETCH_LIMIT
+    total, events: events.length, skipped, sources: (sources as any[]).length,
+    perSiteLimit: SITE_DETAIL_FETCH_LIMIT, failedUrls
   });
   await logJob(env, {
     job: 'site->events(filtered)', ok: true, started_at: started, finished_at: new Date(),
