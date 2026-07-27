@@ -770,6 +770,9 @@ async function runSiteNewsJob(env: Env) {
 // -------------------------------
 const MATCH_DAYS = 10;          // birthday ±k日
 const CREATE_THRESHOLD = 3;     // babies新規作成の最小スコア
+// 何日前までの記事を「いまの赤ちゃん」として扱うか（2026-07-27・オーナー決裁で180日）
+// 公開が遅れるケース（コアラの出袋など）を拾いつつ、数年前の記事からの誤生成を防ぐ。
+const RESOLVE_RECENT_DAYS = 180;
 
 type EventForResolve = {
   id: string;
@@ -869,12 +872,22 @@ async function resolveBabyEntitiesJob(env: Env) {
   const started = new Date();
 
   // 未処理イベントを少量だけ取得（件数制限）
+  // 2026-07-27 デッドロック修正:
+  //   旧実装は「種が不明なイベント」を processed_at を付けずに defer していたが、
+  //   species は取り込み時に確定して再計算されないため、同じイベントが毎回キュー先頭を
+  //   占有し続け、created=0 が常態化していた（未処理 4,116件・最古 2025-09-22 が滞留）。
+  //   → 処理できない種nullを最初から除外し、さらに古すぎる記事を対象外にする。
+  //     ・種null は SPECIES_MAP 更新時の backfill で救済する（sql/ に手順を記録）
+  //     ・古い記事から「いま生まれた赤ちゃん」を作らないよう RESOLVE_RECENT_DAYS で足切り
+  const sinceIso = new Date(Date.now() - RESOLVE_RECENT_DAYS * 86400_000).toISOString();
   const events: EventForResolve[] = await sbGet(
     env,
     `/rest/v1/baby_events` +
     `?select=id,url,title,published_at,thumbnail_url,zoo_id,species,source_kind,signal_birth,signal_name,signal_age_days` +
     `&processed_at=is.null` +
     `&signal_birth=eq.true` +  // PROP-20260608-04 フェーズB: 名前ではなく誕生確度を主対象に（名前は後追いで confirmed）
+    `&species=not.is.null` +   // 種不明は作成できない＝キューを塞ぐだけなので最初から除外
+    `&or=(published_at.gte.${sinceIso},published_at.is.null)` + // 古い記事から幻の赤ちゃんを作らない
     `&order=published_at.desc.nullslast` +
     `&limit=${RESOLVE_BATCH_LIMIT}`
   );
