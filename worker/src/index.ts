@@ -799,6 +799,35 @@ async function loadRejections(env: Env): Promise<RejectionSet> {
   return set;
 }
 
+// B-4(2026-07-29): GoogleNews RSS の published_at は再配信・再インデックスで更新されることがあり、
+// 古い記事が「最近」として流入して RESOLVE_RECENT_DAYS の足切りをすり抜ける。
+// 実害＝2021-01-20 の「沖縄こどもの国で14年ぶりキリンのユメが出産」(QAB) が
+// published_at=2026-07-23 として入り、実在しない2026年生まれのキリンが作られた
+// （元記事URLは qab.co.jp/news/20210122... 。赤ちゃんは当時「光」と命名済み）。
+// Google News のURLは暗号化されており元記事の年を自動復元できないため、別の手掛かりを使う：
+//   「同じ(園・種グループ)に前年以前の誕生イベントが既にある」かつ「今回は誕生日が取れない」なら、
+//   過去の話題の再浮上である可能性が高いので作成しない。
+// 実データ検証（2026-07-29）＝現存する本物17頭は誤ブロック0件、沖縄キリンの偽陽性は捕捉。
+async function loadStaleBirthIndex(env: Env): Promise<Set<string>> {
+  const set = new Set<string>();
+  try {
+    const yearStart = `${new Date().getUTCFullYear()}-01-01`;
+    const rows = await sbGet(
+      env,
+      `/rest/v1/baby_events?select=zoo_id,species` +
+      `&signal_birth=eq.true&published_at=lt.${yearStart}&limit=1000`
+    );
+    if (Array.isArray(rows)) {
+      for (const r of rows as any[]) {
+        if (r?.zoo_id && r?.species) set.add(zooSpeciesKey(r.zoo_id, r.species));
+      }
+    }
+  } catch (e) {
+    console.warn('[resolve] stale birth index unavailable', String(e));
+  }
+  return set;
+}
+
 const RESOLVE_RECENT_DAYS = 180;
 
 type EventForResolve = {
@@ -931,6 +960,7 @@ async function resolveBabyEntitiesJob(env: Env) {
   const babyIndex = await loadBabyMatchIndex(env);
   const recentIndex = await loadRecentZooSpeciesIndex(env);  // F4 冪等用
   const rejections = await loadRejections(env);               // B-3 却下リスト
+  const staleBirths = await loadStaleBirthIndex(env);        // B-4 過去年の誕生イベント
 
   let linked = 0, created = 0, processed = 0;
 
@@ -992,6 +1022,13 @@ async function resolveBabyEntitiesJob(env: Env) {
         if (dupId) {
           linkRows.push({ baby_id: dupId, event_id: ev.id });
           linked++;
+          continue;
+        }
+        // B-4: 同じ(園・種グループ)に前年以前の誕生イベントが既にあるなら、
+        //      日付の取れない今回の記事は「過去の話題の再浮上」を疑って作成しない。
+        if (staleBirths.has(zooSpeciesKey(zooIdForEvent as string, ev.species as string))) {
+          console.info('[resolve] stale-story suspected (past-year birth exists), skip:',
+            ev.species, ev.title?.slice(0, 60));
           continue;
         }
         // 以降の作成処理へ：birthday は null のまま provisional 作成

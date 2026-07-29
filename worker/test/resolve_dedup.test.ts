@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, speciesGroup, type ZooSpeciesIndex } from '../src/resolve_dedup.ts';
+import { addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, speciesGroup, zooSpeciesKey, type ZooSpeciesIndex } from '../src/resolve_dedup.ts';
 
 test('信頼ソース判定（site/press/googlenewsを許可・youtube除外）', () => {
   assert.equal(isTrustedBirthSource('site'), true);
@@ -47,4 +47,18 @@ test('別種は取り違えない（レッサーパンダとジャイアント�
   assert.equal(speciesGroup('オグロプレーリードッグ'), 'プレーリードッグ');
   assert.equal(speciesGroup('ツシマヤマネコ'), 'ヤマネコ');
   assert.equal(speciesGroup('エランド'), 'エランド');  // 該当なしは原文どおり
+});
+
+// B-4(2026-07-29): GoogleNews RSS の published_at が再配信で更新され、古い記事が
+// 「最近の誕生」として流入する問題。実害＝2021年の「沖縄こどもの国 キリンのユメが出産」が
+// published_at=2026-07-23 で入り、実在しない赤ちゃんが作られた。
+// 「同じ(園・種グループ)に前年以前の誕生イベントがある」かつ「誕生日が取れない」を疑う。
+test('過去年の誕生イベント索引は種グループで一致する（沖縄こどもの国のキリン）', () => {
+  const stale = new Set<string>();
+  stale.add(zooSpeciesKey('okinawa', 'アミメキリン'));   // 2021年の記事から積まれた想定
+  // 2026年の再浮上記事は species='キリン' と粗く付くが、同一グループとして照合できること
+  assert.equal(stale.has(zooSpeciesKey('okinawa', 'キリン')), true);
+  // 別の園・別の種は巻き込まない
+  assert.equal(stale.has(zooSpeciesKey('chiba', 'キリン')), false);
+  assert.equal(stale.has(zooSpeciesKey('okinawa', 'ジャガー')), false);
 });
