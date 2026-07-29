@@ -1369,6 +1369,57 @@ async function runZoosJob(env: Env) {
 // -------------------------------
 // スケジュール・エントリポイント
 // -------------------------------
+
+// ------------------------------------------------------------------
+// 一度きりの保守ジョブ（2026-07-29）: 既存 site イベントの published_at を後追いで埋める。
+// upsertBabyEvents は Prefer: resolution=ignore-duplicates のため既存行が更新されず、
+// B-1 の日付抽出を入れても「すでに取り込み済みの記事」は published_at が null のまま残る。
+// resolve 側で site かつ日付なしは対象外にしたので害はないが、死蔵在庫になるため埋め直す。
+// デプロイ済みの extractSiteDate をそのまま通すので、B-1 の実データ検証も兼ねる。
+// 使い方: /run?job=sitedate_backfill&token=...&offset=0&limit=30
+// Cloudflare Free は subrequest 50/invocation のため limit は 30 程度に抑えて繰り返す。
+// ------------------------------------------------------------------
+async function runSiteDateBackfillJob(env: Env, offset: number, limit: number): Promise<any> {
+  const started = new Date();
+  const rows = await sbGet(
+    env,
+    `/rest/v1/baby_events?select=id,url,title` +
+    `&source_kind=eq.site&published_at=is.null` +
+    `&order=created_at.asc&offset=${offset}&limit=${limit}`
+  );
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return { ok: true, job: 'sitedate_backfill', offset, scanned: 0, filled: 0, unresolved: 0, done: true };
+  }
+
+  let filled = 0;
+  const unresolved: string[] = [];
+  for (const r of rows as Array<{ id: string; url: string; title: string }>) {
+    try {
+      const res = await fetch(r.url, { headers: SITE_FETCH_HEADERS, cf: { cacheTtl: 0 } });
+      if (!res.ok) { unresolved.push(`HTTP${res.status} ${r.url}`); continue; }
+      const html = await res.text();
+      const pub = extractSiteDate(html, r.url);
+      if (!pub) { unresolved.push(`nodate ${(r.title || '').slice(0, 40)}`); continue; }
+      await sbPatch(env, `/rest/v1/baby_events?id=eq.${r.id}`, { published_at: pub });
+      filled++;
+    } catch (e) {
+      unresolved.push(`error ${r.url} ${String(e).slice(0, 60)}`);
+    }
+  }
+
+  const result = {
+    ok: true, job: 'sitedate_backfill', offset, scanned: rows.length,
+    filled, unresolved: unresolved.length, samples: unresolved.slice(0, 5),
+    done: rows.length < limit
+  };
+  await logJob(env, {
+    job: 'sitedate_backfill', ok: true, started_at: started, finished_at: new Date(),
+    processed: rows.length, linked: 0, created: filled
+  });
+  console.log('SITEDATE BACKFILL', result);
+  return result;
+}
+
 export default {
   async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
     try {
@@ -1422,6 +1473,12 @@ export default {
       else if (job === 'resolve')   await resolveBabyEntitiesJob(env);
       else if (job === 'name_fill') await runNameFillJob(env);
       else if (job === 'social')    await runSocialJob(env);
+      else if (job === 'sitedate_backfill') {
+        const offset = Number(searchParams.get('offset') || '0');
+        const limit  = Math.min(Number(searchParams.get('limit') || '30'), 40);
+        const out = await runSiteDateBackfillJob(env, offset, limit);
+        return new Response(JSON.stringify(out), { headers: { 'content-type': 'application/json' } });
+      }
       else return new Response(JSON.stringify({ ok:false, error:'bad job', job }), { status:400, headers:{'content-type':'application/json'} });
 
       const logErr = await logJob(env, { job, ok: true, started_at: started, finished_at: new Date() });
