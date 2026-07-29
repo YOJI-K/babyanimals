@@ -6,8 +6,31 @@ export const NULL_BDAY_DEDUP_DAYS = 150;
 
 export type ZooSpeciesIndex = Map<string, Array<{ id: string }>>;
 
+// B-2(2026-07-29): 種名の粒度が不統一（「トラ」と「アムールトラ」、「カバ」と「コビトカバ」、
+// 「レッサーパンダ」と「シセンレッサーパンダ」）だと (zoo,species) の重複判定をすり抜け、
+// 同一個体が二重登録される。実害＝多摩のアムールトラ／神戸のコビトカバ／ズーラシアのオオアリクイ。
+// → 末尾一致する総称へ寄せた「種グループ」で判定する。
+const SPECIES_GROUP_BASES = [
+  'レッサーパンダ', 'ジャイアントパンダ', 'プレーリードッグ', 'オランウータン', 'ナマケモノ',
+  'テナガザル', 'カンガルー', 'フクロウ', 'フラミンゴ', 'ペンギン', 'カワウソ', 'ビーバー',
+  'アシカ', 'アザラシ', 'キリン', 'ハイラックス', 'マンドリル', 'カピバラ', 'アリクイ',
+  'トラ', 'ライオン', 'ヒョウ', 'クマ', 'ゾウ', 'カバ', 'サイ', 'シカ', 'サル', 'バク',
+  'ヤマネコ', 'オオカミ'
+];
+
+export function speciesGroup(species: string): string {
+  const s = (species || '').trim();
+  if (!s) return s;
+  // 最長一致を優先（「レッサーパンダ」を「パンダ」より先に拾う）
+  let best = '';
+  for (const base of SPECIES_GROUP_BASES) {
+    if (s.endsWith(base) && base.length > best.length) best = base;
+  }
+  return best || s;
+}
+
 export function zooSpeciesKey(zooId: string, species: string): string {
-  return `${zooId}|${species}`;
+  return `${zooId}|${speciesGroup(species)}`;
 }
 
 export function addToZooSpeciesIndex(idx: ZooSpeciesIndex, zooId: string, species: string, id: string): void {

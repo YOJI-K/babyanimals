@@ -1,7 +1,8 @@
 // worker/src/index.ts
 import { parseDateToISODateOnly, inferBirthdayFromTitle, hasBirthContext } from './birthday';
 import { extractSpeciesAlias } from './species';
-import { NULL_BDAY_DEDUP_DAYS, addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, type ZooSpeciesIndex } from './resolve_dedup';
+import { extractSiteDate } from './sitedate';
+import { NULL_BDAY_DEDUP_DAYS, addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, zooSpeciesKey, type ZooSpeciesIndex } from './resolve_dedup';
 // Baby Animals - Crawler/Resolver Worker
 // ランタイム: Cloudflare Workers (Service bindings: SUPABASE_URL, SUPABASE_SERVICE_ROLE)
 // 目的:
@@ -244,10 +245,11 @@ function parseSiteOG(html: string, fallbackUrl: string): FeedItem {
   const pub2 = html.match(/<time[^>]*datetime=["']([^"']+)["']/i)?.[1] || '';
   const pub = pub1 || pub2;
   const nurl = normUrl(ogu || fallbackUrl)!;
+  const published_at = pub ? toUtcIso(pub) : extractSiteDate(html, nurl);
   return {
     title: (ogt || '').trim(),
     url: nurl,
-    published_at: pub ? toUtcIso(pub) : null,
+    published_at,
     thumbnail_url: ogi || null,
     source_name: domain(nurl)
   };
@@ -772,6 +774,31 @@ const MATCH_DAYS = 10;          // birthday ±k日
 const CREATE_THRESHOLD = 3;     // babies新規作成の最小スコア
 // 何日前までの記事を「いまの赤ちゃん」として扱うか（2026-07-27・オーナー決裁で180日）
 // 公開が遅れるケース（コアラの出袋など）を拾いつつ、数年前の記事からの誤生成を防ぐ。
+// B-3(2026-07-29): 却下リスト。人手で偽陽性として消した個体を自動収集が復活させないための記憶。
+// 実害＝秋吉台サファリランドの「カンガルー」が6/29の削除後、7/27に同種のまとめ記事から再作成された。
+// テーブルが未作成でも動作するよう、失敗時は空セット＝従来どおりの挙動にフォールバックする。
+type RejectionSet = Set<string>;
+
+async function loadRejections(env: Env): Promise<RejectionSet> {
+  const set: RejectionSet = new Set();
+  try {
+    const nowIsoStr = new Date().toISOString();
+    const rows = await sbGet(
+      env,
+      `/rest/v1/baby_rejections?select=zoo_id,species,expires_at` +
+      `&or=(expires_at.is.null,expires_at.gte.${nowIsoStr})&limit=1000`
+    );
+    if (Array.isArray(rows)) {
+      for (const r of rows as any[]) {
+        if (r?.zoo_id && r?.species) set.add(zooSpeciesKey(r.zoo_id, r.species));
+      }
+    }
+  } catch (e) {
+    console.warn('[resolve] baby_rejections unavailable (skipping rejection check)', String(e));
+  }
+  return set;
+}
+
 const RESOLVE_RECENT_DAYS = 180;
 
 type EventForResolve = {
@@ -887,7 +914,9 @@ async function resolveBabyEntitiesJob(env: Env) {
     `&processed_at=is.null` +
     `&signal_birth=eq.true` +  // PROP-20260608-04 フェーズB: 名前ではなく誕生確度を主対象に（名前は後追いで confirmed）
     `&species=not.is.null` +   // 種不明は作成できない＝キューを塞ぐだけなので最初から除外
-    `&or=(published_at.gte.${sinceIso},published_at.is.null)` + // 古い記事から幻の赤ちゃんを作らない
+    `&or=(published_at.gte.${sinceIso},and(published_at.is.null,source_kind.neq.site))` + // 古い記事から幻の赤ちゃんを作らない
+    // B-1(2026-07-29): site(園公式サイト)は一覧に過去数年分が並ぶ。日付が取れないものを
+    //   通すと古い誕生記事が「いまの赤ちゃん」になるため、site だけは日付必須にする。
     `&order=published_at.desc.nullslast` +
     `&limit=${RESOLVE_BATCH_LIMIT}`
   );
@@ -901,6 +930,7 @@ async function resolveBabyEntitiesJob(env: Env) {
   const zooIndex = await loadZooIndex(env);
   const babyIndex = await loadBabyMatchIndex(env);
   const recentIndex = await loadRecentZooSpeciesIndex(env);  // F4 冪等用
+  const rejections = await loadRejections(env);               // B-3 却下リスト
 
   let linked = 0, created = 0, processed = 0;
 
@@ -965,6 +995,11 @@ async function resolveBabyEntitiesJob(env: Env) {
           continue;
         }
         // 以降の作成処理へ：birthday は null のまま provisional 作成
+      }
+      // B-3: 却下リスト照合（作成の直前）。人手で消した(園,種)は期限内なら作らない。
+      if (rejections.has(zooSpeciesKey(zooIdForEvent as string, ev.species as string))) {
+        console.info('[resolve] rejected (zoo,species), skip:', ev.species, ev.title?.slice(0, 60));
+        continue;
       }
       // フェーズB: 誕生で作成。命名は確度ゲートを通った時だけ confirmed。
       // 名前が取れない誕生イベントは provisional（なまえ待ち）として作成する。
