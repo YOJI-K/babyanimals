@@ -677,18 +677,25 @@ async function runSiteNewsJob(env: Env) {
   );
 
   const events: BabyEventRow[] = [];
-  const processedIds: string[] = [];
+  const okIds: string[] = [];       // 取得に成功したソース
+  const allIds: string[] = [];      // 選ばれた全ソース（成否問わず last_checked を進める対象）
   const failedUrls: string[] = [];
   let total = 0, skipped = 0;
 
   for (const s of sources as any[]) {
+    if (s?.id) allIds.push(s.id);
     try {
-      // 2026-07-27: fetch 成功後に「処理済み」へ入れる。
-      // 以前は fetch 前に push していたため、取得に失敗しても last_checked が更新され、
-      // 死んでいるソースが「巡回済み」に見えていた（実測: かみね動物園・いしかわ動物園）。
+      // 2026-07-27: fetch 成功後に「処理済み」へ入れることで、死んだソースが
+      //   「巡回済み」に見える silent success を潰した（実測: かみね・いしかわ）。
+      // 2026-07-30: ただしそれだけだと、失敗し続けるソースが last_checked の
+      //   最古位置を永久に占有し、ローテーション全体が止まる（head-of-line blocking）。
+      //   実害＝先頭5本が全て非2xxになった 7/27 07:53 以降、50本すべてが3日間未巡回。
+      //   crawl_logs は毎時 ok=true を返し続けたため、ログを見ても気づけなかった。
+      //   → last_checked は成否にかかわらず必ず進め（ローテーションを止めない）、
+      //     失敗は crawl_logs.error に載せて可視化する（下の logJob）。
       const res = await fetch(s.url, { headers: SITE_FETCH_HEADERS, cf: { cacheTtl: 0 } });
       if (!res.ok) throw new Error(`fetch listing ${s.url} -> ${res.status}`);
-      if (s?.id) processedIds.push(s.id);
+      if (s?.id) okIds.push(s.id);
       const listingHtml = await res.text();
 
       // a[href] + 表示テキスト抽出
@@ -741,7 +748,8 @@ async function runSiteNewsJob(env: Env) {
         }
       }
     } catch (e) {
-      // 失敗ソースをURL付きで残す（次回 last_checked が古いまま＝優先的に再試行される）
+      // 失敗ソースはURL付きで残し、crawl_logs.error にも載せて日次監視で拾えるようにする。
+      // （last_checked は進めるので、次回は他のソースへ順番が回る＝全体は止まらない）
       console.error('SITE LISTING FAILED', { url: s?.url, zoo_id: s?.zoo_id, error: String(e) });
       failedUrls.push(String(s?.url || ''));
       skipped++;
@@ -750,8 +758,10 @@ async function runSiteNewsJob(env: Env) {
 
   try {
     await upsertBabyEvents(env, events);
-    if (processedIds.length) {
-      await sbPatch(env, `/rest/v1/sources?id=in.(${processedIds.join(',')})`, { last_checked: nowIso() });
+    if (allIds.length) {
+      // 2026-07-30: 成否によらず進める＝ローテーションを止めない。
+      //   成功したものは okIds に入っているが、last_checked は「最後に見に行った時刻」として全件更新する。
+      await sbPatch(env, `/rest/v1/sources?id=in.(${allIds.join(',')})`, { last_checked: nowIso() });
     }
   } catch (e) {
     console.error('site upsert failed', e);
@@ -759,11 +769,14 @@ async function runSiteNewsJob(env: Env) {
 
   console.log('SITE->EVENTS STATS (filtered)', {
     total, events: events.length, skipped, sources: (sources as any[]).length,
-    perSiteLimit: SITE_DETAIL_FETCH_LIMIT, failedUrls
+    fetched: okIds.length, perSiteLimit: SITE_DETAIL_FETCH_LIMIT, failedUrls
   });
   await logJob(env, {
-    job: 'site->events(filtered)', ok: true, started_at: started, finished_at: new Date(),
-    total, events: events.length, skipped
+    job: 'site->events(filtered)', ok: failedUrls.length === 0, started_at: started, finished_at: new Date(),
+    total, events: events.length, skipped,
+    // 2026-07-30: 取得に失敗したソースを DB に残す。console.log だけだと日次監視で拾えず、
+    //   巡回が3日間止まっていたことに気づけなかった。
+    error: failedUrls.length ? `listing fetch failed (${failedUrls.length}/${allIds.length}): ${failedUrls.join(' , ')}`.slice(0, 900) : null
   });
 }
 
