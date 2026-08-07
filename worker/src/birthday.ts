@@ -23,6 +23,17 @@ export function parseDateToISODateOnly(input?: string | null): string | null {
   return null;
 }
 
+// 2026-08-07: ローカル時刻で組み立てた Date を toISOString() でUTC文字列にすると、
+// UTCより東のタイムゾーン（JST等）では日付が1日前にずれる。
+// 本番の Cloudflare Workers は UTC で動くため実害は出ていないが、
+// テストや検証を JST 環境で走らせると「誕生日が1日前」の偽の失敗が出て、
+// 本物の異常を見落とす原因になる。ここでタイムゾーン非依存にしておく。
+function toLocalISODate(d: Date): string {
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 export function decideBirthdayByAge(title: string, fallbackISO?: string | null): string | null {
   const m = title.match(/(?<m>\d{1,2})月(?<d>\d{1,2})日（(?<age>\d{1,3})日齢）/);
   if (!m?.groups) return null;
@@ -32,7 +43,7 @@ export function decideBirthdayByAge(title: string, fallbackISO?: string | null):
   const ref = new Date(refY, Number(m.groups.m) - 1, Number(m.groups.d));
   const refDate = (pub && ref.getTime() > pub.getTime()) ? pub : ref;
   refDate.setDate(refDate.getDate() - Number(m.groups.age));
-  return refDate.toISOString().slice(0, 10);
+  return toLocalISODate(refDate);
 }
 
 // 掲載/配信/更新/公開 系の日付（記事メタ）を誕生日解析の前に除去する。
@@ -66,7 +77,7 @@ export function inferBirthdayFromTitle(title: string | null | undefined, publish
     const pubDate = publishedAt ? new Date(publishedAt) : new Date();
     const candidate = new Date(pubDate.getFullYear(), Number(m[1]) - 1, Number(m[2]));
     if (candidate > pubDate) candidate.setFullYear(candidate.getFullYear() - 1);
-    return candidate.toISOString().slice(0, 10);
+    return toLocalISODate(candidate);
   }
   return null;
 }
