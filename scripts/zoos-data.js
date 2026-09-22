@@ -95,7 +95,7 @@ export const ZOOS = [
   // ── 神奈川 ───────────────────────────────────────────────────────────
   {
     slug: 'zoorasia',
-    db_name: 'ズーラシア',
+    db_name: 'よこはま動物園ズーラシア',
     name: 'よこはま動物園ズーラシア',
     prefecture: '神奈川県',
     city: '横浜市',
@@ -196,7 +196,7 @@ export const ZOOS = [
   },
   {
     slug: 'yagiyama',
-    db_name: '仙台市八木山動物公園',
+    db_name: '八木山動物公園フジサキの杜',
     name: '仙台市八木山動物公園',
     prefecture: '宮城県',
     city: '仙台市',
@@ -375,7 +375,7 @@ export const ZOOS = [
   },
   {
     slug: 'adachi-bio',
-    db_name: '生物園（足立区生物園）',
+    db_name: '足立区生物園',
     name: '足立区生物園',
     prefecture: '東京都',
     city: '足立区',
@@ -407,7 +407,7 @@ export const ZOOS = [
   },
   {
     slug: 'kanazawa-zoo',
-    db_name: '金沢動物園',
+    db_name: '横浜市立金沢動物園',
     name: '横浜市立金沢動物園',
     prefecture: '神奈川県',
     city: '横浜市',
@@ -424,7 +424,7 @@ export const ZOOS = [
   // ── 静岡 ────────────────────────────────────────────────────
   {
     slug: 'fuji-safari',
-    db_name: 'フジサファリパーク',
+    db_name: '富士サファリパーク',
     name: 'フジサファリパーク',
     prefecture: '静岡県',
     city: '裾野市',
@@ -489,7 +489,7 @@ export const ZOOS = [
   // ── 愛知・石川・富山 ─────────────────────────────────────────
   {
     slug: 'nonhoi',
-    db_name: 'のんほいパーク',
+    db_name: 'のんほいパーク（豊橋総合動植物公園）',
     name: 'のんほいパーク（豊橋総合動植物公園）',
     prefecture: '愛知県',
     city: '豊橋市',
@@ -521,7 +521,7 @@ export const ZOOS = [
   },
   {
     slug: 'ishikawa-zoo',
-    db_name: '石川県立いしかわ動物園',
+    db_name: 'いしかわ動物園',
     name: 'いしかわ動物園',
     prefecture: '石川県',
     city: '能美市',
@@ -570,7 +570,7 @@ export const ZOOS = [
   },
   {
     slug: 'oji',
-    db_name: '王子動物園',
+    db_name: '神戸市立王子動物園',
     name: '神戸市立王子動物園',
     prefecture: '兵庫県',
     city: '神戸市',
@@ -618,6 +618,8 @@ export const ZOOS = [
   },
   {
     slug: 'nara-deer',
+    // TODO: db_name が zoos テーブルに存在しない（要オーナー確認）
+    //       この名称に対応する zoos レコードが見つからないため、赤ちゃんは永久に紐づかない。
     db_name: '奈良市ならまちにぎわい動物公園',
     name: '奈良市ならまちにぎわい動物公園',
     prefecture: '奈良県',
@@ -667,6 +669,8 @@ export const ZOOS = [
   },
   {
     slug: 'tokushima-zoo',
+    // TODO: db_name が zoos テーブルに存在しない（要オーナー確認）
+    //       DB 側の候補は『徳島市総合動植物公園』だが、同一施設かどうか未確認のため変更保留。
     db_name: '徳島市立富田動物園',
     name: '徳島市立富田動物園',
     prefecture: '徳島県',
@@ -699,7 +703,7 @@ export const ZOOS = [
   },
   {
     slug: 'noichi',
-    db_name: 'のいち動物公園',
+    db_name: '高知県立のいち動物公園',
     name: 'のいち動物公園',
     prefecture: '高知県',
     city: '香南市',
@@ -732,6 +736,9 @@ export const ZOOS = [
   },
   {
     slug: 'itozu',
+    // TODO: db_name が zoos テーブルに存在しない（要オーナー確認）
+    //       slug は itozu（到津の森公園）で DB には『到津の森公園』があるが、
+    //       db_name / name がいのちのたび博物館を指しておりエントリ全体が矛盾。要整理。
     db_name: '北九州市いのちのたび博物館（自然史・歴史博物館）',
     name: 'スペースワールド跡地 → いのちのたび博物館',
     prefecture: '福岡県',
@@ -797,7 +804,7 @@ export const ZOOS = [
   },
   {
     slug: 'african-safari',
-    db_name: 'アフリカンサファリ',
+    db_name: 'アフリカンサファリ（九州自然動物公園）',
     name: 'アフリカンサファリ（九州自然動物公園）',
     prefecture: '大分県',
     city: '宇佐市',
