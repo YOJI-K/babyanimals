@@ -4886,6 +4886,85 @@ async function fetchNewsForBaby(baby) {
   }
 }
 
+// ─── ZOOS 整合性チェック ─────────────────────────────────────────────
+// zoos-data.js の ZOOS と Supabase zoos テーブル／babies の突合を検査してログに出す。
+// db_name 不一致（動物園ページが「赤ちゃん0頭」と誤判定され noindex 化）や
+// db_name 重複（複数ページが同じ赤ちゃんを掲載＝重複コンテンツ）は
+// babies.filter(b => b.zoo_name === zoo.db_name) が静かに0件を返すだけで
+// ビルドは正常終了してしまうため、気づけるようにする。
+//
+// ※ 検査は警告を出すだけ。process.exit(1) や throw は絶対にしない。
+//    このSSGは毎日 JST 06:00 の GitHub Actions で自動実行されており、
+//    ここで落とすとサイト全体の更新が止まるため。
+//    mergeEditorialNote() と同じく全体を try/catch で包み、失敗してもビルドを継続する。
+async function auditZoosData(babies) {
+  if (USE_MOCK) return;
+  console.log('\n🔎 ZOOS 整合性チェック');
+  try {
+    const rows = await sbFetch('/rest/v1/zoos?select=name&limit=1000');
+    const dbNames = rows.map(r => r.name).filter(Boolean);
+    const dbNameSet = new Set(dbNames);
+
+    // ① db_name が zoos テーブルに存在しない
+    const missing = ZOOS.filter(z => !dbNameSet.has(z.db_name));
+    if (missing.length) {
+      console.warn(`   ⚠️  db_name が zoos テーブルに存在しない: ${missing.length}件`);
+      for (const z of missing) {
+        // 候補は双方向の部分一致のみ。編集距離などのあいまい検索は
+        // 「旭山動物園 → 野毛山動物園」のような無関係な候補を出すため使わない。
+        // 候補は提示するだけで、自動修正は絶対にしない。
+        const cand = dbNames.filter(n => n.includes(z.db_name) || z.db_name.includes(n));
+        console.warn(`       - slug=${z.slug} db_name='${z.db_name}'  候補: ${cand.length ? cand.map(n => `'${n}'`).join(', ') : 'なし'}`);
+      }
+    } else {
+      console.log('   ⚠️  db_name が zoos テーブルに存在しない: 0件');
+    }
+
+    // ② db_name の重複（複数エントリが同じ園を指す＝重複コンテンツ）
+    const byDbName = new Map();
+    for (const z of ZOOS) {
+      if (!byDbName.has(z.db_name)) byDbName.set(z.db_name, []);
+      byDbName.get(z.db_name).push(z.slug);
+    }
+    const dupDb = [...byDbName.entries()].filter(([, v]) => v.length > 1);
+    console[dupDb.length ? 'warn' : 'log'](`   ⚠️  db_name の重複: ${dupDb.length}件`);
+    for (const [n, slugs] of dupDb) console.warn(`       - db_name='${n}' → slug: ${slugs.join(', ')}`);
+
+    // ③ slug の重複
+    const bySlug = new Map();
+    for (const z of ZOOS) {
+      if (!bySlug.has(z.slug)) bySlug.set(z.slug, []);
+      bySlug.get(z.slug).push(z.db_name);
+    }
+    const dupSlug = [...bySlug.entries()].filter(([, v]) => v.length > 1);
+    console[dupSlug.length ? 'warn' : 'log'](`   ⚠️  slug の重複: ${dupSlug.length}件`);
+    for (const [s, names] of dupSlug) console.warn(`       - slug='${s}' → db_name: ${names.join(', ')}`);
+
+    // ④ 赤ちゃんが1頭以上いるのに ZOOS にエントリが無い園
+    const registered = new Set(ZOOS.map(z => z.db_name));
+    const countByZoo = new Map();
+    for (const b of babies) {
+      if (!b.zoo_name) continue;
+      countByZoo.set(b.zoo_name, (countByZoo.get(b.zoo_name) || 0) + 1);
+    }
+    const orphans = [...countByZoo.entries()]
+      .filter(([n]) => !registered.has(n))
+      .sort((a, b) => b[1] - a[1]);
+    if (orphans.length) {
+      console.warn(`   ℹ️  赤ちゃんがいるのに ZOOS 未登録: ${orphans.length}園`);
+      console.warn(`       - ${orphans.map(([n, c]) => `${n} (${c}頭)`).join(' / ')}`);
+    } else {
+      console.log('   ℹ️  赤ちゃんがいるのに ZOOS 未登録: 0園');
+    }
+
+    const critical = missing.length + dupDb.length + dupSlug.length;
+    if (critical === 0) console.log('   ✅ 重大な不整合なし');
+    else console.warn(`   ❗ 重大な不整合 ${critical}件 — zoos-data.js の修正を検討してください（自動修正はしません）`);
+  } catch (e) {
+    console.warn(`   ⚠️  ZOOS 整合性チェックをスキップ (${e.message})`);
+  }
+}
+
 // ─── メイン ─────────────────────────────────────────────────────────
 
 async function main() {
@@ -4969,6 +5048,9 @@ async function main() {
     const validNewsDirs = newsItems.filter(i => i.id).map(i => String(i.id));
     pruneOrphanDirs(path.join(WEB_DIR, 'news'), validNewsDirs, 'ニュース');
   }
+
+  // ── ZOOS 整合性チェック（警告のみ・ビルドは止めない） ──
+  await auditZoosData(babies);
 
   // ── 動物園個別ページ ──
   console.log(`\n🏛️  動物園個別ページ生成中 (${ZOOS.length} 園)...`);
