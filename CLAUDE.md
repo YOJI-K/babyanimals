@@ -7,9 +7,15 @@
 ## プロジェクト構成
 - ホスティング: Cloudflare Pages (`web/` ディレクトリをルートに配信)
 - SSG: `scripts/ssg.js` (Node.js、フレームワークなし)
-  - Supabase からデータ取得 → `web/` 以下に静的 HTML 生成
-  - `--mock` フラグで3件のデモデータで動作（**本番ファイルを上書きするので注意**）
+  - Supabase からデータ取得 → 静的 HTML 生成
+  - **出力先は環境変数 `SSG_WRITE_PROD` で決まる**
+    - `SSG_WRITE_PROD=1` のときだけ本番の `web/` へ書き込む（GitHub Actions が設定）
+    - 未設定（ローカル・サンドボックス）では `web-local/` に出力され、**本番には一切触れない**
+    - `--mock` も `web-local/` に出るため、本番ファイルを壊す心配はない
+    - 起動時に `📁 出力先: ...` の1行が出るので、どちらのモードか必ず確認できる
   - GitHub Actions (`.github/workflows/ssg-rebuild.yml`) が毎日 JST 06:00 に実行
+    - 「出力先の検証」ステップがあり、`web-local/` に出ていたらビルドを赤く落とす
+      （env が効かないまま「No changes to commit」で静かにライブが凍るのを防ぐため）
 - DB: Supabase (URL / ANON KEY は ssg.js 内にハードコード済み)
 
 ## SSG マーカーパターン

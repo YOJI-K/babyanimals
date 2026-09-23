@@ -29,6 +29,18 @@ jobs:
           # anon キーはフロントエンドコードに既出の公開値
           SUPABASE_URL: https://hvhpfrksyytthupboaeo.supabase.co
           SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aHBmcmtzeXl0dGh1cGJvYWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNTc4MzQsImV4cCI6MjA3MjYzMzgzNH0.e5w3uSzajTHYdbtbVGDVFmQxcwe5HkyKSoVM7tMmKaY
+          # web/（本番）へ書き込むための明示フラグ。これが無いと web-local/ に出力される。
+          SSG_WRITE_PROD: '1'
+
+      # SSG_WRITE_PROD が効かないと web-local/ に出力され、後続の `git add web/` が
+      # 差分ゼロ → 「No changes to commit」で正常終了し、ライブが静かに凍結する。
+      # 静かに凍らせず、赤く落として気づけるようにする。
+      - name: 出力先の検証
+        run: |
+          if [ -d web-local ]; then
+            echo "::error::SSG が web-local/ に書き出しました。SSG_WRITE_PROD が効いていません。"
+            exit 1
+          fi
 
       - name: 差分をコミット & プッシュ
         run: |

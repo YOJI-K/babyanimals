@@ -20,7 +20,18 @@ import crypto from 'crypto';
 import { ZOOS, groupByPrefecture, toAffiliateMap } from './zoos-data.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
-const WEB_DIR    = path.resolve(__dirname, '../web');
+
+// 本番ディレクトリ web/ へ書き込むのは、環境変数 SSG_WRITE_PROD=1 が明示されたときだけ。
+// GitHub Actions のワークフローがこれを設定する。それ以外（ローカル・サンドボックス）は
+// web-local/ に書き出し、本番ファイルには一切触れない。
+// 2026-09-22、構文確認のつもりの実行で web/ 20ファイルが上書きされた事故への恒久対策。
+// ※ USE_MOCK はこれより後で定義されるため、ここで参照してはいけない。
+//   --mock も自動的に web-local/ に出るため、--mock 単体の危険性は解消される。
+const SSG_WRITE_PROD = process.env.SSG_WRITE_PROD === '1';
+const WEB_DIR    = path.resolve(__dirname, SSG_WRITE_PROD ? '../web' : '../web-local');
+console.log(SSG_WRITE_PROD
+  ? '📁 出力先: web/ （本番）'
+  : '📁 出力先: web-local/ （本番には書き込みません）');
 
 // ─── アセットのキャッシュバスティング（PROP-20260609-05）──────────────
 // JS/CSS の内容ハッシュをバージョンとして全HTMLの参照URLへ ?v= で付与する。
@@ -5242,18 +5253,20 @@ async function main() {
   // 手書きの静的ページ（index.html 等）は G-YRQJXRMEN2 プレースホルダのままなので
   // 実際の計測 ID が環境変数で渡された場合のみ差し替える。
   if (GA_ID !== 'G-YRQJXRMEN2') {
+    // パスは WEB_DIR 起点で解決する。'web/...' を直接書くと SSG_WRITE_PROD に関係なく
+    // 本番ディレクトリへ書き込んでしまい、出力先の切り替えを素通りしてしまうため。
     const staticHtmlFiles = [
-      'web/index.html',
-      'web/babies/index.html',
-      'web/news/index.html',
-      'web/news/article.html',
-      'web/calendar/index.html',
-      'web/privacy/index.html',
-      'web/zoos/index.html',
+      'index.html',
+      'babies/index.html',
+      'news/index.html',
+      'news/article.html',
+      'calendar/index.html',
+      'privacy/index.html',
+      'zoos/index.html',
     ];
     let patchCount = 0;
     for (const rel of staticHtmlFiles) {
-      const absPath = path.resolve(__dirname, '..', rel);
+      const absPath = path.join(WEB_DIR, rel);
       if (!fs.existsSync(absPath)) continue;
       const original = fs.readFileSync(absPath, 'utf-8');
       const patched  = original.replaceAll('G-YRQJXRMEN2', GA_ID);
