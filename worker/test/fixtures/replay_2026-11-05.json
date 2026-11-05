@@ -1,0 +1,4343 @@
+{
+ "captured_at": "2026-11-05",
+ "note": "2026-11-05 総点検時点の babies に紐付く baby_events（タイトル）と判定。bad=誤登録として削除する個体",
+ "zoos": [
+  {
+   "id": "44ba2b8a-9ebd-41d3-a318-c615c9fbcfad",
+   "name": "旭山動物園",
+   "city": "旭川市"
+  },
+  {
+   "id": "8f3458d6-bdb8-4070-b00c-921fa3da88b7",
+   "name": "上野動物園",
+   "city": "台東区"
+  },
+  {
+   "id": "ec5c4a10-f719-42b6-a41f-0dec0fa6cd1f",
+   "name": "京都市動物園",
+   "city": "京都市左京区"
+  },
+  {
+   "id": "60d82c78-c60a-4a6a-99f8-ccac282a668d",
+   "name": "夢見ヶ崎動物公園",
+   "city": "川崎市幸区"
+  },
+  {
+   "id": "a021caf6-3d74-4396-9a90-af25cc67479e",
+   "name": "鹿児島市平川動物公園",
+   "city": "鹿児島市"
+  },
+  {
+   "id": "c3c8f937-dbbd-4e9e-882c-4e67497fab7e",
+   "name": "とくしま動物園",
+   "city": "徳島市"
+  },
+  {
+   "id": "a6636936-0a41-4238-9218-e45b43cd7f8d",
+   "name": "富山市ファミリーパーク",
+   "city": "富山市"
+  },
+  {
+   "id": "0891d548-66f3-420e-940b-392386aac948",
+   "name": "宮崎市フェニックス自然動物園",
+   "city": "宮崎市"
+  },
+  {
+   "id": "9a563c71-4989-467e-a08f-0cbcceb77627",
+   "name": "町田リス園",
+   "city": "町田市"
+  },
+  {
+   "id": "767e6fba-f201-47f4-8abd-5b8b607472f2",
+   "name": "千葉市動物公園",
+   "city": "千葉市若葉区"
+  },
+  {
+   "id": "56e6b105-0f49-4b6e-b035-c9fc76d75f26",
+   "name": "岩手サファリパーク",
+   "city": "一関市"
+  },
+  {
+   "id": "629a2a49-e23f-4a5f-9008-1054e2b081ed",
+   "name": "桐生が岡動物園",
+   "city": "桐生市"
+  },
+  {
+   "id": "3e8e75f8-c62b-47d8-8705-dff0e09ebef9",
+   "name": "大宮公園小動物園",
+   "city": "さいたま市大宮区"
+  },
+  {
+   "id": "8bbb0f77-c1e6-480b-a3e0-63a8a7b8b3aa",
+   "name": "ごかつら池どうぶつパーク",
+   "city": "多気町"
+  },
+  {
+   "id": "a7f0d13a-b124-4f98-a44b-08247091bba7",
+   "name": "久留米市鳥類センター",
+   "city": "久留米市"
+  },
+  {
+   "id": "4ee4ad5a-d8f0-4754-95cf-3067cd548d32",
+   "name": "神戸市立王子動物園",
+   "city": "神戸市灘区"
+  },
+  {
+   "id": "e8aee1b0-6d9f-4ef7-ae49-be96a49a326a",
+   "name": "多摩動物公園",
+   "city": "日野市"
+  },
+  {
+   "id": "59900e77-cf3c-4084-b581-7d0692c9cf71",
+   "name": "須坂市動物園",
+   "city": "須坂市"
+  },
+  {
+   "id": "912340ca-9fbb-46cf-80de-2a378828340d",
+   "name": "大牟田市動物園",
+   "city": "大牟田市"
+  },
+  {
+   "id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "name": "東武動物公園",
+   "city": "宮代町"
+  },
+  {
+   "id": "d301655b-a64d-4583-b97b-ea19e863f433",
+   "name": "東京都立大島公園",
+   "city": "大島町"
+  },
+  {
+   "id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "name": "広島市安佐動物公園",
+   "city": "広島市安佐北区"
+  },
+  {
+   "id": "f675c2de-d887-44bb-a418-67adabce669e",
+   "name": "九十九島動植物園 森きらら",
+   "city": "佐世保市"
+  },
+  {
+   "id": "a5f1065a-d10d-4a74-9e34-63c429968e94",
+   "name": "五月山動物園",
+   "city": "池田市"
+  },
+  {
+   "id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "name": "神戸どうぶつ王国",
+   "city": "神戸市中央区"
+  },
+  {
+   "id": "2dced1b7-8b2f-4e83-932b-cd323af61ae7",
+   "name": "智光山公園こども動物園",
+   "city": "狭山市"
+  },
+  {
+   "id": "76d94342-386c-4a64-a80e-e304d0d82774",
+   "name": "東山動植物園",
+   "city": "名古屋市千種区"
+  },
+  {
+   "id": "b4b537ac-4b7f-4372-935a-7f98c75d9ddc",
+   "name": "札幌市円山動物園",
+   "city": "札幌市中央区"
+  },
+  {
+   "id": "b396016c-78bd-4b0b-8763-c5509f05e426",
+   "name": "海の中道海浜公園 動物の森",
+   "city": "福岡市東区"
+  },
+  {
+   "id": "0d5b0097-ec09-470f-876e-472dcbc47fcf",
+   "name": "鯖江市西山動物園",
+   "city": "鯖江市"
+  },
+  {
+   "id": "eede8056-7efe-47d3-89af-f56cac9c90f5",
+   "name": "小諸市動物園",
+   "city": "小諸市"
+  },
+  {
+   "id": "92d1c80c-7421-4281-b376-dc3c5bf67bc8",
+   "name": "よこはま動物園ズーラシア",
+   "city": "横浜市旭区"
+  },
+  {
+   "id": "2a233da3-569b-4512-96b3-683e599b4d83",
+   "name": "横浜市立金沢動物園",
+   "city": "横浜市金沢区"
+  },
+  {
+   "id": "b75ec617-4c1b-4676-a70d-2ad6d7ee8f08",
+   "name": "那須どうぶつ王国",
+   "city": "那須町"
+  },
+  {
+   "id": "d1c7a762-0e35-4dd7-8fbf-f8c89ccac0b3",
+   "name": "市川市動植物園",
+   "city": "市川市"
+  },
+  {
+   "id": "ed968465-e449-4a96-a082-8e0439ee62cd",
+   "name": "市立大町山岳博物館（動物園機能含む）",
+   "city": "大町市"
+  },
+  {
+   "id": "13db19ed-6c24-4fae-aa83-dbcdd8d71380",
+   "name": "福岡市動物園",
+   "city": "福岡市中央区"
+  },
+  {
+   "id": "431f4f43-b6a2-49ed-85b9-65ba9820cac0",
+   "name": "天王寺動物園",
+   "city": "大阪市天王寺区"
+  },
+  {
+   "id": "f9f392c9-4e9d-42ca-8938-24e2f7c73a40",
+   "name": "市原ぞうの国",
+   "city": "市原市"
+  },
+  {
+   "id": "08ea10c6-3495-4f25-968f-f7eb3ad6a588",
+   "name": "宇都宮動物園",
+   "city": "宇都宮市"
+  },
+  {
+   "id": "5fed3e50-e89d-4fe2-a445-dd5db484fe17",
+   "name": "那須サファリパーク",
+   "city": "那須町"
+  },
+  {
+   "id": "ded6613d-4e4b-464a-9060-8ea24027e6bb",
+   "name": "長崎バイオパーク",
+   "city": "西海市"
+  },
+  {
+   "id": "0d7cdc90-b742-4b53-8796-7fcc4f2c8247",
+   "name": "周南市徳山動物園",
+   "city": "周南市"
+  },
+  {
+   "id": "d0de9b04-2b09-496b-9a4e-590da9b7384a",
+   "name": "野毛山動物園",
+   "city": "横浜市西区"
+  },
+  {
+   "id": "ea4c9c22-d331-4c5f-8fa3-81f1059104c4",
+   "name": "伊豆シャボテン動物公園",
+   "city": "伊東市"
+  },
+  {
+   "id": "7c8dbfd9-baa1-488f-86f7-b11adf252500",
+   "name": "群馬サファリパーク",
+   "city": "富岡市"
+  },
+  {
+   "id": "5b25338e-3f96-4e42-abdf-1b9fa2c3975c",
+   "name": "富士サファリパーク（富士自然動物公園）",
+   "city": "裾野市"
+  },
+  {
+   "id": "86880162-9615-4868-88bc-57098df259f9",
+   "name": "いしかわ動物園",
+   "city": "能美市"
+  },
+  {
+   "id": "d3acef98-7c88-461f-8a3e-caa887be4373",
+   "name": "甲府市遊亀公園附属動物園",
+   "city": "甲府市"
+  },
+  {
+   "id": "455cae5c-6efa-4645-a38e-62837feb3612",
+   "name": "羽村市動物公園",
+   "city": "羽村市"
+  },
+  {
+   "id": "40e94baa-9f83-4081-9773-2e08c9816e45",
+   "name": "静岡市立日本平動物園",
+   "city": "静岡市駿河区"
+  },
+  {
+   "id": "c6e1793a-1429-4b04-b1e5-aef2e9bee2bb",
+   "name": "長野市茶臼山動物園",
+   "city": "長野市"
+  },
+  {
+   "id": "f2aafae2-ebf0-49da-8231-1f4534f6d776",
+   "name": "秋田市大森山動物園",
+   "city": "秋田市"
+  },
+  {
+   "id": "f9f6c29e-d617-4329-9a8b-df4f09cb6b01",
+   "name": "浜松市動物園",
+   "city": "浜松市中央区"
+  },
+  {
+   "id": "a99cb7eb-e4be-4eb3-a792-dccdb8fd362f",
+   "name": "高岡古城公園動物園",
+   "city": "高岡市"
+  },
+  {
+   "id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "name": "沖縄こどもの国",
+   "city": "沖縄市"
+  },
+  {
+   "id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "name": "姫路セントラルパーク",
+   "city": "姫路市"
+  },
+  {
+   "id": "8f30c14a-89c9-43cf-bd81-e0c022903215",
+   "name": "ときわ動物園",
+   "city": "宇部市"
+  },
+  {
+   "id": "283f34b0-0969-46c7-b6bf-b86acd1bba36",
+   "name": "熱川バナナワニ園",
+   "city": "東伊豆町"
+  },
+  {
+   "id": "80c03a47-f9db-4e72-8ccc-2230abf4e407",
+   "name": "アドベンチャーワールド",
+   "city": "白浜町"
+  },
+  {
+   "id": "0fcc22dc-28c3-42c2-b45b-13d5fad8c845",
+   "name": "三島市立公園楽寿園",
+   "city": "三島市"
+  },
+  {
+   "id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "name": "おびひろ動物園",
+   "city": "帯広市"
+  },
+  {
+   "id": "da9c3907-f61e-41b8-8de2-7e1e141b21fc",
+   "name": "到津の森公園",
+   "city": "北九州市小倉北区"
+  },
+  {
+   "id": "a57f2735-2f7c-41e0-a27a-40c4f1a5de71",
+   "name": "ネオパークオキナワ",
+   "city": "名護市"
+  },
+  {
+   "id": "62539604-0654-45e8-86d5-e3cc686ff166",
+   "name": "秋吉台サファリランド",
+   "city": "美祢市"
+  },
+  {
+   "id": "1d7f631e-8f1d-4324-830a-14f791b27344",
+   "name": "埼玉県こども動物自然公園",
+   "city": "東松山市"
+  },
+  {
+   "id": "e501c9c8-2322-454b-a541-63030276fac0",
+   "name": "熊本市動植物園",
+   "city": "熊本市東区"
+  },
+  {
+   "id": "de3bb3d7-b180-46dc-a003-5a2a24d4fed0",
+   "name": "福山市立動物園",
+   "city": "福山市"
+  },
+  {
+   "id": "5125a539-93f5-4376-8a0b-dbd8aa73d2fe",
+   "name": "淡路ファームパーク イングランドの丘 動物園",
+   "city": "南あわじ市"
+  },
+  {
+   "id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "name": "のんほいパーク（豊橋総合動植物公園）",
+   "city": "豊橋市"
+  },
+  {
+   "id": "1c971858-cfa3-4940-9286-96ea1d3d020e",
+   "name": "八木山動物公園フジサキの杜",
+   "city": "仙台市太白区"
+  },
+  {
+   "id": "4d55f07b-0207-4f74-935a-d2def860f543",
+   "name": "日本モンキーセンター",
+   "city": "犬山市"
+  },
+  {
+   "id": "020a1f12-b291-4d81-b81b-4f7f8c6cb69c",
+   "name": "飯田市立動物園",
+   "city": "飯田市"
+  },
+  {
+   "id": "80cdb468-7604-4bf9-8b3e-f644d09bf1e4",
+   "name": "さいたま市大崎公園子供動物園",
+   "city": "さいたま市緑区"
+  },
+  {
+   "id": "49f9b2ef-255d-44ab-9086-82250139fa7f",
+   "name": "池田動物園",
+   "city": "岡山市北区"
+  },
+  {
+   "id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "name": "釧路市動物園",
+   "city": "釧路市"
+  },
+  {
+   "id": "57320961-8c9c-4f07-b4ae-9b835a64112f",
+   "name": "和歌山城公園動物園",
+   "city": "和歌山市"
+  },
+  {
+   "id": "f0cea994-d22b-42ed-b2da-362149379324",
+   "name": "岡崎市東公園動物園",
+   "city": "岡崎市"
+  },
+  {
+   "id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "name": "高知県立のいち動物公園",
+   "city": "香南市"
+  },
+  {
+   "id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "name": "アフリカンサファリ（九州自然動物公園）",
+   "city": "宇佐市"
+  },
+  {
+   "id": "1ab2cdb9-8b5f-4c63-8091-b33e207612fe",
+   "name": "江戸川区自然動物園",
+   "city": "江戸川区"
+  },
+  {
+   "id": "b93d2cf7-7581-4556-8470-3a2bd9ad48f0",
+   "name": "豊田市鞍ケ池公園（動物園）",
+   "city": "豊田市"
+  },
+  {
+   "id": "dba155a5-befd-49e4-bef1-3f21fb11e134",
+   "name": "愛媛県立とべ動物園",
+   "city": "砥部町"
+  },
+  {
+   "id": "935b1ce0-16a8-4f5a-a498-bcf6a901dcad",
+   "name": "足立区生物園",
+   "city": "足立区"
+  },
+  {
+   "id": "0027e353-e247-43df-9399-1d196498a221",
+   "name": "姫路市立動物園",
+   "city": "姫路市"
+  },
+  {
+   "id": "0b3e9d4d-966b-405d-b1b5-ee9403f33e90",
+   "name": "井の頭自然文化園",
+   "city": "武蔵野市"
+  },
+  {
+   "id": "56cc983d-5dde-4524-844a-610cae923df3",
+   "name": "わんぱーくこうちアニマルランド",
+   "city": "高知市"
+  },
+  {
+   "id": "07ad0739-4919-4628-92af-d7da333a3345",
+   "name": "弘前市弥生いこいの広場",
+   "city": "弘前市"
+  },
+  {
+   "id": "b1f48f2a-2d4f-49ec-8baa-a1ad877b76c1",
+   "name": "伊豆アニマルキングダム",
+   "city": "東伊豆町"
+  },
+  {
+   "id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "name": "日立市かみね動物園",
+   "city": "日立市"
+  },
+  {
+   "id": "50fa5884-165b-4f42-9dda-837e53cf45e2",
+   "name": "日本の動物園一覧",
+   "city": null
+  },
+  {
+   "id": "7e819efa-fa20-471d-ab99-af85c1147001",
+   "name": "日本動物園水族館協会",
+   "city": null
+  },
+  {
+   "id": "be977e37-d5b7-4c9d-9fd2-7c4bbabd933f",
+   "name": "IPCわんわん動物園",
+   "city": null
+  },
+  {
+   "id": "ce26d20a-8c06-47a6-bcee-58efd240995a",
+   "name": "赤塚山公園",
+   "city": null
+  },
+  {
+   "id": "b36bae1d-16a0-44df-bdc9-c25f0159113b",
+   "name": "阿蘇カドリー・ドミニオン",
+   "city": null
+  },
+  {
+   "id": "3adbfd39-8937-4a4b-8396-0d3399b03f99",
+   "name": "アトア",
+   "city": null
+  },
+  {
+   "id": "c9c3f2dc-13e7-4955-b1c1-c5d7632c64a6",
+   "name": "奄美アイランド植物園",
+   "city": null
+  },
+  {
+   "id": "2706cd26-6b51-48b9-8b0b-68431bf78f2a",
+   "name": "嵐山モンキーパークいわたやま",
+   "city": null
+  },
+  {
+   "id": "5ff80b96-483b-409b-846d-39629ee43c54",
+   "name": "アルプス公園",
+   "city": null
+  },
+  {
+   "id": "c97b25cc-f90e-43c1-9103-bfebd6493ce5",
+   "name": "アロハガーデンたてやま",
+   "city": null
+  },
+  {
+   "id": "09a80865-af0f-49e6-a867-7a8c77abc137",
+   "name": "池田市立五月山動物園",
+   "city": null
+  },
+  {
+   "id": "034ccd07-fbc1-4b1c-bcca-a13db9f488f1",
+   "name": "IZoo",
+   "city": null
+  },
+  {
+   "id": "1130a56a-b02a-4ca0-b3be-c6038f4a6270",
+   "name": "うだ・アニマルパーク",
+   "city": null
+  },
+  {
+   "id": "116f7a99-7ad1-48c3-a775-c426c3ae75a4",
+   "name": "大内山動物園",
+   "city": null
+  },
+  {
+   "id": "310f5e91-a8a5-4053-a8be-fe154a71ebad",
+   "name": "大島公園動物園",
+   "city": null
+  },
+  {
+   "id": "4c511b5a-f6a8-4f58-97ff-ccc783cb98d6",
+   "name": "大塔かもしか牧場",
+   "city": null
+  },
+  {
+   "id": "1d178d5e-fd52-433a-8368-c430f2eba3e5",
+   "name": "大町山岳博物館",
+   "city": null
+  },
+  {
+   "id": "641980a7-d974-40a4-88fc-550be662c38b",
+   "name": "岡山県自然保護センター",
+   "city": null
+  },
+  {
+   "id": "041b4b4b-2be1-4671-89b5-1a358033b5c8",
+   "name": "長尾鶏センター",
+   "city": null
+  },
+  {
+   "id": "a6df519b-04b1-4de7-90c8-69a09445fb7a",
+   "name": "オホーツクとっかりセンター",
+   "city": null
+  },
+  {
+   "id": "03e1ac98-b40d-45f0-ac3b-036efb95f3b1",
+   "name": "恩賜上野動物園",
+   "city": null
+  },
+  {
+   "id": "a546cd79-8351-4dd5-961c-ea4dd0b6d6d2",
+   "name": "霞ヶ浦どうぶつとみんなのいえ",
+   "city": null
+  },
+  {
+   "id": "b64eb5f4-cbb5-4f81-8d78-f0762d48f932",
+   "name": "河北町児童動物園",
+   "city": null
+  },
+  {
+   "id": "b29ff71d-0635-4a92-ab0e-c5e30636fbc4",
+   "name": "臥竜公園",
+   "city": null
+  },
+  {
+   "id": "6eab2c41-8ab7-4bc1-af29-7514c764504d",
+   "name": "北きつね牧場",
+   "city": null
+  },
+  {
+   "id": "0c25e0e8-9824-4336-bd7a-f07e12edb3c6",
+   "name": "きびじつるの里",
+   "city": null
+  },
+  {
+   "id": "67a79856-94e5-4e91-8bde-0441b1f84928",
+   "name": "キャンベルタウン野鳥の森",
+   "city": null
+  },
+  {
+   "id": "84f8bc03-e03c-42fb-857d-3e642a4046e2",
+   "name": "九州自然動物公園アフリカンサファリ",
+   "city": null
+  },
+  {
+   "id": "ef8d4d2e-81bf-4549-a1b9-c87c5d6075ae",
+   "name": "金華山リス村",
+   "city": null
+  },
+  {
+   "id": "e6516c90-ff0e-4eee-8431-8e982ce2c6cc",
+   "name": "草津熱帯圏",
+   "city": null
+  },
+  {
+   "id": "0a795001-8be7-441f-acb7-7db51dd34da9",
+   "name": "鞍ケ池公園",
+   "city": null
+  },
+  {
+   "id": "968abca9-d797-4390-92b8-d7c49ff3cc72",
+   "name": "グリーンパーク・響灘緑地",
+   "city": null
+  },
+  {
+   "id": "a04b0507-9850-4759-96b2-46638cc2d674",
+   "name": "五桂池ふるさと村",
+   "city": null
+  },
+  {
+   "id": "b1e51f68-dc71-4b7f-9d16-4e586a223a09",
+   "name": "こもれび森のイバライド",
+   "city": null
+  },
+  {
+   "id": "e1cabad9-3b03-4f69-9a82-8d6307c60df3",
+   "name": "西海国立公園九十九島動植物園",
+   "city": null
+  },
+  {
+   "id": "acdf05c9-93b7-4ff8-97ad-83f2fc45b044",
+   "name": "埼玉県公園緑地協会",
+   "city": null
+  },
+  {
+   "id": "9674de04-f58a-4ce8-b1de-eb94f4d45f2a",
+   "name": "狭山市立智光山公園こども動物園",
+   "city": null
+  },
+  {
+   "id": "d287336e-b072-4840-86c0-5a2e41add10d",
+   "name": "地獄谷野猿公苑",
+   "city": null
+  },
+  {
+   "id": "57482a09-7984-4b2b-bfca-6787f9e8b445",
+   "name": "渋川動物公園",
+   "city": null
+  },
+  {
+   "id": "d96da4bd-cf54-4fcf-9ed1-101fc6e8c5f9",
+   "name": "ジャパンスネークセンター",
+   "city": null
+  },
+  {
+   "id": "5985b29d-acec-4321-b37c-6af321d0e2a6",
+   "name": "しろとり動物園",
+   "city": null
+  },
+  {
+   "id": "788ea6fe-2127-40a6-a8fd-3084a71c796a",
+   "name": "生態科学研究機構",
+   "city": null
+  },
+  {
+   "id": "13257f92-07bd-4a94-9566-8e5d9fd24ccd",
+   "name": "たいよう",
+   "city": null
+  },
+  {
+   "id": "f1f4c248-49d7-4440-b288-623bf546d3f1",
+   "name": "高宕山自然動物園",
+   "city": null
+  },
+  {
+   "id": "88ac8cfd-ba05-457e-9bd7-30fa82e6f5b0",
+   "name": "高崎山自然動物園",
+   "city": null
+  },
+  {
+   "id": "f4a7e7ad-f9f3-47ba-b5d3-1a37cfae942e",
+   "name": "ダチョウ王国",
+   "city": null
+  },
+  {
+   "id": "5e735ee8-9b2b-4666-8030-a2de48122735",
+   "name": "ダチョウらんど",
+   "city": null
+  },
+  {
+   "id": "36aaf781-0563-4f45-905d-9fcf6a40e59d",
+   "name": "丹頂鶴自然公園",
+   "city": null
+  },
+  {
+   "id": "2c936615-06a1-42b0-9bd6-ef211591ae59",
+   "name": "銚子渓",
+   "city": null
+  },
+  {
+   "id": "e253c516-4545-4bb3-a1c4-50df076def04",
+   "name": "東京ドイツ村",
+   "city": null
+  },
+  {
+   "id": "850d1ae6-8ff0-40c7-9bf8-85b7083d38a0",
+   "name": "東京動物園協会",
+   "city": null
+  },
+  {
+   "id": "3e05d81f-2dff-48b8-b020-1b590189f017",
+   "name": "常盤公園",
+   "city": null
+  },
+  {
+   "id": "cdca0b85-75e8-44d1-973e-b2678d7dc308",
+   "name": "徳島市総合動植物公園",
+   "city": null
+  },
+  {
+   "id": "1ca571b9-3d46-495b-be36-57e4ba08a1e7",
+   "name": "豊田市旭高原自然活用村",
+   "city": null
+  },
+  {
+   "id": "1cf1194e-26f4-4771-9cda-748957bf14a6",
+   "name": "豊橋総合動植物公園",
+   "city": null
+  },
+  {
+   "id": "6813a82e-887f-4cce-9fa5-84689ee94ee7",
+   "name": "流しカワウソ",
+   "city": null
+  },
+  {
+   "id": "856c96a1-93c6-4b91-84ee-35613f4042d7",
+   "name": "長野市城山動物園",
+   "city": null
+  },
+  {
+   "id": "ca3648e7-b628-4968-9806-bfdcd3100a3d",
+   "name": "成田ゆめ牧場",
+   "city": null
+  },
+  {
+   "id": "dd0f7a88-df20-4341-8044-80e6a1b1ae3f",
+   "name": "NIFREL",
+   "city": null
+  },
+  {
+   "id": "f27c611a-84e7-44ed-970a-d429c7a43cad",
+   "name": "日本モンキーパーク",
+   "city": null
+  },
+  {
+   "id": "5bb49ddf-d8a2-4dc7-a05e-b21509284c73",
+   "name": "ノースサファリサッポロ",
+   "city": null
+  },
+  {
+   "id": "822e14aa-28fd-48db-a925-947e48a25411",
+   "name": "繁殖賞",
+   "city": null
+  },
+  {
+   "id": "236b7508-7aac-46be-864f-dd4c56fd7a7e",
+   "name": "東公園",
+   "city": null
+  },
+  {
+   "id": "618a28b8-2842-47fc-85c8-84c29ff24027",
+   "name": "東筑波ユートピア",
+   "city": null
+  },
+  {
+   "id": "427dd765-7143-4af3-9240-0a884bd9e54e",
+   "name": "BIGHOPガーデンモール印西",
+   "city": null
+  },
+  {
+   "id": "57a53f28-f6aa-45a5-a15d-0114d8f7d22f",
+   "name": "百間山渓谷かもしか牧場",
+   "city": null
+  },
+  {
+   "id": "0dd69332-f5cd-4974-9401-fc01a84bb172",
+   "name": "兵庫県立赤穂海浜公園",
+   "city": null
+  },
+  {
+   "id": "6e853922-422b-4500-9d45-753129af6cf1",
+   "name": "ひらかたパーク",
+   "city": null
+  },
+  {
+   "id": "c8b329ce-6818-4650-af0f-7d10385c1878",
+   "name": "福岡市動植物園",
+   "city": null
+  },
+  {
+   "id": "6654dea0-7b61-4c76-9533-4bbe07f25df7",
+   "name": "福知山市動物園",
+   "city": null
+  },
+  {
+   "id": "28c7968b-a9bb-4c5f-927c-6ca0786f230a",
+   "name": "富士サファリパーク",
+   "city": null
+  },
+  {
+   "id": "b7c213ff-ece7-4ee4-bec7-56f2dee61a4f",
+   "name": "北海道産いきもの保全プロジェクト",
+   "city": null
+  },
+  {
+   "id": "4135f582-2bb0-4422-8420-d23a7727f1bc",
+   "name": "マザー牧場",
+   "city": null
+  },
+  {
+   "id": "2c30d800-674a-49b9-b8b4-446e0d09f90a",
+   "name": "松江フォーゲルパーク",
+   "city": null
+  },
+  {
+   "id": "d9d44164-a96e-4ce7-af47-d98108c399b0",
+   "name": "万力公園",
+   "city": null
+  },
+  {
+   "id": "ef23949d-fbc8-4eb5-8b58-3b189c6a0117",
+   "name": "宮城蔵王キツネ村",
+   "city": null
+  },
+  {
+   "id": "784d571d-a0da-4f44-abc2-9223fbc2ab5d",
+   "name": "ミンファ",
+   "city": null
+  },
+  {
+   "id": "19eb647b-c530-4466-9b56-4c81eb3d23b0",
+   "name": "盛岡市動物公園",
+   "city": null
+  },
+  {
+   "id": "d1f66dbe-aadc-48c6-970c-b09190c90b4a",
+   "name": "弥生いこいの広場",
+   "city": null
+  },
+  {
+   "id": "c918f1b3-01fb-4476-963b-65e0f20ce090",
+   "name": "ヨーデルの森",
+   "city": null
+  },
+  {
+   "id": "5de4932e-afe6-4fe0-afa2-c4046d3f096c",
+   "name": "楽寿園",
+   "city": null
+  },
+  {
+   "id": "89bbdf58-1422-4958-8494-3a90400022b4",
+   "name": "ラクテンチ",
+   "city": null
+  },
+  {
+   "id": "bf2df812-6d73-4dcc-aaac-24327a166ad0",
+   "name": "ワールド牧場",
+   "city": null
+  },
+  {
+   "id": "7080ae53-f751-4209-8fd7-a803fcec8e48",
+   "name": "袖ヶ浦ふれあいどうぶつ縁",
+   "city": null
+  },
+  {
+   "id": "4e3ffb2f-3e7d-49ae-8dea-322e20e7ecb2",
+   "name": "盛岡市動物公園ZOOMO",
+   "city": "盛岡市"
+  },
+  {
+   "id": "42dbe4aa-b40d-4d08-bbe1-4e9544d62b93",
+   "name": "ズーラシア",
+   "city": null
+  },
+  {
+   "id": "79da8b6e-4f5c-456c-b805-d6ec3d257483",
+   "name": "仙台市八木山動物公園",
+   "city": null
+  },
+  {
+   "id": "bffa9c5c-ac9b-4516-8eaa-bf8ae47d4280",
+   "name": "日本平動物園",
+   "city": null
+  },
+  {
+   "id": "4ab40be1-3a0d-43b0-8df0-bb9e23b5e723",
+   "name": "淡路島モンキーセンター",
+   "city": null
+  }
+ ],
+ "events": [
+  {
+   "baby": "38f0af63",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "国内11頭目 希少なマサイキリンの赤ちゃん誕生 「小さい時のキリンを見に来て」 宮崎市フェニックス自然動物園 - FNNプライムオンライン",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "キリン",
+   "published_at": "2026-06-15T08:11:19+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "6c2406df",
+   "zoo": "京都市動物園",
+   "verdict": "real",
+   "title": "京都市動物園で去年生まれたニシゴリラ、名前が「サンタロウ」に決定 (2026年3月15日掲載) - ライブドアニュース",
+   "zoo_id": null,
+   "species": "ゴリラ",
+   "published_at": "2026-03-15T11:05:55+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "～マルミミゾウ「アオ」 誕生1周年～ 記念グッズ続々発売(8/1)",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-07-31T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "1歳の誕生日迎えたマルミミゾウの赤ちゃん「アオ」 国内初出産から1年 ファンが祝福 広島市安佐動物公園 【動画あり】 - 中国新聞デジタル",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-08-05T08:33:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "マルミミゾウ「アオ」１歳の誕生日　スイカやバナナ、リンゴでお祝い「大きく育って」広島市安佐動物公園 - ｄメニューニュース",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-08-05T08:36:30+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "1歳の誕生日迎えたマルミミゾウの赤ちゃん「アオ」 国内初出産から1年 ファンが祝福 広島市安佐動物公園 【動画あり】 - Yahoo!ニュース",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-08-15T10:00:23+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "1歳の誕生日迎えたマルミミゾウの赤ちゃん「アオ」 国内初出産から1年 ファンが祝福 広島市安佐動物公園 - au Webポータル",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-08-15T21:24:09+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "1歳の誕生日迎えたマルミミゾウの赤ちゃん「アオ」 国内初出産から1年 ファンが祝福 広島市安佐動物公園 【動画あり】 - 47NEWS",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-08-05T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "1歳の誕生日迎えたマルミミゾウの赤ちゃん「アオ」 国内初出産から1年 ファンが祝福 広島市安佐動物公園 (中国新聞デジタル) - Yahoo!ニュース",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-08-15T10:43:05+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "国内初の繁殖成功 マルミミゾウのアオが1歳の誕生日 広島市・安佐動物公園（2026年8月5日掲載）｜広テレ！NEWS NNN - 日テレNEWS NNN",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-08-05T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c0391a6c",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "広島市安佐北区の安佐動物公園で「飼育の日」トークショー ゾウやカメの誕生秘話に歓声 - 中国新聞デジタル",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "ゾウ",
+   "published_at": "2026-04-20T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "3f5d2a75",
+   "zoo": "アフリカンサファリ（九州自然動物公園）",
+   "verdict": "real",
+   "title": "アフリカンサファリでアジアゾウ誕生 名前は「タワ」ちゃん、4月中旬に一般公開へ - TBS NEWS DIG",
+   "zoo_id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "species": "ゾウ",
+   "published_at": "2026-01-14T13:13:55+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "3f5d2a75",
+   "zoo": "アフリカンサファリ（九州自然動物公園）",
+   "verdict": "real",
+   "title": "アフリカンサファリでゾウの赤ちゃん誕生 生後約1か月で142キロに成長 4月中旬ごろ一般公開も 大分 - tosonline.jp",
+   "zoo_id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "species": "ゾウ",
+   "published_at": "2026-01-14T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "3f5d2a75",
+   "zoo": "アフリカンサファリ（九州自然動物公園）",
+   "verdict": "real",
+   "title": "アフリカンサファリで３例目、アジアゾウの赤ちゃん 生後１カ月、すくすく育ち142キロ【大分県】 - 47NEWS",
+   "zoo_id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "species": "ゾウ",
+   "published_at": "2026-01-14T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "3f5d2a75",
+   "zoo": "アフリカンサファリ（九州自然動物公園）",
+   "verdict": "real",
+   "title": "アフリカンサファリでアジアゾウ誕生 名前は「タワ」ちゃん、4月中旬に一般公開へ - TBS NEWS DIG",
+   "zoo_id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "species": "ゾウ",
+   "published_at": "2026-01-14T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "3f5d2a75",
+   "zoo": "アフリカンサファリ（九州自然動物公園）",
+   "verdict": "real",
+   "title": "アフリカンサファリでアジアゾウ誕生 名前は「タワ」ちゃん、4月中旬に一般公開へ | 大分のニュース｜OBS NEWS｜大分放送 - TBS NEWS DIG",
+   "zoo_id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "species": "ゾウ",
+   "published_at": "2026-01-14T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "宮崎市フェニックス自然動物園 マンドリルの赤ちゃん愛称は「ヒナタ」に決定（2024年9月15日掲載）｜UMK NEWS NNN - 日テレNEWS NNN",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2024-09-15T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリル（エルサ）が第２子を出産しました！  |  宮崎市フェニックス自然動物園サイト",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-16T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生 愛らしい姿見せる 宮崎市フェニックス自然動物園 名前は今後募集予定 - au Webポータル",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-19T12:28:06+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生 愛らしい姿見せる 宮崎市フェニックス自然動物園 名前は今後募集予定 | TBS NEWS DIG - TBS NEWS DIG",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-19T10:29:53+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生 愛らしい姿見せる 宮崎市フェニックス自然動物園 名前は今後募集予定 （MRT宮崎放送） - Yahoo!ニュース",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-19T10:00:33+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生 愛らしい姿見せる 宮崎市フェニックス自然動物園 名前は今後募集予定 - TBS NEWS DIG",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-19T10:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "宮崎 フェニックス自然動物園でマンドリルの赤ちゃん誕生 - NHKニュース",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-21T03:07:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "宮崎市フェニックス自然動物園 マンドリルの赤ちゃんが誕生 名前は投票で決定 - TVer",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-27T11:32:50+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生、愛称を募集中 宮崎市・自然動物園（朝日新聞） - Yahoo!ニュース",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-09-08T02:30:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生、愛称を募集中　宮崎市・自然動物園 - ｄメニューニュース",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-09-08T02:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生、愛称を募集中 宮崎市・自然動物園 (朝日新聞) - Yahoo!ニュース",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-22T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生、愛称を募集中 宮崎市・自然動物園 [宮崎県] - 朝日新聞",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-09-08T02:30:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "宮崎市フェニックス自然動物園 マンドリルの赤ちゃんが誕生 名前は投票で決定（2026年8月27日掲載）｜UMK NEWS NNN - 日テレNEWS NNN",
+   "zoo_id": null,
+   "species": "マンドリル",
+   "published_at": "2026-08-27T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "宮崎市フェニックス自然動物園 マンドリルの赤ちゃんが誕生 名前は投票で決定（2026年8月27日掲載）｜UMK NEWS NNN - news.ntv.co.jp",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-27T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5d8c178f",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃん誕生 愛らしい姿見せる 宮崎市フェニックス自然動物園 名前は今後募集予定 - TBS NEWS DIG",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "マンドリル",
+   "published_at": "2026-08-19T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "79585833",
+   "zoo": "池田動物園",
+   "verdict": "real",
+   "title": "岡山・池田動物園のペンギンの赤ちゃん 名前は「ほっけ」 [岡山県] - 朝日新聞",
+   "zoo_id": "49f9b2ef-255d-44ab-9086-82250139fa7f",
+   "species": "ペンギン",
+   "published_at": "2024-05-15T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bec60eba",
+   "zoo": "アフリカンサファリ（九州自然動物公園）",
+   "verdict": "real",
+   "title": "生まれて間もないライオンの赤ちゃん「かんたくん」すくすく成長 25日から公開 大分 - TBS NEWS DIG",
+   "zoo_id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "species": "ライオン",
+   "published_at": "2023-11-24T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカンビーバーの赤ちゃん誕生！つぶらな瞳が愛くるしい元気いっぱいの双子 約2週間後には展示場で公開予定 姫路セントラルパーク - TBS NEWS DIG",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-05-14T09:43:50+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカンビーバーの赤ちゃん誕生！つぶらな瞳が愛くるしい元気いっぱいの双子 約2週間後には展示場で公開予定 姫路セントラルパーク - TBS NEWS DIG",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-05-14T05:06:51+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "【画像】アメリカンビーバーの赤ちゃん誕生！つぶらな瞳が愛くるしい元気いっぱいの双子 約2週間後には展示場で公開予定 姫路セントラルパーク - ライブドアニュース - ライブドアニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-05-14T05:06:51+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカンビーバーの赤ちゃん誕生！つぶらな瞳が愛くるしい元気いっぱいの双子　約2週間後には展示場で公開予定　姫路セントラルパーク - ｄメニューニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-05-14T05:06:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカンビーバーの赤ちゃん誕生！つぶらな瞳が愛くるしい元気いっぱいの双子 約2週間後には展示場で公開予定 姫路セントラルパーク - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-05-14T05:05:21+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "画像：姫路セントラルパークでホワイトライオン”ルイ”の誕生日プレミアムツアー開催 姫路市 - Kiss PRESS(キッスプレス)",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2023-07-20T01:39:57+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークでホワイトライオン”ルイ”の誕生日プレミアムツアー開催 姫路市 - Kiss PRESS(キッスプレス)",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2023-07-20T01:32:19+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカンビーバーの双子の赤ちゃん誕生！展示場での公開は約２週間後の予定 姫路セントラルパーク - TBS NEWS DIG",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-05-09T10:57:28+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "ゾウの「トゥルシー」6歳の誕生日 特製ケーキをプレゼント 姫路セントラルパーク|姫路 - 神戸新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-02-03T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アジアゾウの赤ちゃんが初めて誕生 兵庫・姫路セントラルパーク（朝日新聞） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-24T11:46:06+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり、ゾウの赤ちゃん誕生 母子ともに健康、公開時期は未定 - au Webポータル",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-24T11:03:47+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり、ゾウの赤ちゃん誕生 母子ともに健康、公開時期は未定|社会 - 神戸新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-24T10:24:37+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークでゾウの赤ちゃん誕生 35年ぶり、9月公開へ - 姫路経済新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-27T13:59:12+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークでゾウの赤ちゃん誕生 35年ぶり、9月公開へ（みんなの経済新聞ネットワーク） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-27T10:50:05+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークでゾウの赤ちゃん誕生 35年ぶり、9月公開へ (みんなの経済新聞ネットワーク) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-27T10:50:05+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "兵庫・姫路セントラルパークでアジアゾウの赤ちゃんが誕生しました - やさしい朝日新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-26T05:04:14+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "兵庫・姫路セントラルパークでゾウの赤ちゃん誕生 35年ぶり、アジアゾウの出産は初 (産経新聞) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-25T22:07:25+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "兵庫・姫路セントラルパークでゾウの赤ちゃん誕生 35年ぶり、アジアゾウの出産は初 - 産経ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-25T20:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "22日に産まれたアジアゾウの赤ちゃんと母親の「シューティー」（姫路セントラルパーク提供） - 産経ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-25T20:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり、ゾウの赤ちゃん誕生 母子ともに健康、公開時期は未定 (神戸新聞NEXT) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-24T10:41:09+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークでゾウの赤ちゃん誕生 35年ぶり、9月公開へ（ニュース地図） - 姫路経済新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-27T11:43:26+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークでゾウの赤ちゃん誕生 35年ぶり、9月公開へ - au Webポータル",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-27T14:06:31+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アジアゾウの赤ちゃんが初めて誕生 兵庫・姫路セントラルパーク [兵庫県] - 朝日新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-24T11:46:06+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アジアゾウの赤ちゃんが初めて誕生 兵庫・姫路セントラルパーク (朝日新聞) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-24T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "やんちゃな性格の赤ちゃんゾウ報道公開 先月22日に姫路セントラルパークで35年ぶりに誕生 別のゾウも育児手伝う - au Webポータル",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T03:57:29+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "やんちゃな性格の赤ちゃんゾウ報道公開 先月22日に姫路セントラルパークで35年ぶりに誕生 別のゾウも育児手伝う - ktv.jp",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T03:40:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て 姫路セントラルパークで35年ぶり誕生 12日から特別公開 (神戸新聞NEXT) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-08T10:45:45+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり“ゾウの赤ちゃん誕生” 元気いっぱいやんちゃ女の子 ちょっと過保護な新米ママが奮闘中「ぜひ会いに来て」12日から一般公開予定｜newsランナー〈カンテレNEWS〉 - youtu.be",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-08T10:32:53+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て 姫路セントラルパークで35年ぶり誕生 12日から特別公開|姫路 - 神戸新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-08T09:55:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て 姫路セントラルパークで35年ぶり誕生 12日から特別公開 - 47NEWS",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-08T09:55:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て 姫路セントラルパークで35年ぶり誕生 12日から特別公開 - au Webポータル",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-08T09:42:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "「体が震えた」35年ぶりアジアゾウの赤ちゃん誕生 12日（土）から一般公開 兵庫・姫路セントラルパーク - TVer",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T13:24:19+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり“ゾウの赤ちゃん誕生” 元気いっぱいやんちゃ女の子 ちょっと過保護な新米ママが奮闘中「ぜひ会いに来て」12日から一般公開予定 - au Webポータル",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T10:05:58+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり“ゾウの赤ちゃん誕生” 元気いっぱいやんちゃ女の子 ちょっと過保護な新米ママが奮闘中「ぜひ会いに来て」12日から一般公開予定（関西テレビ） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T09:53:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "「体が震えた」35年ぶりアジアゾウの赤ちゃん誕生 12日（土）から一般公開 兵庫・姫路セントラルパーク - 日テレNEWS NNN",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T09:36:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "35年ぶり　アジアゾウの赤ちゃん誕生　兵庫・姫路セントラルパーク　９月１２日（土）から一般公開 - ｄメニューニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T09:36:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "やんちゃな性格の赤ちゃんゾウ報道公開 先月22日に姫路セントラルパークで35年ぶりに誕生 別のゾウも育児手伝う - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T03:42:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て 姫路セントラルパークで35年ぶり誕生 12日から特別公開（神戸新聞NEXT） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-08T10:45:45+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり“ゾウの赤ちゃん誕生” 元気いっぱいやんちゃ女の子 ちょっと過保護な新米ママが奮闘中「ぜひ会いに来て」12日から一般公開予定 - ktv.jp",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T09:58:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "やんちゃな性格の赤ちゃんゾウ報道公開 先月22日に姫路セントラルパークで35年ぶりに誕生 別のゾウも育児手伝う - FNNプライムオンライン",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T03:40:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで３５年ぶり誕生　ゾウの赤ちゃん一般公開　兵庫 - Infoseek",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T09:57:46+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで３５年ぶり誕生　ゾウの赤ちゃん一般公開　兵庫 - ｄメニューニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T09:57:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "35年ぶりに生まれた赤ちゃんゾウ ついにお披露目 ヨチヨチ歩きに「かわいい！」初日から約200人が列 母乳を飲んで砂遊びも 姫路セントラルパーク - ktv.jp",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T09:22:07+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "35年ぶりに生まれた赤ちゃんゾウ ついにお披露目 ヨチヨチ歩きに「かわいい！」初日から約200人が列 母乳を飲んで砂遊びも 姫路セントラルパーク（関西テレビ） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T09:17:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで３５年ぶり誕生 ゾウの赤ちゃん一般公開 兵庫 - YouTube",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-13T01:00:09+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "35年ぶりに生まれた赤ちゃんゾウ ついにお披露目 ヨチヨチ歩きに「かわいい！」初日から約200人が列 母乳を飲んで砂遊びも 姫路セントラルパーク - fnn.jp",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T09:14:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て 姫路セントラルパークで35年ぶり誕生 12日から特別公開|姫路 - 神戸新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-08T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパーク公式グッズに採用――ゴム製品の端材が、35年ぶり誕生のアジアゾウ赤ちゃんデザインのめじるしチャームに生まれ変わる - 毎日キレイ",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-19T05:17:59+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパーク公式グッズに採用――ゴム製品の端材が、35年ぶり誕生のアジアゾウ赤ちゃんデザインのめじるしチャームに生まれ変わる - PR TIMES",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-19T01:00:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て 姫路セントラルパークで35年ぶり誕生 特別公開（神戸新聞NEXT） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-18T05:02:06+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで３５年ぶり誕生 ゾウの赤ちゃん一般公開 兵庫 - 朝日放送",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T11:07:23+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "「体が震えた」35年ぶりアジアゾウの赤ちゃん誕生　12日（土）から一般公開　兵庫・姫路セントラルパーク - ｄメニューニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T09:36:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパーク公式グッズに採用――ゴム製品の端材が、35年ぶり誕生のアジアゾウ赤ちゃんデザインのめじるしチャームに生まれ変わる - Mantan Web",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-19T06:53:31+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり誕生のゾウ公開 - SmartNews",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T15:52:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり“ゾウの赤ちゃん誕生” 元気いっぱいやんちゃ女の子 ちょっと過保護な新米ママが奮闘中「ぜひ会いに来て」12日から一般公開予定 - FNNプライムオンライン",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T09:52:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "やんちゃな性格の赤ちゃんゾウ報道公開 先月22日に姫路セントラルパークで35年ぶりに誕生 別のゾウも育児手伝う - UQライフ",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-07T03:48:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークでゾウの赤ちゃん誕生　35年ぶり、9月公開へ - ｄメニューニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-27T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "35年ぶりに生まれた赤ちゃんゾウ　ついにお披露目　ヨチヨチ歩きに「かわいい！」初日から約200人が列　母乳を飲んで砂遊びも　姫路セントラルパーク - topics.smt.docomo.ne.jp",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-12T06:12:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウに会いに来て　姫路セントラルパークで35年ぶり誕生　特別公開 - ｄメニューニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-18T05:02:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパーク公式グッズに採用――ゴム製品の端材が、35年ぶり誕生のアジアゾウ赤ちゃんデザインのめじるしチャームに生まれ変わる - Excite エキサイト",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-19T04:45:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパークで35年ぶり、ゾウの赤ちゃん誕生 母子ともに健康、公開時期は未定 - 47NEWS",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-08-24T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "94304b56",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫路セントラルパーク公式グッズに採用――ゴム製品の端材が、35年ぶり誕生のアジアゾウ赤ちゃんデザインのめじるしチャームに生まれ変わる｜Infoseekニュース - Infoseek",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2026-09-19T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "2f01a8b8",
+   "zoo": "富山市ファミリーパーク",
+   "verdict": "real",
+   "title": "キリンの赤ちゃん 「マリン」に愛称決定 ファミリーパーク - 中日新聞Web",
+   "zoo_id": "a6636936-0a41-4238-9218-e45b43cd7f8d",
+   "species": "キリン",
+   "published_at": "2022-10-12T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "fe882557",
+   "zoo": "秋吉台サファリランド",
+   "verdict": "real",
+   "title": "トラの赤ちゃん「琥珀」と「四葉」に命名 会いに来てね 山口 [写真特集1/5] - 毎日新聞",
+   "zoo_id": "62539604-0654-45e8-86d5-e3cc686ff166",
+   "species": "トラ",
+   "published_at": "2022-01-28T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "0702af6e",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "bad",
+   "title": "姫路セントラルパークがチーターの赤ちゃんを「しばふ」と命名！ 休園から不思議な名前がつくまでにはドラマあり - Pouch［ポーチ］",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "トラ",
+   "published_at": "2020-08-19T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "0702af6e",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "bad",
+   "title": "名前は「しばふ」に決定 姫センで３月誕生のチーター | おでかけトピック | 兵庫おでかけプラス - 神戸新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "チーター",
+   "published_at": "2020-07-19T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "0702af6e",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "bad",
+   "title": "おてんばチーター3歳に 姫センで「しばふ」の誕生日会 - サンテレビ",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "チーター",
+   "published_at": "2023-03-05T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "cbd0922a",
+   "zoo": "アフリカンサファリ（九州自然動物公園）",
+   "verdict": "bad",
+   "title": "ゾウの赤ちゃん誕生を生配信、名前は「ズーム」 メキシコ - AFPBB News",
+   "zoo_id": "df166714-6ccc-4f3a-8334-01f6ed8f5aec",
+   "species": "ゾウ",
+   "published_at": "2020-08-14T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "09bde3cf",
+   "zoo": "市原ぞうの国",
+   "verdict": "real",
+   "title": "赤ちゃんゾウの名「ら夢」に決定 千葉・市原ぞうの国 - 産経ニュース",
+   "zoo_id": "f9f392c9-4e9d-42ca-8938-24e2f7c73a40",
+   "species": "ゾウ",
+   "published_at": "2019-01-21T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "09bde3cf",
+   "zoo": "市原ぞうの国",
+   "verdict": "real",
+   "title": "アジアゾウの赤ちゃん「ら夢」が公開＝市原ぞうの国：トレンド動画：時事ドットコム - 時事ドットコム",
+   "zoo_id": "f9f392c9-4e9d-42ca-8938-24e2f7c73a40",
+   "species": "ゾウ",
+   "published_at": "2019-01-21T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "09bde3cf",
+   "zoo": "市原ぞうの国",
+   "verdict": "real",
+   "title": "「ら夢」と命名されたアジアゾウの赤ちゃんと母親のマミー＝２１日、市原ぞうの国（平田浩一撮影） - 産経ニュース",
+   "zoo_id": "f9f392c9-4e9d-42ca-8938-24e2f7c73a40",
+   "species": "ゾウ",
+   "published_at": "2019-01-21T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "9ba2e9bb",
+   "zoo": "市原ぞうの国",
+   "verdict": "real",
+   "title": "市原ぞうの国：赤ちゃんゾウ「もも夏」と命名 - 毎日新聞",
+   "zoo_id": "f9f392c9-4e9d-42ca-8938-24e2f7c73a40",
+   "species": "ゾウ",
+   "published_at": "2018-08-16T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8053ad4d",
+   "zoo": "岩手サファリパーク",
+   "verdict": "real",
+   "title": "岩手サファリパークにベンガルトラの赤ちゃんがやってくる！　8月4日〜5日にリラちゃん来園記念イベントを開催 | ねとらぼ - ねとらぼ",
+   "zoo_id": "56e6b105-0f49-4b6e-b035-c9fc76d75f26",
+   "species": "トラ",
+   "published_at": "2018-07-29T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8053ad4d",
+   "zoo": "岩手サファリパーク",
+   "verdict": "real",
+   "title": "「体が震えた」35年ぶりアジアゾウの赤ちゃん誕生　12日（土）から一般公開　兵庫・姫路セントラルパーク - Infoseek",
+   "zoo_id": "56e6b105-0f49-4b6e-b035-c9fc76d75f26",
+   "species": "トラ",
+   "published_at": "2026-09-07T09:36:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f4aba540",
+   "zoo": "福山市立動物園",
+   "verdict": "real",
+   "title": "キリンの赤ちゃんの名前「すもも」に 福山市立動物園 - 産経ニュース",
+   "zoo_id": "de3bb3d7-b180-46dc-a003-5a2a24d4fed0",
+   "species": "キリン",
+   "published_at": "2017-07-17T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "0eb358b5",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "クセが強めの命名式 ヤクシマザル「おたま」の赤ちゃんは「まどらー」に決定 好奇心旺盛にすくすく育つ【沖縄こどもの国】 - TBS NEWS DIG",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": null,
+   "published_at": "2025-09-09T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4dedd0c8",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "赤ちゃんヤクシマザルに「ユパ」と命名 アニメ映画から名付ける 沖縄こどもの国 - TBS NEWS DIG",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": null,
+   "published_at": "2024-10-10T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4dedd0c8",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "赤ちゃんヤクシマザルに「ユパ」と命名 アニメ映画から名付ける 沖縄こどもの国 - TBS NEWS DIG",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": null,
+   "published_at": "2024-10-10T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "eccb5cde",
+   "zoo": "五月山動物園",
+   "verdict": "bad",
+   "title": "高崎山で2025年最初の赤ちゃんザル誕生 大阪・関西万博にちなんで名前は「バンパク」大分 - 日テレNEWS NNN",
+   "zoo_id": "a5f1065a-d10d-4a74-9e34-63c429968e94",
+   "species": null,
+   "published_at": "2025-05-15T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c1b44336",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "名前は「むぎ」「れんげ」です ヤクシマザルの赤ちゃん続々 沖縄こどもの国 - 琉球新報デジタル",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": null,
+   "published_at": "2021-08-24T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c1b44336",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "沖縄こどもの国でヤクシマザルの赤ちゃんが3頭誕生 名前はシルバーウイークの投票で決定の写真（3） - emogram",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": "ヤクシマザル",
+   "published_at": "2026-09-18T11:28:32+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c1b44336",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "沖縄こどもの国でヤクシマザルの赤ちゃんが3頭誕生 名前はシルバーウイークの投票で決定の写真（2） - emogram",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": "ヤクシマザル",
+   "published_at": "2026-09-18T09:44:34+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c1b44336",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "沖縄こどもの国でヤクシマザルの赤ちゃんが3頭誕生 名前はシルバーウイークの投票で決定の写真（1） - emogram",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": "ヤクシマザル",
+   "published_at": "2026-09-18T09:37:15+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c1b44336",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "沖縄こどもの国でヤクシマザルの赤ちゃんが3頭誕生 名前はシルバーウイークの投票で決定 - emogram",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": "ヤクシマザル",
+   "published_at": "2026-09-18T09:16:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c1b44336",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "沖縄こどもの国ズージアムライブ！【赤ちゃん初お披露目ライブ配信！ヤクシマザルの赤ちゃんが2頭産まれました！！】 Laura Siegemund (X64467RDzA) - Unisba Media",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": "ヤクシマザル",
+   "published_at": "2026-09-29T19:51:58+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c1b44336",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "沖縄こどもの国ズージアムライブ！【赤ちゃん初お披露目ライブ配信！ヤクシマザルの赤ちゃんが2頭産まれました！！】 Demidov (O5OY0RmCXc) - Unisba Media",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": "ヤクシマザル",
+   "published_at": "2026-10-16T18:32:48+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "0bdac0d0",
+   "zoo": "浜松市動物園",
+   "verdict": "real",
+   "title": "浜松市動物園の赤ちゃんキリン、命名「ゴロウマル」に 五郎丸選手もメッセージ - 浜松経済新聞",
+   "zoo_id": "f9f6c29e-d617-4329-9a8b-df4f09cb6b01",
+   "species": "キリン",
+   "published_at": "2015-11-18T08:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "7b0b98de",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "「のんほいパーク」2025年度の入園者数が100万人を突破 “ライオンの赤ちゃん誕生”や“アニメコラボ企画”などが集客を後押し 愛知・豊橋市（中京テレビＮＥＷＳ） - Yahoo!ニュース",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ライオン",
+   "published_at": "2026-08-01T15:05:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "7b0b98de",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "豊橋「のんほいパーク」、昨年度の入園者１０４万人…過去２番目 ライオン赤ちゃん誕生などで増 ：地域ニュース - 読売新聞",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ライオン",
+   "published_at": "2026-05-31T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "7b0b98de",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "「のんほいパーク」2025年度の入園者数が100万人を突破 “ライオンの赤ちゃん誕生”や“アニメコラボ企画”などが集客を後押し 愛知・豊橋市（2026年5月29日掲載） - 日テレNEWS NNN",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ライオン",
+   "published_at": "2026-05-29T10:05:04+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "6f06d73d",
+   "zoo": "沖縄こどもの国",
+   "verdict": "real",
+   "title": "ジャガーの赤ちゃん誕生!! 沖縄こどもの国 Dowdy (C1uwJk4Ufn) - Unisba Media",
+   "zoo_id": "beb75f19-279b-4ce9-98ef-1229c0938be7",
+   "species": "ジャガー",
+   "published_at": "2026-09-29T11:57:21+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "cf987c3a",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "【動画】キリンの赤ちゃん「ユメタ」命名 おびひろ動物園 - 十勝毎日新聞",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "キリン",
+   "published_at": "2022-09-07T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "9697d2fb",
+   "zoo": "那須どうぶつ王国",
+   "verdict": "real",
+   "title": "【可愛すぎる】生まれた直後は毛が白い！レッサーパンダ双子の赤ちゃん成長記（那須どうぶつ王国の飼育員さんが撮影）【どうぶつ奇想天外／WAKUWAKU】 Cuba (8weN5tc4mr) - Mshale",
+   "zoo_id": "b75ec617-4c1b-4676-a70d-2ad6d7ee8f08",
+   "species": "レッサーパンダ",
+   "published_at": "2026-05-30T19:56:29+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "76eaa554",
+   "zoo": "東山動植物園",
+   "verdict": "real",
+   "title": "【東山動植物園公式】チンパンジーのカズキ《 チンパンジー 》# サルの赤ちゃん",
+   "zoo_id": null,
+   "species": "チンパンジー",
+   "published_at": "2026-05-28T01:37:17+00:00",
+   "source_kind": "youtube"
+  },
+  {
+   "baby": "76eaa554",
+   "zoo": "東山動植物園",
+   "verdict": "real",
+   "title": "【東山動植物園公式】カズキの誕生日《 チンパンジー 》# サルの赤ちゃん",
+   "zoo_id": null,
+   "species": "チンパンジー",
+   "published_at": "2026-05-26T22:01:52+00:00",
+   "source_kind": "youtube"
+  },
+  {
+   "baby": "3cf77773",
+   "zoo": "熊本市動植物園",
+   "verdict": "real",
+   "title": "【本邦初公開！】熊本市動植物園で生まれたレッサーパンダの赤ちゃん（2026年6月23日掲載）｜KKT NEWS NNN - 日テレNEWS NNN",
+   "zoo_id": null,
+   "species": "レッサーパンダ",
+   "published_at": "2026-06-23T10:52:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4924d686",
+   "zoo": "よこはま動物園ズーラシア",
+   "verdict": "real",
+   "title": "2026.06.11 【記者発表】国内初、オオアリクイの双子の赤ちゃんが誕生しました",
+   "zoo_id": "92d1c80c-7421-4281-b376-dc3c5bf67bc8",
+   "species": "オオアリクイ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "0c3e37e9",
+   "zoo": "福岡市動物園",
+   "verdict": "real",
+   "title": "ツシマヤマネコの赤ちゃん誕生 父は対馬で保護された野生ネコ 福岡市動物園で4年ぶり (2026年5月5日掲載) - ライブドアニュース",
+   "zoo_id": null,
+   "species": "ツシマヤマネコ",
+   "published_at": "2026-05-05T07:43:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "赤ちゃん4頭！初のチーター出産 広島市安佐動物公園（2026年6月30日掲載）｜広テレ！NEWS NNN - 日テレNEWS NNN",
+   "zoo_id": null,
+   "species": "チーター",
+   "published_at": "2026-06-30T10:40:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "父は「野生では生存していることがまれ」なほど高齢、チーター赤ちゃん無事4匹誕生…初産の母はかいがいしく - 読売新聞",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-08-08T20:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "かわいさ悶絶級 広島市安佐動物公園で4頭のチーターの赤ちゃんが誕生、すくすく成長中 - emogram.sankei.com",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-07-22T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "安佐動物公園で初のチーター誕生 お母さんチーターは11時間かけて4頭を出産 広島 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-06-29T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "安佐動物公園で初のチーター誕生 お母さんチーターは11時間かけて4頭を出産 広島 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-06-29T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "かわいさ悶絶級 広島市安佐動物公園で4頭のチーターの赤ちゃんが誕生、すくすく成長中の写真（3） - emogram",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-07-22T23:57:24+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "破壊力抜群のよちよち歩き 広島市安佐動物公園で誕生したチーターの4つ子 - emogram",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-07-23T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "安佐動物公園で初のチーター誕生 お母さんチーターは11時間かけて4頭を出産 広島 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-06-29T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "広島市安佐動物公園、チーターの繁殖に初めて成功 4頭誕生【動画あり】 - 中国新聞デジタル",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-06-30T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "赤ちゃん4頭！初のチーター出産 広島市安佐動物公園（2026年6月30日掲載） - news.ntv.co.jp",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-06-30T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」 ６月生まれのチーターの赤ちゃん 19日から一般公開 広島市安佐動物公園では初の繁殖 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-19T02:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」 6月生まれのチーターの赤ちゃん 19日から一般公開 広島市安佐動物公園では初の繁殖 - news.yahoo.co.jp",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T10:53:49+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」 6月生まれのチーターの赤ちゃん 19日から一般公開 広島市安佐動物公園では初の繁殖 - news.yahoo.co.jp",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T10:00:32+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」 ６月生まれのチーターの赤ちゃん 19日から一般公開 広島市安佐動物公園では初の繁殖 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T10:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」 ６月生まれのチーターの赤ちゃん 19日から一般公開 広島市安佐動物公園では初の繁殖 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T10:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "広島 安佐動物公園生まれのチーターの赤ちゃん １９日公開へ - NHKニュース",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T08:56:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "生まれたばかり！チーターの子どもたちお披露目！「ふわふわでかわいい！」広島市安佐動物公園で初めて誕生 - FNNプライムオンライン",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T08:26:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "チーターの赤ちゃん 初公開 6月安佐動物公園で誕生 広島 (HOME広島ホームテレビ) - news.yahoo.co.jp",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T04:55:19+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "チーターの赤ちゃん 初公開 ６月安佐動物公園で誕生 広島 - Excite エキサイト",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T03:18:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "チーターの赤ちゃん 初公開 6月安佐動物公園で誕生 広島（HOME広島ホームテレビ） - news.yahoo.co.jp",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T03:08:17+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "チーターの赤ちゃん 初公開 ６月安佐動物公園で誕生 広島 - HOME広島ホームテレビ",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T03:08:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "生まれたばかり！チーターの子どもたちお披露目！「ふわふわでかわいい！」広島市安佐動物公園で初めて誕生 - au Webポータル",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T08:26:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」 ６月生まれのチーターの赤ちゃん 19日から一般公開 広島市安佐動物公園では初の繁殖 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T10:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "６月誕生の子チーター３頭を一般公開…園の飼育員「元気に追いかけあうところ見て」、愛称への投票も受け付け - yomiuri.co.jp",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-19T21:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」 ６月生まれのチーターの赤ちゃん 19日から一般公開 広島市安佐動物公園では初の繁殖 - TBS NEWS DIG",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "「お母さんの子育ては100点」　６月生まれのチーターの赤ちゃん　19日から一般公開　広島市安佐動物公園では初の繁殖 - ｄメニューニュース",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T10:10:12+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "436d73ce",
+   "zoo": "広島市安佐動物公園",
+   "verdict": "real",
+   "title": "チーターの赤ちゃん 初公開 ６月安佐動物公園で誕生 広島（広島ホームテレビ） - ｄメニューニュース",
+   "zoo_id": "5e99913a-8e32-4e10-aa43-39cd1e90c0ec",
+   "species": "チーター",
+   "published_at": "2026-09-18T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "3944154f",
+   "zoo": "埼玉県こども動物自然公園",
+   "verdict": "real",
+   "title": "コアラ どうぶつの赤ちゃん コアラの赤ちゃん2024年6月23日にうまれたコアラの赤ちゃんがお母さんの袋から顔を出しました 父親はソラ 4歳 母親はミラ 3歳 です 当園で コアラの赤ちゃんが顔を出したのは今年2頭目です ぜひかわいい赤ちゃんに会いに来てください 埼玉県こども - richardajkeys.com",
+   "zoo_id": "1d7f631e-8f1d-4324-830a-14f791b27344",
+   "species": "コアラ",
+   "published_at": "2026-07-02T15:24:21+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "e99bbd9b",
+   "zoo": "日本モンキーセンター",
+   "verdict": "bad",
+   "title": "淡路島モンキーセンターでニホンザルの赤ちゃん続々誕生　愛らしい姿で来園者の人気者に - ｄメニューニュース",
+   "zoo_id": "4d55f07b-0207-4f74-935a-d2def860f543",
+   "species": "ニホンザル",
+   "published_at": "2026-07-10T02:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "44975ad3",
+   "zoo": "富山市ファミリーパーク",
+   "verdict": "bad",
+   "title": "ふ化した日の体重85グラム ジェンツーペンギンのひな誕生 すくすく成長中 おたる水族館 - au Webポータル",
+   "zoo_id": "a6636936-0a41-4238-9218-e45b43cd7f8d",
+   "species": "ペンギン",
+   "published_at": "2026-07-09T03:08:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "95a98eb8",
+   "zoo": "愛媛県立とべ動物園",
+   "verdict": "real",
+   "title": "カリフォルニアアシカの赤ちゃんが生まれました！ ｜動物の様子 - 愛媛県立とべ動物園",
+   "zoo_id": "dba155a5-befd-49e4-bef1-3f21fb11e134",
+   "species": "アシカ",
+   "published_at": "2026-06-18T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "65408493",
+   "zoo": "愛媛県立とべ動物園",
+   "verdict": "real",
+   "title": "今年6月16日に誕生した２頭のジャガーの名前を募集します！ ｜イベント告知・報告 - 愛媛県立とべ動物園",
+   "zoo_id": "dba155a5-befd-49e4-bef1-3f21fb11e134",
+   "species": "ジャガー",
+   "published_at": "2026-08-10T03:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "65408493",
+   "zoo": "愛媛県立とべ動物園",
+   "verdict": "real",
+   "title": "今年誕生したジャガーの公開と命名について ※8/27更新 ｜イベント告知・報告 - 愛媛県立とべ動物園",
+   "zoo_id": "dba155a5-befd-49e4-bef1-3f21fb11e134",
+   "species": "ジャガー",
+   "published_at": "2026-08-27T00:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "65408493",
+   "zoo": "愛媛県立とべ動物園",
+   "verdict": "real",
+   "title": "今年誕生したジャガーの公開と命名について ※9/7更新 ｜公開情報 - 愛媛県立とべ動物園",
+   "zoo_id": "dba155a5-befd-49e4-bef1-3f21fb11e134",
+   "species": "ジャガー",
+   "published_at": "2026-09-07T06:40:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "65408493",
+   "zoo": "愛媛県立とべ動物園",
+   "verdict": "real",
+   "title": "ジャガーの赤ちゃんが生まれました！ ｜出産情報 - 愛媛県立とべ動物園",
+   "zoo_id": "dba155a5-befd-49e4-bef1-3f21fb11e134",
+   "species": "ジャガー",
+   "published_at": "2026-06-19T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "65408493",
+   "zoo": "愛媛県立とべ動物園",
+   "verdict": "real",
+   "title": "今年誕生したジャガーの公開と命名について ※9/15更新 ｜公開情報 - 愛媛県立とべ動物園",
+   "zoo_id": "dba155a5-befd-49e4-bef1-3f21fb11e134",
+   "species": "ジャガー",
+   "published_at": "2026-09-15T06:40:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "288996a2",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "かわいい赤ちゃんビーバー、双子ぷかぷか 姫センで4月誕生、仲良く泳ぎ練習中 | おでかけトピック | 兵庫おでかけプラス - 神戸新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "アメリカビーバー",
+   "published_at": "2026-07-01T20:10:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "288996a2",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカビーバーの赤ちゃん誕生 姫センで健康管理サポートを見学 - サンテレビ",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "アメリカビーバー",
+   "published_at": "2026-05-11T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "288996a2",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカビーバーの赤ちゃん誕生 姫センで健康管理サポートを見学／兵庫県 (サンテレビ) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "アメリカビーバー",
+   "published_at": "2026-05-11T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "288996a2",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "アメリカビーバーの赤ちゃん誕生 姫センで健康管理サポートを見学／兵庫県（サンテレビ） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "アメリカビーバー",
+   "published_at": "2026-05-11T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b95a814b",
+   "zoo": "アドベンチャーワールド",
+   "verdict": "real",
+   "title": "アドベンチャーワールドで6月に生まれたエランドの雄の赤ちゃん（2026年6月12日撮影、写真提供＝アドベンチャーワールド） - 和歌山経済新聞",
+   "zoo_id": null,
+   "species": "エランド",
+   "published_at": "2026-06-30T02:33:05+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b95a814b",
+   "zoo": "アドベンチャーワールド",
+   "verdict": "real",
+   "title": "和歌山のアドベンチャーワールドで6月に生まれたエランドの赤ちゃん（2026年6月12日撮影、写真提供＝アドベンチャーワールド） - 和歌山経済新聞",
+   "zoo_id": null,
+   "species": "エランド",
+   "published_at": "2026-06-29T14:02:56+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "プレーリードッグの赤ちゃん誕生 - 朝日新聞",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": "2026-06-28T15:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "プレーリードッグ、愛くるしい赤ちゃん4匹誕生 日立市かみね動物園 - MSN",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": "2026-05-26T04:15:54+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "プレーリードッグ4匹誕生　日立・かみね動物園　園内8匹に　茨城 | チバテレ＋プラス - 千葉テレビ放送",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": "2026-05-14T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "かみね動物園で誕生したオグロプレーリードッグの赤ちゃん＝茨城県日立市（市提供） - 産経ニュース",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": "2026-05-13T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "かみね動物園で誕生したオグロプレーリードッグの赤ちゃん＝茨城県日立市（市提供） - 産経ニュース",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": "2026-05-13T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "オグロプレーリードッグの赤ちゃんが誕生しました｜日立市公式ウェブサイト",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "プレーリードッグ4匹誕生 日立・かみね動物園 園内8匹に 茨城 - 千葉テレビ放送",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": "2026-05-14T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bd890d0f",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "プレーリードッグ、愛くるしい赤ちゃん4匹誕生 日立市かみね動物園 [茨城県] - 朝日新聞",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "プレーリードッグ",
+   "published_at": "2026-05-21T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4ae06752",
+   "zoo": "那須どうぶつ王国",
+   "verdict": "real",
+   "title": "那須どうぶつ王国でビーバーの赤ちゃんが誕生 一般公開はじまる 誕生から１週間ですくすく成長（とちぎテレビ） - Yahoo!ニュース",
+   "zoo_id": "b75ec617-4c1b-4676-a70d-2ad6d7ee8f08",
+   "species": "アメリカビーバー",
+   "published_at": "2026-06-05T08:18:02+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4ae06752",
+   "zoo": "那須どうぶつ王国",
+   "verdict": "real",
+   "title": "那須どうぶつ王国でビーバーの赤ちゃんが誕生 一般公開はじまる 誕生から１週間ですくすく成長 (とちぎテレビ) - Yahoo!ニュース",
+   "zoo_id": "b75ec617-4c1b-4676-a70d-2ad6d7ee8f08",
+   "species": "アメリカビーバー",
+   "published_at": "2026-06-05T08:18:02+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4ae06752",
+   "zoo": "那須どうぶつ王国",
+   "verdict": "real",
+   "title": "那須どうぶつ王国でビーバーの赤ちゃんが誕生 一般公開はじまる 誕生から１週間ですくすく成長（とちテレニュース） - ｄメニューニュース",
+   "zoo_id": "b75ec617-4c1b-4676-a70d-2ad6d7ee8f08",
+   "species": "アメリカビーバー",
+   "published_at": "2026-06-05T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4ae06752",
+   "zoo": "那須どうぶつ王国",
+   "verdict": "real",
+   "title": "那須どうぶつ王国でビーバーの赤ちゃんが誕生 一般公開はじまる 誕生から１週間ですくすく成長－NEWS - https://www.tochigi-tv.jp/",
+   "zoo_id": "b75ec617-4c1b-4676-a70d-2ad6d7ee8f08",
+   "species": "アメリカビーバー",
+   "published_at": "2026-06-05T08:20:12+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "e6556d67",
+   "zoo": "長崎バイオパーク",
+   "verdict": "real",
+   "title": "カピバラの赤ちゃん誕生 長崎バイオパークで６年ぶり 家族寄り添うかわいらしい姿 - 長崎新聞ホームページ",
+   "zoo_id": "ded6613d-4e4b-464a-9060-8ea24027e6bb",
+   "species": "カピバラ",
+   "published_at": "2026-05-31T23:11:46+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "e6556d67",
+   "zoo": "長崎バイオパーク",
+   "verdict": "real",
+   "title": "KTNが名付け親？！元日生まれの赤ちゃんカピバラ｜モッテレ - ktn.co.jp",
+   "zoo_id": "ded6613d-4e4b-464a-9060-8ea24027e6bb",
+   "species": "カピバラ",
+   "published_at": "2026-02-18T09:02:18+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "92147d55",
+   "zoo": "池田動物園",
+   "verdict": "real",
+   "title": "ペンギンやワラビー 赤ちゃん誕生 岡山・池田動物園 すくすく成長 - 山陽新聞",
+   "zoo_id": "49f9b2ef-255d-44ab-9086-82250139fa7f",
+   "species": "ペンギン",
+   "published_at": "2026-05-12T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "3d760685",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "アカカンガルーの赤ちゃん誕生！  |  宮崎市フェニックス自然動物園サイト",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "カンガルー",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "8d1f7c70",
+   "zoo": "東武動物公園",
+   "verdict": "real",
+   "title": "動物園 2026.5.18 アクシスジカの赤ちゃんが誕生しました",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "シカ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "9cb55dfd",
+   "zoo": "千葉市動物公園",
+   "verdict": "real",
+   "title": "6月22日(月)マレーバクが誕生しました！",
+   "zoo_id": "767e6fba-f201-47f4-8abd-5b8b607472f2",
+   "species": "マレーバク",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "【速報！】5/12(火)マヌルネコの赤ちゃん誕生！",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国で生まれたマヌルネコの赤ちゃん [写真特集1/8] - 毎日新聞",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-07-16T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "マヌルネコの赤ちゃん誕生 5匹がすくすく成長、お披露目まで待っててニャ 神戸どうぶつ王国|神戸 - 神戸新聞",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-06-07T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国で生まれた「マヌルネコ」の赤ちゃんの『公開日＆名前』が決まってる。すくすく育ってる - 神戸ジャーナル",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-07-08T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "マヌルネコの赤ちゃん＝6月（神戸どうぶつ王国提供） - 「世界最古」希少ネコ5匹誕生 神戸、すくすく成長中 - 写真・画像(1/1) - 西日本新聞me",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-07-03T18:58:17+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国で『マヌルネコ』の赤ちゃんが誕生してる。現在は母親の「アズ」が子育て中 - 神戸ジャーナル",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-06-11T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国で世界最古のネコ「マヌルネコ」赤ちゃん誕生！5頭が元気に成長中 - Kiss PRESS(キッスプレス)",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-05-26T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "「マヌルネコ」の赤ちゃんが誕生 兵庫・神戸どうぶつ王国で2年ぶり [兵庫県] - asahi.com",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-06-02T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最古のネコに希望のニュース！神戸どうぶつ王国でマヌルネコの赤ちゃんが誕生 - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-05-25T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "40424ff7",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "マヌルネコの赤ちゃん誕生 5匹がすくすく成長、お披露目まで待っててニャ 神戸どうぶつ王国 - 47NEWS",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "マヌルネコ",
+   "published_at": "2026-06-07T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "13057136",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "1/10(土)にフタユビナマケモノの赤ちゃんが１頭生まれました！",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "ナマケモノ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "5584be81",
+   "zoo": "千葉市動物公園",
+   "verdict": "real",
+   "title": "5月9日(土)マンドリルが誕生しました！",
+   "zoo_id": "767e6fba-f201-47f4-8abd-5b8b607472f2",
+   "species": "マンドリル",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "227c3977",
+   "zoo": "東山動植物園",
+   "verdict": "real",
+   "title": "カリフォルニアアシカの赤ちゃんが生まれました！",
+   "zoo_id": "76d94342-386c-4a64-a80e-e304d0d82774",
+   "species": "アシカ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "a6cff7ca",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "カピバラの赤ちゃんが生まれました！",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カピバラ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "a6cff7ca",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "３つ子の赤ちゃんカピバラがお披露目 神戸どうぶつ王国で初めて誕生 - 朝日放送",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カピバラ",
+   "published_at": "2026-07-10T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "a6cff7ca",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "元気にすくすく成長中♪神戸どうぶつ王国でカピバラの赤ちゃん3頭が誕生 - Kiss PRESS(キッスプレス)",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カピバラ",
+   "published_at": "2026-07-02T23:00:25+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "db40b9d8",
+   "zoo": "京都市動物園",
+   "verdict": "real",
+   "title": "ケープハイラックスの赤ちゃんが誕生しました | ニュース | 京都市動物園",
+   "zoo_id": "ec5c4a10-f719-42b6-a41f-0dec0fa6cd1f",
+   "species": "ケープハイラックス",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "f26e8a79",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "カピバラの赤ちゃんが誕生しました｜日立市公式ウェブサイト",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "カピバラ",
+   "published_at": null,
+   "source_kind": "site"
+  },
+  {
+   "baby": "f26e8a79",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "カピバラ赤ちゃん4匹誕生 9年ぶり 屋内で一般公開 日立市かみね動物園 茨城 (茨城新聞クロスアイ) - Yahoo!ニュース",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "カピバラ",
+   "published_at": "2026-07-25T23:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f26e8a79",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "カピバラの赤ちゃん4匹誕生 茨城・日立のかみね動物園見学呼びかけ [茨城県] - 朝日新聞",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "カピバラ",
+   "published_at": "2026-08-05T02:15:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f26e8a79",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "カピバラの赤ちゃん4匹誕生 茨城・日立のかみね動物園見学呼びかけ [茨城県] - 朝日新聞",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "カピバラ",
+   "published_at": "2026-08-04T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f26e8a79",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "カピバラの赤ちゃん4匹誕生 茨城・日立のかみね動物園見学呼びかけ [茨城県] - 朝日新聞",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "カピバラ",
+   "published_at": "2026-08-04T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "12453ffe",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガの赤ちゃん３匹誕生 おびひろ動物園 - 十勝毎日新聞",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-07-30T01:16:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "12453ffe",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガ３匹仲良く 動物園で２年続けて誕生【帯広】 - 北海道ニュースリンク",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-07-30T05:05:12+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5aa9679f",
+   "zoo": "東山動植物園",
+   "verdict": "real",
+   "title": "マンドリルの赤ちゃんが生まれました！",
+   "zoo_id": "76d94342-386c-4a64-a80e-e304d0d82774",
+   "species": "マンドリル",
+   "published_at": "2026-07-31T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "0592218e",
+   "zoo": "長崎バイオパーク",
+   "verdict": "real",
+   "title": "アメリカビーバーの4つ子が誕生 長崎バイオパークで人気者に｜ニュース - ktn.co.jp",
+   "zoo_id": "ded6613d-4e4b-464a-9060-8ea24027e6bb",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-03T11:19:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "0592218e",
+   "zoo": "長崎バイオパーク",
+   "verdict": "real",
+   "title": "アメリカビーバーの4つ子が誕生 長崎バイオパークで人気者に（KTNテレビ長崎） - Yahoo!ニュース",
+   "zoo_id": "ded6613d-4e4b-464a-9060-8ea24027e6bb",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-03T11:21:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "0592218e",
+   "zoo": "長崎バイオパーク",
+   "verdict": "real",
+   "title": "アメリカビーバーの4つ子が誕生 長崎バイオパークで人気者に - fnn.jp",
+   "zoo_id": "ded6613d-4e4b-464a-9060-8ea24027e6bb",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-03T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c5745990",
+   "zoo": "埼玉県こども動物自然公園",
+   "verdict": "real",
+   "title": "世界最小 絶滅危惧種のシカ 「プーズー」の赤ちゃん誕生 東松山・県こども動物自然公園 ／埼玉 - 毎日新聞",
+   "zoo_id": "1d7f631e-8f1d-4324-830a-14f791b27344",
+   "species": "プーズー",
+   "published_at": "2026-08-14T20:02:02+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "c5745990",
+   "zoo": "埼玉県こども動物自然公園",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 神戸どうぶつ王国で公開 [兵庫県] - 朝日新聞",
+   "zoo_id": "1d7f631e-8f1d-4324-830a-14f791b27344",
+   "species": "プーズー",
+   "published_at": "2026-10-30T08:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b27db32c",
+   "zoo": "東武動物公園",
+   "verdict": "bad",
+   "title": "＜画像2 / 3＞東武動物公園初！ホワイトタイガーの赤ちゃん4頭が誕生 - ウォーカープラス",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "ホワイトタイガー",
+   "published_at": "2026-08-05T09:17:55+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b27db32c",
+   "zoo": "東武動物公園",
+   "verdict": "bad",
+   "title": "＜画像3 / 3＞東武動物公園初！ホワイトタイガーの赤ちゃん4頭が誕生 - ウォーカープラス",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "ホワイトタイガー",
+   "published_at": "2026-08-04T10:05:32+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b27db32c",
+   "zoo": "東武動物公園",
+   "verdict": "bad",
+   "title": "＜画像1 / 3＞東武動物公園初！ホワイトタイガーの赤ちゃん4頭が誕生 - ウォーカープラス",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "ホワイトタイガー",
+   "published_at": "2026-08-09T06:49:18+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b27db32c",
+   "zoo": "東武動物公園",
+   "verdict": "bad",
+   "title": "東武動物公園初！ホワイトタイガーの赤ちゃん4頭が誕生 - ウォーカープラス",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "ホワイトタイガー",
+   "published_at": "2026-10-06T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "a4bfb4bd",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国でアメリカバクの赤ちゃん誕生 今しか見られないうり坊柄が話題の写真（4） - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カバ",
+   "published_at": "2026-07-29T11:25:03+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "a4bfb4bd",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国でアメリカバクの赤ちゃん誕生 今しか見られないうり坊柄が話題 - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カバ",
+   "published_at": "2026-07-29T07:10:19+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "a4bfb4bd",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国でアメリカバクの赤ちゃん誕生 今しか見られないうり坊柄が話題の写真（2） - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カバ",
+   "published_at": "2026-07-29T08:51:28+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "a4bfb4bd",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国でアメリカバクの赤ちゃん誕生 今しか見られないうり坊柄が話題の写真（1） - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カバ",
+   "published_at": "2026-07-29T08:35:57+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "a4bfb4bd",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国でアメリカバクの赤ちゃん誕生 今しか見られないうり坊柄が話題の写真（3） - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "カバ",
+   "published_at": "2026-07-29T09:44:01+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "cf03c007",
+   "zoo": "東武動物公園",
+   "verdict": "real",
+   "title": "東武動物公園に新しい仲間が加わりました アクシスジカの赤ちゃんが誕生しました。 - Digital PR Platform",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "シカ",
+   "published_at": "2026-05-18T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "cf03c007",
+   "zoo": "東武動物公園",
+   "verdict": "real",
+   "title": "東武動物公園に新しい仲間が加わりました アクシスジカの赤ちゃんが誕生しました。 - 沖縄タイムス社",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "シカ",
+   "published_at": "2026-05-18T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "cf03c007",
+   "zoo": "東武動物公園",
+   "verdict": "real",
+   "title": "東武動物公園に新しい仲間が加わりました アクシスジカの赤ちゃんが誕生しました。 - Excite エキサイト",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "シカ",
+   "published_at": "2026-05-18T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f6555f24",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "帯広 動物園でエゾモモンガの赤ちゃん誕生 繁殖は２年連続 - NHKニュース",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-08-08T02:52:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f6555f24",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガの赤ちゃん3匹誕生 おびひろ動物園 - 北海道新聞デジタル",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-08-12T10:38:55+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f6555f24",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガの赤ちゃん3匹誕生 おびひろ動物園 - 47NEWS",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-08-12T10:38:55+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f6555f24",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガの赤ちゃん3匹誕生　おびひろ動物園 - ｄメニューニュース",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-08-12T10:38:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f6555f24",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガの赤ちゃん3匹誕生　おびひろ動物園 - ｄメニューニュース",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-08-12T10:38:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f6555f24",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガの赤ちゃん3匹誕生 おびひろ動物園 - 北海道新聞デジタル",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-08-20T09:17:40+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "f6555f24",
+   "zoo": "おびひろ動物園",
+   "verdict": "real",
+   "title": "エゾモモンガの赤ちゃん3匹誕生 おびひろ動物園 - 北海道新聞デジタル",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "モモンガ",
+   "published_at": "2026-08-20T09:30:10+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b1a0b43f",
+   "zoo": "アドベンチャーワールド",
+   "verdict": "real",
+   "title": "アドベンチャーワールド5月29日に誕生したコガタペンギン（2026年8月3日撮影） - 和歌山経済新聞",
+   "zoo_id": null,
+   "species": "ペンギン",
+   "published_at": "2026-08-10T10:06:43+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "のんほいパークで“ペンギンの赤ちゃん”3羽誕生、すくすく成長中の子育てシーズン ミナミイワトビのヒナは観覧通路で公開 - Yahoo!ニュース",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-06-21T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "ペンギンの赤ちゃん誕生！豊橋市「のんほいパーク」で今だけの子育て姿を観察しよう - いこーよニュース",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-06-02T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "ペンギンの赤ちゃん会いに来て のんほいパークで3羽誕生 - 47NEWS",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-05-21T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "ペンギンの赤ちゃん会いに来て のんほいパークで3羽誕生 - 中日新聞Web",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-05-21T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "のんほいパークで“ペンギンの赤ちゃん”3羽誕生、すくすく成長中の子育てシーズン ミナミイワトビのヒナは観覧通路で公開 - Yahoo!ニュース",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-05-20T10:10:38+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "【愛知県】赤ちゃん誕生！ミナミイワトビ＆ジェンツーペンギンの雛が仲良く仲間入り。もうすぐお披露目の赤ちゃんや大迫力の「ごはんの時間」などのんほいパークの最新見どころをチェック！ - ラブすぽ",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-06-04T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "のんほいパークで“ペンギンの赤ちゃん”3羽誕生、すくすく成長中の子育てシーズン ミナミイワトビのヒナは観覧通路で公開 - 日テレNEWS NNN",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-05-20T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "86990627",
+   "zoo": "のんほいパーク（豊橋総合動植物公園）",
+   "verdict": "real",
+   "title": "のんほいパークで“ペンギンの赤ちゃん”3羽誕生、すくすく成長中の子育てシーズン ミナミイワトビのヒナは観覧通路で公開 - Yahoo!ニュース",
+   "zoo_id": "41dfda91-ef44-4a80-ae30-ad3febf2130f",
+   "species": "ペンギン",
+   "published_at": "2026-05-20T11:08:46+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "2e0310c2",
+   "zoo": "東山動植物園",
+   "verdict": "real",
+   "title": "シセンレッサーパンダの赤ちゃんが生まれました！",
+   "zoo_id": "76d94342-386c-4a64-a80e-e304d0d82774",
+   "species": "レッサーパンダ",
+   "published_at": "2026-08-12T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "2e0310c2",
+   "zoo": "東山動植物園",
+   "verdict": "real",
+   "title": "東山動植物園でレッサーパンダの赤ちゃんが誕生 現在は非公開エリアにいて公開時期は未定 (2026年8月12日掲載) - ライブドアニュース",
+   "zoo_id": null,
+   "species": "レッサーパンダ",
+   "published_at": "2026-08-12T07:46:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "bb124131",
+   "zoo": "東山動植物園",
+   "verdict": "real",
+   "title": "コビトカバの赤ちゃんが生まれました！",
+   "zoo_id": "76d94342-386c-4a64-a80e-e304d0d82774",
+   "species": "カバ",
+   "published_at": "2026-08-13T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "1d08bc90",
+   "zoo": "盛岡市動物公園",
+   "verdict": "bad",
+   "title": "「ちっちゃくて本当にかわいい」福岡市動物園でチンパンジーの赤ちゃん誕生　28年ぶり - Infoseek",
+   "zoo_id": "19eb647b-c530-4466-9b56-4c81eb3d23b0",
+   "species": "チンパンジー",
+   "published_at": "2026-08-13T06:37:42+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "00b86f97",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "bad",
+   "title": "千葉市動物公園でマレーバクの赤ちゃん「カナタ」誕生 10日から一般公開 - 産経ニュース",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "マレーバク",
+   "published_at": "2026-07-09T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "00b86f97",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "bad",
+   "title": "マレーバクの赤ちゃん誕生 千葉市動物公園で約２０年ぶり 元気に走り回る姿も - 千葉テレビ放送",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "マレーバク",
+   "published_at": "2026-07-10T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "00b86f97",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "bad",
+   "title": "千葉市動物公園でマレーバクの赤ちゃん誕生 カナエとユメタの間に男の子 - emogram",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "マレーバク",
+   "published_at": "2026-07-06T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "00b86f97",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "bad",
+   "title": "マレーバク赤ちゃん誕生 ２０年ぶり、千葉市動物公園 - 千葉日報オンライン",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "マレーバク",
+   "published_at": "2026-07-08T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "00b86f97",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "bad",
+   "title": "絶滅危惧種「マレーバク」の赤ちゃんが誕生 千葉市動物公園 - 毎日新聞",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "マレーバク",
+   "published_at": "2026-07-04T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "00b86f97",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "bad",
+   "title": "20年ぶりの快挙 千葉市動物公園でマレーバクの赤ちゃん誕生し人気者に - emogram",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "マレーバク",
+   "published_at": "2026-07-27T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "644b8618",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "real",
+   "title": "愛称は《イツハ》 高知県立のいち動物公園で生まれたグラントシマウマの命名式【高知】 - 日テレNEWS NNN",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "シマウマ",
+   "published_at": "2026-03-20T09:45:53+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "644b8618",
+   "zoo": "高知県立のいち動物公園",
+   "verdict": "real",
+   "title": "愛称は《イツハ》 高知県立のいち動物公園で生まれたグラントシマウマの命名式【高知】 - 日テレNEWS NNN",
+   "zoo_id": "a05a6a7c-de75-4f02-8492-d927f937a833",
+   "species": "シマウマ",
+   "published_at": "2026-03-20T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "faa1a0eb",
+   "zoo": "盛岡市動物公園",
+   "verdict": "bad",
+   "title": "赤ちゃん4頭！初のチーター出産　広島市安佐動物公園 - Infoseek",
+   "zoo_id": "19eb647b-c530-4466-9b56-4c81eb3d23b0",
+   "species": "チーター",
+   "published_at": "2026-06-30T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバーの赤ちゃんが誕生しました｜日立市公式ウェブサイト",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-24T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生 日立・かみね動物園 茨城 (茨城新聞クロスアイ) - Yahoo!ニュース",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-26T01:14:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生 日立・かみね動物園 茨城 - au Webポータル",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-26T00:49:54+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生 日立・かみね動物園 茨城 - 茨城新聞クロスアイ",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-26T00:04:18+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生 日立・かみね動物園 茨城（茨城新聞クロスアイ） - Yahoo!ニュース",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-26T00:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生　日立・かみね動物園　茨城 - ｄメニューニュース",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-26T00:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生 日立・かみね動物園 茨城 - 47NEWS",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-23T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生 日立・かみね動物園 茨城 - きたかんナビ",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-30T22:32:13+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "アメリカビーバー誕生 日立・かみね動物園 茨城 - 千葉テレビ放送",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-08-26T00:20:33+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "575e484d",
+   "zoo": "日立市かみね動物園",
+   "verdict": "real",
+   "title": "「生まれてきてくれてありがとう」 かみね動物園のアメリカビーバーの赤ちゃん亡くなるの写真（1） - emogram",
+   "zoo_id": "783aa66a-7790-440a-a1c0-fe1942613521",
+   "species": "アメリカビーバー",
+   "published_at": "2026-09-30T11:23:54+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "595aa616",
+   "zoo": "日本平動物園",
+   "verdict": "bad",
+   "title": "アジアゾウ「ダンボ」が60歳の誕生日 静岡市・日本平動物園で来場者が祝福（2026年6月13日掲載）｜Daiichi-TV NEWS NNN - 日テレNEWS NNN",
+   "zoo_id": null,
+   "species": "ゾウ",
+   "published_at": "2026-06-13T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5fae6a94",
+   "zoo": "東武動物公園",
+   "verdict": "real",
+   "title": "＜画像2 / 2＞マレーバクの赤ちゃんが誕生！東武動物公園で - ウォーカープラス",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "マレーバク",
+   "published_at": "2026-08-24T00:58:38+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫センで35年ぶりに生まれたゾウ、来月には会えるかな…母・シューティーは昨夏インドから来園、母子ともに健康 - 読売新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-08-25T21:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫センで35年ぶりにゾウが誕生 赤ちゃんゾウが初公開 - サンテレビ",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-09-07T08:12:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "姫センで35年ぶりにゾウが誕生 赤ちゃんゾウが初公開／兵庫県 (サンテレビ) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-09-07T08:29:43+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウの名前つけて 姫セン、8月生まれのやんちゃな雌 母親の故郷インドの言葉で（神戸新聞NEXT） - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-10-25T02:00:09+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウの名前つけて　姫セン、8月生まれのやんちゃな雌　母親の故郷インドの言葉で - ｄメニューニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-10-25T02:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウの名前つけて 姫セン、8月生まれのやんちゃな雌 母親の故郷インドの言葉で|姫路 - 神戸新聞",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-10-24T20:10:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウの名前つけて 姫セン、8月生まれのやんちゃな雌 母親の故郷インドの言葉で (神戸新聞NEXT) - Yahoo!ニュース",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-10-25T06:15:27+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "8c804f9b",
+   "zoo": "姫路セントラルパーク",
+   "verdict": "real",
+   "title": "赤ちゃんゾウの名前つけて 姫セン、8月生まれのやんちゃな雌 母親の故郷インドの言葉で - 47NEWS",
+   "zoo_id": "0276415b-768f-4f76-aa6d-ca3c435a8da6",
+   "species": "ゾウ",
+   "published_at": "2026-10-25T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "16eebeaa",
+   "zoo": "足立区生物園",
+   "verdict": "bad",
+   "title": "アメリカ・ワシントンの動物園でアジアゾウの赤ちゃん一般公開 この動物園で絶滅危惧種指定のアジアゾウ誕生は25年ぶり 生後2か月で体重200キロ超 名前は「リン・マイ」 - TBS NEWS DIG",
+   "zoo_id": "935b1ce0-16a8-4f5a-a498-bcf6a901dcad",
+   "species": "ゾウ",
+   "published_at": "2026-04-27T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "53057244",
+   "zoo": "足立区生物園",
+   "verdict": "bad",
+   "title": "【可愛すぎると話題】キングペンギンのヒナ\"191g\"で誕生 お父さんの足元で甘える姿 長崎ペンギン水族館で13年ぶり - TBS NEWS DIG",
+   "zoo_id": "935b1ce0-16a8-4f5a-a498-bcf6a901dcad",
+   "species": "ペンギン",
+   "published_at": "2026-07-13T14:02:14+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "ec1d4bfa",
+   "zoo": "東武動物公園",
+   "verdict": "bad",
+   "title": "動物園 2026.9.7 2027年春 自然環境を再現した「新・カワウソ施設」が誕生！",
+   "zoo_id": "54473d9f-988f-48f8-a7ed-2c4070ea5977",
+   "species": "カワウソ",
+   "published_at": "2026-09-07T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザル赤ちゃん誕生 釧路市動物園一般公開、母子共に元気【釧路市】 - 北海道ニュースリンク",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-09T10:05:22+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザル 赤ちゃん誕生 釧路市動物園、一般公開、母子共に元気【釧路市】 - 釧路新聞電子版",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-09T00:13:46+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 親子で展示も開始 釧路市動物園での繁殖成功は初 北海道 - Yahoo!ニュース",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-08T21:34:35+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 親子で展示も開始 釧路市動物園での繁殖成功は初 北海道 - Yahoo!ニュース",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-08T21:17:26+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生　親子で展示も開始　釧路市動物園での繁殖成功は初　北海道 - ｄメニューニュース",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-08T21:15:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 釧路市動物園で初 - 北海道新聞デジタル",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-08T12:18:39+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "釧路市動物園でシロテテナガザルの赤ちゃん誕生 開園以来はじめての繁殖に喜びの写真（5） - emogram.sankei.com",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-11T16:32:36+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "釧路市動物園でシロテテナガザルの赤ちゃん誕生 開園以来はじめての繁殖に喜びの写真（2） - emogram.sankei.com",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-11T16:32:19+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "釧路市動物園でシロテテナガザルの赤ちゃん誕生 開園以来はじめての繁殖に喜び - emogram.sankei.com",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-11T04:36:48+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 親子で展示も開始 釧路市動物園での繁殖成功は初 北海道 - TVer",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-10T13:25:09+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 親子で展示も開始 釧路市動物園での繁殖成功は初 北海道 - news.ntv.co.jp",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-10T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザル赤ちゃん誕生 北海道の釧路市動物園一般公開 (釧路新聞電子版) - Yahoo!ニュース",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-08T23:02:17+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "釧路市動物園でシロテテナガザルの赤ちゃん誕生 開園以来はじめての繁殖に喜びの写真（1） - emogram",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-11T16:31:31+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "ママにギューッ！ピタッ！しがみつく姿がたまらない“シロテテナガザル”の赤ちゃん誕生『開園以来初の繁殖』性別や体重はまだ分からず_愛らしい様子…一般公開中〈北海道釧路市〉 - UHB 北海道文化放送",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-16T03:19:47+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "【北海道 釧路市】開園以来初！シロテテナガザルの赤ちゃんが誕生しました - PR TIMES",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-14T07:46:56+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 親子で展示も開始 釧路市動物園での繁殖成功は初 北海道 - 日テレNEWS NNN",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-10T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 親子で展示も開始 釧路市動物園での繁殖成功は初 北海道 - Yahoo!ニュース",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-08T21:15:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "【北海道 釧路市】開園以来初！シロテテナガザルの赤ちゃんが誕生しました - Excite エキサイト",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-14T08:15:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "ママにギューッ！ピタッ！しがみつく姿がたまらない“シロテテナガザル”の赤ちゃん誕生『開園以来初の繁殖』性別や体重はまだ分からず_愛らしい様子…一般公開中〈北海道釧路市〉 - Yahoo!ニュース",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-16T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "5f86360c",
+   "zoo": "釧路市動物園",
+   "verdict": "real",
+   "title": "シロテテナガザルの赤ちゃん誕生 釧路市動物園で初 - 北海道新聞デジタル",
+   "zoo_id": "79101b0e-cb4a-4c6d-b363-d30ab57a74f8",
+   "species": "テナガザル",
+   "published_at": "2026-09-09T16:15:11+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "dbb0dbc7",
+   "zoo": "おびひろ動物園",
+   "verdict": "bad",
+   "title": "シロテテナガザル赤ちゃん誕生 北海道の釧路市動物園一般公開（釧路新聞電子版） - Yahoo!ニュース",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "テナガザル",
+   "published_at": "2026-09-08T23:02:17+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "dbb0dbc7",
+   "zoo": "おびひろ動物園",
+   "verdict": "bad",
+   "title": "シロテテナガザルの赤ちゃん誕生 親子で展示も開始 釧路市動物園での繁殖成功は初 北海道｜Infoseekニュース - Infoseek",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "テナガザル",
+   "published_at": "2026-09-09T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "dbb0dbc7",
+   "zoo": "おびひろ動物園",
+   "verdict": "bad",
+   "title": "【北海道 釧路市】開園以来初！シロテテナガザルの赤ちゃんが誕生しました - ニコニコニュース",
+   "zoo_id": "d056d624-9316-48ae-86e8-4c5df26fc5ba",
+   "species": "テナガザル",
+   "published_at": "2026-09-14T16:30:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "09e56b8b",
+   "zoo": "群馬サファリパーク",
+   "verdict": "bad",
+   "title": "カピバラの赤ちゃん4匹が誕生 群馬・草津熱帯圏 - 上毛新聞電子版",
+   "zoo_id": "7c8dbfd9-baa1-488f-86f7-b11adf252500",
+   "species": "カピバラ",
+   "published_at": "2026-04-21T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "91a5afe9",
+   "zoo": "周南市徳山動物園",
+   "verdict": "real",
+   "title": "山口）アミメキリンの赤ちゃん生まれたよ 徳山動物園 [山口県] - 朝日新聞",
+   "zoo_id": "0d7cdc90-b742-4b53-8796-7fcc4f2c8247",
+   "species": "キリン",
+   "published_at": "2026-09-22T22:52:49+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4b5f24b1",
+   "zoo": "よこはま動物園ズーラシア",
+   "verdict": "real",
+   "title": "【動物情報】オカピの赤ちゃんが誕生しました！",
+   "zoo_id": "92d1c80c-7421-4281-b376-dc3c5bf67bc8",
+   "species": "オカピ",
+   "published_at": "2026-10-02T00:00:00+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "4b5f24b1",
+   "zoo": "よこはま動物園ズーラシア",
+   "verdict": "real",
+   "title": "よこはま動物園ズーラシアに新しい家族 オカピの赤ちゃん誕生の写真（1） - emogram",
+   "zoo_id": "92d1c80c-7421-4281-b376-dc3c5bf67bc8",
+   "species": "オカピ",
+   "published_at": "2026-10-02T07:14:17+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4b5f24b1",
+   "zoo": "よこはま動物園ズーラシア",
+   "verdict": "real",
+   "title": "元気いっぱいの女の子 よこはま動物園ズーラシアでオカピの赤ちゃんが誕生 - TRILL",
+   "zoo_id": "92d1c80c-7421-4281-b376-dc3c5bf67bc8",
+   "species": "オカピ",
+   "published_at": "2026-10-02T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "89d40080",
+   "zoo": "鯖江市西山動物園",
+   "verdict": "real",
+   "title": "メスはちょっぴり臆病 オスはわんぱくに 6月誕生の双子のレッサーパンダ元気に成長中 7日から一般公開 鯖江市・西山動物園 愛称も募集中（2026年10月5日掲載）｜FBC NEWS NNN - 日テレNEWS NNN",
+   "zoo_id": null,
+   "species": "レッサーパンダ",
+   "published_at": "2026-10-05T10:07:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "cd35da5f",
+   "zoo": "福山市立動物園",
+   "verdict": "bad",
+   "title": "ボルネオゾウ「ふく」 ２８歳おめでとう タカオ福山動物園で誕生日イベント - 山陽新聞",
+   "zoo_id": "de3bb3d7-b180-46dc-a003-5a2a24d4fed0",
+   "species": "ゾウ",
+   "published_at": "2026-04-29T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "49a12e18",
+   "zoo": "智光山公園こども動物園",
+   "verdict": "bad",
+   "title": "【智光山公園こども動物園】10月・11月はコツメカワウソの誕生日が目白押し！総勢7頭のお誕生会を4回開催！ - MANTANWEB",
+   "zoo_id": "2dced1b7-8b2f-4e83-932b-cd323af61ae7",
+   "species": "コツメカワウソ",
+   "published_at": "2026-10-14T11:38:28+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "49a12e18",
+   "zoo": "智光山公園こども動物園",
+   "verdict": "bad",
+   "title": "【智光山公園こども動物園】10月・11月はコツメカワウソの誕生日が目白押し！総勢7頭のお誕生会を4回開催！ - ニコニコニュース",
+   "zoo_id": "2dced1b7-8b2f-4e83-932b-cd323af61ae7",
+   "species": "コツメカワウソ",
+   "published_at": "2026-10-14T04:30:31+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "49a12e18",
+   "zoo": "智光山公園こども動物園",
+   "verdict": "bad",
+   "title": "10月・11月に計4回、コツメカワウソを祝う！智光山公園こども動物園 コツメカワウソのお誕生会 (2026年10月17日掲載) - ライブドアニュース",
+   "zoo_id": "2dced1b7-8b2f-4e83-932b-cd323af61ae7",
+   "species": "コツメカワウソ",
+   "published_at": "2026-10-17T07:22:46+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "49a12e18",
+   "zoo": "智光山公園こども動物園",
+   "verdict": "bad",
+   "title": "智光山公園こども動物園でコツメカワウソのお誕生会を計4回開催へ - Dellows News",
+   "zoo_id": "2dced1b7-8b2f-4e83-932b-cd323af61ae7",
+   "species": "コツメカワウソ",
+   "published_at": "2026-10-16T14:23:32+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "094bea88",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "国内に11頭「絶滅危惧種マサイキリン」50年以上つづく命のバトンと子キリン誕生の裏側【宮崎市フェニックス自然動物園】 - 日テレNEWS NNN",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "キリン",
+   "published_at": "2026-04-23T14:19:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "094bea88",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "国内に11頭「絶滅危惧種マサイキリン」50年以上つづく命のバトンと子キリン誕生の裏側【宮崎市フェニックス自然動物園】 - FNNプライムオンライン",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "キリン",
+   "published_at": "2026-04-23T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "920b854e",
+   "zoo": "群馬サファリパーク",
+   "verdict": "bad",
+   "title": "アメリカバイソンの出産直後の様子を収録｜赤ちゃんの生命力を感じる事が出来る映像です。American Bison / Gunma Safari Park, Japan - YouTube",
+   "zoo_id": "7c8dbfd9-baa1-488f-86f7-b11adf252500",
+   "species": "カバ",
+   "published_at": "2026-10-05T08:31:39+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "48c4b5ff",
+   "zoo": "大牟田市動物園",
+   "verdict": "bad",
+   "title": "4月に生まれたツシマヤマネコの赤ちゃん（6月5日撮影、福岡市動物園提供） - 福岡市動物園でツシマヤマネコ誕生記念イベント 6月27、28日 - 写真・画像(1/1) - 西日本新聞me",
+   "zoo_id": "912340ca-9fbb-46cf-80de-2a378828340d",
+   "species": "ツシマヤマネコ",
+   "published_at": "2026-06-24T06:05:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "7798e1d5",
+   "zoo": "埼玉県こども動物自然公園",
+   "verdict": "bad",
+   "title": "【智光山公園こども動物園】10月・11月はコツメカワウソの誕生日が目白押し！総勢7頭のお誕生会を4回開催！ - Infoseek",
+   "zoo_id": "1d7f631e-8f1d-4324-830a-14f791b27344",
+   "species": "コツメカワウソ",
+   "published_at": "2026-10-14T01:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b9e4f3d7",
+   "zoo": "宮崎市フェニックス自然動物園",
+   "verdict": "real",
+   "title": "3年ぶりにフラミンゴの赤ちゃんが誕生 宮崎市フェニックス自然動物園 - TBS NEWS DIG",
+   "zoo_id": "0891d548-66f3-420e-940b-392386aac948",
+   "species": "フラミンゴ",
+   "published_at": "2026-10-11T07:00:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "42e5fc4d",
+   "zoo": "鹿児島市平川動物公園",
+   "verdict": "bad",
+   "title": "アジアゾウの誕生日会を実施します - 平川動物公園公式サイト",
+   "zoo_id": "a021caf6-3d74-4396-9a90-af25cc67479e",
+   "species": "ゾウ",
+   "published_at": "2026-10-27T06:13:54+00:00",
+   "source_kind": "site"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国で世界最小のシカ「プーズー」の赤ちゃんが誕生 公開は10月30日から - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-28T06:07:34+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国「熱帯の森」にプーズーの赤ちゃん誕生、10月30日に公開の写真（2） - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-29T06:24:41+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "神戸どうぶつ王国「熱帯の森」にプーズーの赤ちゃん誕生、10月30日に公開の写真（1） - emogram",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-28T07:48:39+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 神戸どうぶつ王国で公開（朝日新聞） - Yahoo!ニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T08:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 神戸どうぶつ王国で公開 [兵庫県] - 朝日新聞",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T08:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生　神戸どうぶつ王国で公開 - ｄメニューニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T08:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 小さな足でヨチヨチ…神戸どうぶつ王国で一般公開始まる - TBS NEWS DIG",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T03:11:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 小さな足でヨチヨチ…神戸どうぶつ王国で一般公開始まる - TBS NEWS DIG",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T03:11:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生　小さな足でヨチヨチ…神戸どうぶつ王国で一般公開始まる - ｄメニューニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T03:11:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 小さな足でヨチヨチ…神戸どうぶつ王国で一般公開始まる - Yahoo!ニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T03:08:39+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 神戸どうぶつ王国で公開 (朝日新聞) - Yahoo!ニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T08:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生　神戸どうぶつ王国で公開 - ｄメニューニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T08:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 小さな足でヨチヨチ…神戸どうぶつ王国で一般公開始まる - TBS NEWS DIG",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T03:11:16+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 生後1カ月で体重倍に 神戸どうぶつ王国／兵庫県（サンテレビ） - Yahoo!ニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-11-02T03:03:58+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 生後1カ月で体重倍に 神戸どうぶつ王国／兵庫県 (サンテレビ) - Yahoo!ニュース",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-11-02T03:03:58+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "b5d9945d",
+   "zoo": "神戸どうぶつ王国",
+   "verdict": "real",
+   "title": "世界最小のシカ「プーズー」の赤ちゃん誕生 神戸どうぶつ王国で公開 [兵庫県] - 朝日新聞",
+   "zoo_id": "08cff3eb-7c6f-4ee9-a816-34ee52f3ace6",
+   "species": "プーズー",
+   "published_at": "2026-10-30T08:30:00+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "4bc8dcd3",
+   "zoo": "アドベンチャーワールド",
+   "verdict": "real",
+   "title": "アドベンチャーワールドで10月28日に誕生したキタイワトビペンギン（写真提供＝アドベンチャーワールド、2026年10月28日撮影） - 和歌山経済新聞",
+   "zoo_id": null,
+   "species": "ペンギン",
+   "published_at": "2026-10-30T14:11:54+00:00",
+   "source_kind": "googlenews"
+  },
+  {
+   "baby": "7cc75199",
+   "zoo": "天王寺動物園",
+   "verdict": "bad",
+   "title": "【事前申込（抽選）制】 有料イベント「ホッキョクグマ誕生日イベント」を実施します",
+   "zoo_id": "431f4f43-b6a2-49ed-85b9-65ba9820cac0",
+   "species": "ホッキョクグマ",
+   "published_at": "2026-11-02T05:00:33+00:00",
+   "source_kind": "site"
+  }
+ ]
+}

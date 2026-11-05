@@ -1,6 +1,7 @@
 // worker/src/index.ts
 import { parseDateToISODateOnly, inferBirthdayFromTitle, hasBirthContext } from './birthday';
 import { extractSpeciesAlias } from './species';
+import { buildZooMatcher, isNonBirthStory, otherFacilityReason, type ZooMatcher } from './create_guard';
 import { extractSiteDate } from './sitedate';
 import { NULL_BDAY_DEDUP_DAYS, addToZooSpeciesIndex, findRecentByZooSpecies, isTrustedBirthSource, zooSpeciesKey, type ZooSpeciesIndex } from './resolve_dedup';
 // Baby Animals - Crawler/Resolver Worker
@@ -397,6 +398,7 @@ function isUnnamedBaby(name: string | null | undefined): boolean {
 type ZooIndex = {
   byHost: Map<string, string>; // hostname -> zoo_id
   names: Array<{ id: string; variants: string[] }>;
+  matcher: ZooMatcher; // 2026-11-05: 他園記事の混入判定（create_guard）
 };
 
 function stripParensAll(s: string) {
@@ -435,7 +437,8 @@ async function loadZooIndex(env: Env): Promise<ZooIndex> {
     if (h && z.id) byHost.set(h, z.id); // 公式サイトのドメインもヒントに
     if (z?.name && z?.id) names.push({ id: z.id, variants: buildZooNameVariants(z.name) });
   }
-  return { byHost, names };
+  const matcher = buildZooMatcher(((zoos as any[]) || []).filter(z => z?.id && z?.name).map(z => ({ id: z.id, name: z.name })));
+  return { byHost, names, matcher };
 }
 
 function guessZooIdFromTitle(title: string, index: ZooIndex): string | null {
@@ -983,6 +986,18 @@ async function resolveBabyEntitiesJob(env: Env) {
   for (const ev of events) {
     processed++;
     processedIds.push(ev.id);
+
+    // 2026-11-05 総点検: 出生ではない「誕生」（誕生日会・施設の誕生 等）と、園紐付きソースに混入した
+    //   他園・海外・水族館の記事は、作成もリンクもしない（既存個体に別園の記事が紐付く誤リンクも防ぐ）。
+    if (isNonBirthStory(ev.title)) {
+      console.info('[resolve] non-birth story (birthday event / facility etc.), skip:', ev.title?.slice(0, 60));
+      continue;
+    }
+    const otherReason = otherFacilityReason(ev.title, ev.zoo_id, zooIndex.matcher);
+    if (otherReason) {
+      console.info('[resolve] other-facility story, skip:', otherReason, ev.title?.slice(0, 60));
+      continue;
+    }
 
     const bday = inferBirthday(ev);
 

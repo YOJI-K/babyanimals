@@ -31,3 +31,15 @@ test('hasBirthContext: 誕生動詞を検出', () => {
   assert.equal(hasBirthContext('動物の赤ちゃんに会いに行こう'), false);
   assert.equal(hasBirthContext('赤ちゃんが話題'), false);
 });
+
+// --- 2026-11-05 総点検: 写真キャプションの「撮影日」を誕生日と誤読しない ---
+test('撮影日を誕生日として採用しない（本文の実誕生日を採る）', () => {
+  assert.equal(
+    inferBirthdayFromTitle('アドベンチャーワールド5月29日に誕生したコガタペンギン（2026年8月3日撮影） - 和歌山経済新聞', '2026-08-10T00:00:00Z'),
+    '2026-05-29',
+  );
+  assert.equal(
+    inferBirthdayFromTitle('4月に生まれたツシマヤマネコの赤ちゃん（6月5日撮影、福岡市動物園提供）', '2026-06-24T00:00:00Z'),
+    null,
+  );
+});
