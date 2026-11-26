@@ -167,6 +167,10 @@ const ZOO_AFFILIATE_MAP = {
     BABIES = (data||[]).map(x => ({ ...x, zoo_name:'' }));
   }
 
+  function normalizeMedia(){
+    if (window.DBBTile) window.DBBTile.normalizeAll(BABIES);
+  }
+
   async function enrichDisplayStatus(){
     try{
       const rows = await fetchJSON('/rest/v1/babies?select=id,display_status&limit=2000');
@@ -269,6 +273,8 @@ const ZOO_AFFILIATE_MAP = {
         if (ad !== bd) return asc ? ad - bd : bd - ad;
         return asc ? (a.id > b.id ? 1 : -1) : (a.id < b.id ? 1 : -1);
       });
+      // 新しい順のときだけ：生後4か月以内は写真ありを先に（A-2）
+      if (!asc && window.DBBTile) data = window.DBBTile.sortPhotoFirst(data);
     }
     return data;
   }
@@ -337,9 +343,12 @@ const ZOO_AFFILIATE_MAP = {
 
     document.title = zoo ? `${zoo}の${species}赤ちゃん「${name}」公開情報・誕生日｜どうベビ` : `${species}赤ちゃん「${name}」公開情報・誕生日｜どうベビ`;
 
+    if (window.DBBTile) window.DBBTile.normalize(b);
     const thumb = b.thumbnail_url
       ? `<img class="ssg-detail__img" src="${escHtml(b.thumbnail_url)}" alt="${escHtml(name)}" loading="eager" decoding="async">`
-      : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`;
+      : (window.DBBTile
+        ? window.DBBTile.heroHtml(b)
+        : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`);
 
     const zooData = ZOO_AFFILIATE_MAP[zoo] || {};
     let zooBtn = '';
@@ -404,6 +413,7 @@ const ZOO_AFFILIATE_MAP = {
 
       await Promise.all([loadSlugMap(), loadZoos()]);
       await loadBabies();
+      normalizeMedia();
       await enrichDisplayStatus();
 
       PAGE = 1;

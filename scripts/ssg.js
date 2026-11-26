@@ -21,6 +21,30 @@ import { ZOOS, groupByPrefecture, toAffiliateMap } from './zoos-data.js';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 
+// 画像なし赤ちゃんの動物タイル／公式投稿判定（ブラウザと共通の web/assets/js/baby-tile.js を読み込む）
+import vm from 'vm';
+const DBBTile = (() => {
+  const ctx = {};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../web/assets/js/baby-tile.js'), 'utf-8'), { self: ctx });
+  return ctx.DBBTile;
+})();
+
+/** 一覧カード（.dbb-bc__img）用：タイルを敷き、写真があれば上に重ねる */
+function cardThumbParts(b, alt) {
+  const img = b.thumbnail_url
+    ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(alt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove();">`
+    : '';
+  return { thumb: DBBTile.tileHtml(b, 'card') + img, thumbCls: 'dbb-bc__img has-tile' };
+}
+
+/** 行カード（.dbb-brow__thumb）用 */
+function rowThumbHtml(b, alt) {
+  const img = b.thumbnail_url
+    ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(alt)}" loading="lazy" decoding="async" data-allow-big referrerpolicy="no-referrer" onerror="this.remove();">`
+    : '';
+  return `<div class="dbb-brow__thumb has-tile">${DBBTile.tileHtml(b, 'row')}${img}</div>`;
+}
+
 // 本番ディレクトリ web/ へ書き込むのは、環境変数 SSG_WRITE_PROD=1 が明示されたときだけ。
 // GitHub Actions のワークフローがこれを設定する。それ以外（ローカル・サンドボックス）は
 // web-local/ に書き出し、本番ファイルには一切触れない。
@@ -40,7 +64,7 @@ console.log(SSG_WRITE_PROD
 // 内容が変わった時だけハッシュが変わる＝無駄な差分を出さず必要時のみ更新。
 const ASSET_VER = (() => {
   try {
-    const files = ['app.js', 'babies.js', 'news.js', 'analytics.js', 'favorites.js']
+    const files = ['app.js', 'babies.js', 'news.js', 'analytics.js', 'favorites.js', 'baby-tile.js']
       .map(f => path.join(__dirname, '../web/assets/js', f))
       .concat([path.join(__dirname, '../web/assets/css/style.css')]);
     const h = crypto.createHash('sha1');
@@ -375,6 +399,7 @@ function siteFooter() {
         data-cf-beacon='{"token":"5b85d28b47c74f79b6ad1c1f19c0a758"}'></script>
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script>document.addEventListener('DOMContentLoaded',function(){if(window.twemoji)twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'});});</script>
+<script defer src="/assets/js/baby-tile.js"></script>
 <script defer src="/assets/js/favorites.js"></script>
 <script defer src="/assets/js/search.js"></script>`;
 }
@@ -936,7 +961,7 @@ function babyHtml(b, slug, allBabies, slugMap, babyNews) {
 
   const thumbHtml = b.thumbnail_url
     ? `<img class="ssg-detail__img" src="${esc(b.thumbnail_url)}" alt="${esc(name)}（${esc(species)}）" loading="eager" decoding="async" data-allow-big referrerpolicy="no-referrer">`
-    : `<div class="ssg-detail__img ssg-detail__img--placeholder" role="img" aria-label="写真なし">🐾</div>`;
+    : DBBTile.heroHtml(b);
 
   // 同じ動物園の赤ちゃん（最大6件）
   const sameZoo = (allBabies || [])
@@ -1193,6 +1218,8 @@ ${siteNav('/babies/')}
     </div>
   </article>
 
+  ${b.thumbnail_url ? '' : DBBTile.officialEmbedHtml(b, zoo)}
+
   ${sameZooHtml}
   ${sameSpeciesHtml}
 
@@ -1339,10 +1366,7 @@ function zooBabyCardHtml(b, slugMap = null) {
   const date     = fmtBirthdayYMD(b.birthday);
   const slug     = slugMap?.get(b.id) || b.id;
   const href     = `/babies/${slug}/`;
-  const thumb    = b.thumbnail_url
-    ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
-    : '';
-  const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
+  const { thumb, thumbCls } = cardThumbParts(b, displayBabyName(b));
 
   return `<div class="baby-card baby-card--v2">
     <a class="dbb-bc" role="listitem" href="${href}" aria-label="${esc(name)}（${esc(species)}、${esc(zoo)}）の詳細">
@@ -1762,7 +1786,7 @@ ${siteFooter()}
  * 通常ユーザーはJS（babies.js）が最新データで上書きするため動的体験は維持される
  */
 function babiesIndexHtml(babies, slugMap = null) {
-  const preview = babies.slice(0, 48);
+  const preview = DBBTile.sortPhotoFirst(babies).slice(0, 48);
   const total   = babies.length;
 
   const title    = `赤ちゃん一覧（全${total}頭）| どうベビ`;
@@ -1785,10 +1809,7 @@ function babiesIndexHtml(babies, slugMap = null) {
     const a       = calcAgeYears(b.birthday);
     const date    = fmtBirthdayYMD(b.birthday);
     const bSlug   = slugMap?.get(b.id) || b.id;
-    const thumb = b.thumbnail_url
-      ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
-      : '';
-    const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
+    const { thumb, thumbCls } = cardThumbParts(b, displayBabyName(b));
     return `<div class="baby-card baby-card--v2">
         <a class="dbb-bc" role="listitem" href="/babies/${esc(bSlug)}/" aria-label="${esc(name)}（${esc(species)}、${esc(zoo)}）の詳細">
           <div class="${thumbCls}">${thumb}${a != null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
@@ -2167,7 +2188,7 @@ const REGIONS = [
 
 // 最近生まれた赤ちゃん 新着枠（PROP-20260608-03 ① インデックス促進：ハブから新規ページへ到達性を確保）
 function recentBabiesSection(babies, slugMap, n = 8) {
-  const recent = [...babies].filter(b => b.birthday).sort((a, b) => b.birthday.localeCompare(a.birthday)).slice(0, n);
+  const recent = DBBTile.sortPhotoFirst([...babies].filter(b => b.birthday).sort((a, b) => b.birthday.localeCompare(a.birthday))).slice(0, n);
   if (!recent.length) return '';
   const cards = recent.map(b => zooBabyCardHtml(b, slugMap)).join('');
   return `<section style="margin:1.5rem 0;">
@@ -4431,10 +4452,7 @@ function heroBirthdayHtml(babies, slugMap) {
     const href = `/babies/${slug}/`;
     const a    = ageOn(b.birthday, ref);
     const date = fmtBirthdayYMD(b.birthday);
-    const thumb = b.thumbnail_url
-      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
-      : '';
-    const thumbCls = b.thumbnail_url ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
+    const { thumb, thumbCls } = cardThumbParts(b, displayBabyName(b));
     return `<a class="dbb-bc" role="listitem" href="${href}" aria-label="${name}（${sp}）">
   <div class="${thumbCls}">${thumb}${a != null ? `<div class="dbb-bc__age">${a}歳</div>` : ''}</div>
   <div class="dbb-bc__body">
@@ -4455,10 +4473,11 @@ function patchIndexHtml(babies, newsItems, slugMap) {
   let html = fs.readFileSync(indexPath, 'utf-8');
 
   // 新着の赤ちゃん（誕生日降順 上位6件）
-  const recentBabies = [...babies]
+  const recentSorted = [...babies]
     .filter(b => b.birthday)
-    .sort((a, b) => b.birthday.localeCompare(a.birthday))
-    .slice(0, 6);
+    .sort((a, b) => b.birthday.localeCompare(a.birthday));
+  // 生後4か月以内は写真ありを先に（A-2）
+  const recentBabies = DBBTile.sortPhotoFirst(recentSorted).slice(0, 6);
 
   const recentHtml = recentBabies.map(b => {
     const name    = esc(displayBabyName(b));
@@ -4467,13 +4486,9 @@ function patchIndexHtml(babies, newsItems, slugMap) {
     const zoo     = esc(b.zoo_name || '');
     const slug    = slugMap?.get(b.id) || b.id;
     const href    = `/babies/${slug}/`;
-    const emoji   = pickEmoji(b.species);
-    const thumb   = b.thumbnail_url
-      ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('is-placeholder');this.parentNode.textContent='${emoji}';">`
-      : emoji;
-    const ago     = agoLabel(b.birthday);
+        const ago     = agoLabel(b.birthday);
     return `<a class="dbb-brow" href="${href}" role="listitem">
-  <div class="dbb-brow__thumb">${thumb}</div>
+  ${rowThumbHtml(b, displayBabyName(b))}
   <div class="dbb-brow__info">
     <div class="dbb-brow__name">${heading}</div>
     <div class="dbb-brow__species">${species}</div>
@@ -4633,14 +4648,10 @@ function patchCalendarHtml(babies, slugMap) {
         const slug    = slugMap?.get(b.id) || b.id;
         const href    = `/babies/${slug}/`;
         const age     = Y - new Date(b.birthday).getFullYear();
-        const hasImg  = !!b.thumbnail_url;
-        const thumb   = hasImg
-          ? `<img src="${esc(b.thumbnail_url)}" alt="${name}" loading="lazy" decoding="async" data-allow-big referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('is-placeholder'); this.parentNode.textContent='🐾';">`
-          : '🐾';
-        const bday    = fmtMD(b.birthday);
+                const bday    = fmtMD(b.birthday);
         const badge   = displayStatusBadge(b.display_status);
         return `<a class="dbb-brow" role="listitem" href="${href}" aria-label="${name}（${species}）">
-  <div class="dbb-brow__thumb${hasImg ? '' : ' is-placeholder'}">${thumb}</div>
+  ${rowThumbHtml(b, displayBabyName(b))}
   <div class="dbb-brow__info">
     <div class="dbb-brow__name">${heading}</div>
     <div class="dbb-brow__species">${species}</div>
@@ -4744,6 +4755,9 @@ async function fetchBabies() {
       { id: 'demo-baby-001', name: 'レオ',   species: 'ライオン',    birthday: '2024-03-15', zoo_name: 'サンプル動物園', prefecture: '東京都', thumbnail_url: null },
       { id: 'demo-baby-002', name: 'パンちゃん', species: 'ジャイアントパンダ', birthday: '2023-09-01', zoo_name: 'サンプル動物園', thumbnail_url: null },
       { id: 'demo-baby-003', name: 'ぺんた', species: 'ペンギン',    birthday: '2025-01-10', zoo_name: 'デモ水族館', prefecture: '大阪府',    thumbnail_url: null },
+      { id: 'demo-baby-004', name: 'もみじ', species: 'レッサーパンダ', birthday: '2026-09-20', zoo_name: 'サンプル動物園', prefecture: '東京都', thumbnail_url: 'https://x.com/example_zoo/status/1850000000000000000' },
+      { id: 'demo-baby-005', name: 'ナギ', species: 'チーター', birthday: '2026-10-01', zoo_name: 'デモ水族館', prefecture: '大阪府', thumbnail_url: 'https://www.instagram.com/p/DEMO12345/' },
+      { id: 'demo-baby-006', name: 'ソラ', species: 'キリン', birthday: '2026-08-15', zoo_name: 'サンプル動物園', prefecture: '東京都', thumbnail_url: '/assets/img/og.png' },
     ];
   }
   try {
@@ -4994,6 +5008,7 @@ async function main() {
 
   try {
     babies = await fetchBabies();
+    DBBTile.normalizeAll(babies);
   } catch (e) {
     console.error(`   ❌ 赤ちゃんデータ取得失敗: ${e.message}`);
   }

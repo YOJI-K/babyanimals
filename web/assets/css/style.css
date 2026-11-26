@@ -2848,3 +2848,92 @@ body.theme{ background: var(--bg); }
   .dbb-nlist{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   #recent-list.dbb-brow-list, #recent-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; }
 }
+
+/* ================================================================== */
+/* 画像なし赤ちゃん：動物タイル（baby-tile.js）＋公式投稿の埋め込み    */
+/* ================================================================== */
+.ph-tile{
+  --ph-bg:#ECE4F7; --ph-fg:#57398C;
+  position:absolute; inset:0; z-index:0;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; background:var(--ph-bg);
+  container-type:size; pointer-events:none;
+}
+.ph-tile--cat    { --ph-bg:#FCE7CF; --ph-fg:#8F450B; }
+.ph-tile--hoof   { --ph-bg:#E4F0D9; --ph-fg:#3D6320; }
+.ph-tile--primate{ --ph-bg:#FADFE4; --ph-fg:#962A45; }
+.ph-tile--bird   { --ph-bg:#DCEBF8; --ph-fg:#1F5A8A; }
+.ph-tile--sea    { --ph-bg:#D5F0EC; --ph-fg:#0E5F58; }
+.ph-tile--reptile{ --ph-bg:#EEF0D2; --ph-fg:#5A5A12; }
+.ph-tile--other  { --ph-bg:#ECE4F7; --ph-fg:#57398C; }
+
+.ph-tile__wm{
+  position:absolute; right:-6%; bottom:-16%;
+  font-size:58cqmin; line-height:1; opacity:.14;
+}
+.ph-tile__icon{
+  width:58cqmin; height:58cqmin; border-radius:50%;
+  background:rgba(255,255,255,.7);
+  display:flex; align-items:center; justify-content:center;
+  font-size:32cqmin; line-height:1;
+}
+.ph-tile--row .ph-tile__icon{ width:auto; height:auto; background:none; font-size:56cqmin; }
+.ph-tile__label{
+  position:absolute; left:8px; bottom:8px;
+  font-size:10px; font-weight:700; line-height:1.5; color:var(--ph-fg);
+  background:rgba(255,255,255,.85); padding:1px 7px; border-radius:9px;
+}
+.ph-tile__chip{
+  position:absolute; right:8px; bottom:8px;
+  display:flex; align-items:center; gap:3px;
+  font-size:10px; font-weight:700; line-height:1.5; color:#fff;
+  background:rgba(20,40,28,.8); padding:1px 7px; border-radius:9px;
+}
+/* 絵文字(twemoji)・SVG はタイルの文字サイズに合わせる（.card 内の 40px ガードも解除） */
+.ph-tile img.emoji,
+.ph-tile .ph-tile__img,
+.card .ph-tile img.emoji,
+.card .ph-tile .ph-tile__img{
+  width:1em; height:1em; max-height:none; margin:0; vertical-align:0; font-size:inherit;
+}
+
+/* タイルを敷いた枠：旧🐾(::after)を消し、写真はタイルの上に重ねる */
+.has-tile{ position:relative; }
+.has-tile::after{ content:none !important; }
+.has-tile > img{ position:relative; z-index:1; }
+.baby-card--v2 .has-tile > img{ position:absolute; }
+.dbb-bc__age{ z-index:2; }
+.dbb-brow__thumb.has-tile{ background:none; }
+
+/* 詳細ページのヒーロー */
+.ssg-detail .ph-hero{ position:relative; padding:0; font-size:0; }
+.ph-hero__btn{
+  position:absolute; left:50%; bottom:14px; transform:translateX(-50%); z-index:2;
+  display:flex; align-items:center; gap:6px; white-space:nowrap;
+  font-size:13px; font-weight:700; color:#fff; text-decoration:none;
+  background:rgba(20,40,28,.85); padding:10px 16px; border-radius:999px;
+}
+.ph-hero__btn svg{ width:14px; height:14px; }
+
+/* 公式の写真・動画 */
+.official-post{ margin:20px 16px 8px; }
+.official-post__embed blockquote a{ color:#2D5A3D; font-weight:700; }
+.official-post__head{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 12px; margin-bottom:10px; }
+.official-post__title{ margin:0; font-size:17px; font-weight:700; }
+.official-post__src{ font-size:12px; color:#6b6b6b; }
+.official-post__embed{ display:flex; justify-content:center; min-height:120px; }
+.official-post__embed .twitter-tweet,
+.official-post__embed .instagram-media{ margin:0 auto !important; max-width:100%; }
+.official-post__embed blockquote{
+  margin:0; padding:16px; border:1px solid var(--border); border-radius:14px; background:#fff; width:100%; box-sizing:border-box;
+}
+.official-post__note{ margin:8px 0 0; font-size:11px; color:#6b6b6b; line-height:1.6; }
+.ph-hero__a11y{ position:absolute; inset:0; }
+/* カード内 img の全面表示ルール（.baby-card--v2 .dbb-bc__img img 等）がタイル内のアイコンに効かないように */
+.dbb-bc__img .ph-tile img,
+.dbb-brow__thumb .ph-tile img,
+.ssg-detail .ph-tile img{
+  position:static !important; inset:auto !important;
+  width:1em !important; height:1em !important; max-height:none !important;
+  object-fit:contain; margin:0; display:block;
+}

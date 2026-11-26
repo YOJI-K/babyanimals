@@ -84,11 +84,13 @@ function renderBabyCard(x, opts){
   const date = fmtBirthdayYMD(x.birthday);
   const badge = statusBadgeHTML(x.display_status);
   const nb    = namingBadgeHTML(x);
+  const T = window.DBBTile;
+  if (T) T.normalize(x);
   const hasImg = !!x.thumbnail_url;
-  const thumbCls = hasImg ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder';
-  const thumb = hasImg
-    ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();">`
-    : '';
+  const thumbCls = T ? 'dbb-bc__img has-tile' : (hasImg ? 'dbb-bc__img' : 'dbb-bc__img is-placeholder');
+  const thumb = (T ? T.tileHtml(x, 'card') : '') + (hasImg
+    ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="${T ? 'this.remove();' : "this.closest('.dbb-bc__img')?.classList.add('is-placeholder'); this.remove();"}">`
+    : '');
   return `
       <a class="dbb-bc" role="listitem" href="${_esc(href)}" aria-label="${_esc(name)}（${_esc(sp)}）">
         <div class="${thumbCls}">${thumb}${favBtnHTML(x.id, sp)}${age!=null ? `<div class="dbb-bc__age">${age}歳</div>` : ''}</div>
@@ -115,13 +117,17 @@ function renderBabyRow(x, opts){
   const date = fmtBirthdayYMD(x.birthday);
   const badge = statusBadgeHTML(x.display_status);
   const nb    = namingBadgeHTML(x);
+  const T = window.DBBTile;
+  if (T) T.normalize(x);
   const hasImg = !!x.thumbnail_url;
-  const thumb = hasImg
-    ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" data-allow-big referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('is-placeholder'); this.parentNode.textContent='🐾';">`
-    : '🐾';
+  const thumb = T
+    ? T.tileHtml(x, 'row') + (hasImg ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" data-allow-big referrerpolicy="no-referrer" onerror="this.remove();">` : '')
+    : (hasImg
+      ? `<img src="${_esc(x.thumbnail_url)}" alt="${_esc(name)}" loading="lazy" decoding="async" data-allow-big referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('is-placeholder'); this.parentNode.textContent='🐾';">`
+      : '🐾');
   return `
       <a class="dbb-brow" role="listitem" href="${_esc(href)}" aria-label="${_esc(name)}（${_esc(sp)}）">
-        <div class="dbb-brow__thumb${hasImg ? '' : ' is-placeholder'}">${thumb}</div>
+        <div class="dbb-brow__thumb${T ? ' has-tile' : (hasImg ? '' : ' is-placeholder')}">${thumb}</div>
         <div class="dbb-brow__info">
           <div class="dbb-brow__name">${_esc(babyCardHeading(x))}</div>
           <div class="dbb-brow__species">${_esc(sp)}</div>
@@ -883,14 +889,14 @@ async function fetchJSON(path){
     try {
       rows = await sbGet(
         '/rest/v1/babies_public?select=id,name,species,birthday,thumbnail_url,zoo_name' +
-        '&order=birthday.desc.nullslast,id.desc&limit=3'
+        '&order=birthday.desc.nullslast,id.desc&limit=30'
       );
     } catch (_) {
       // 2) フォールバック: babies + zoo embed
       try {
         const raw = await sbGet(
           '/rest/v1/babies?select=id,name,species,birthday,thumbnail_url,zoo:zoos(name)' +
-          '&order=birthday.desc.nullslast,id.desc&limit=3'
+          '&order=birthday.desc.nullslast,id.desc&limit=30'
         );
         rows = (raw || []).map(x => ({ ...x, zoo_name: x.zoo?.name || '' }));
       } catch (e2) {
@@ -900,6 +906,12 @@ async function fetchJSON(path){
 
     $list.innerHTML = '';
     if (!rows || !rows.length) return;
+    // 生後4か月以内は写真ありを先に（A-2）→ 上位3件
+    if (window.DBBTile) {
+      window.DBBTile.normalizeAll(rows);
+      rows = window.DBBTile.sortPhotoFirst(rows);
+    }
+    rows = rows.slice(0, 3);
 
     // 経過日数を "N日前 / N週間前 / N月前" 表記に
     const agoLabel = iso => {
@@ -918,10 +930,14 @@ async function fetchJSON(path){
       const name = displayBabyName(b);
       const zoo  = b.zoo_name || '';
       const href = babyHref(b.id);
+      const T = window.DBBTile;
+      if (T) T.normalize(b);
       const emoji = pickE(b);
-      const thumbHtml = b.thumbnail_url
-        ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.textContent='${emoji}'">`
-        : emoji;
+      const thumbHtml = T
+        ? T.tileHtml(b, 'row') + (b.thumbnail_url ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove();">` : '')
+        : (b.thumbnail_url
+          ? `<img src="${esc(b.thumbnail_url)}" alt="${esc(name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.textContent='${emoji}'">`
+          : emoji);
       const badge = agoLabel(b.birthday);
 
       const a = document.createElement('a');
@@ -929,7 +945,7 @@ async function fetchJSON(path){
       a.href = href;
       a.setAttribute('role', 'listitem');
       a.innerHTML = `
-        <div class="dbb-brow__thumb">${thumbHtml}</div>
+        <div class="dbb-brow__thumb${window.DBBTile ? ' has-tile' : ''}">${thumbHtml}</div>
         <div class="dbb-brow__info">
           <div class="dbb-brow__name">${esc(name)}</div>
           <div class="dbb-brow__species">${esc(b.species || '不明')}</div>
